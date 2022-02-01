@@ -1,0 +1,59 @@
+<div>
+  <app-navbar [loginRegistration]="true"></app-navbar>
+  <div class="container" [appCenterBox]>
+    <app-center-header *ngIf="!registeredNeedsConfirmation" [text]="'Create an Account'"></app-center-header>
+    <app-center-header *ngIf="registeredNeedsConfirmation" [text]="'Registered Successfully'"></app-center-header>
+    <div class="row card ul-white-background shadow w-50 px-3 py-3">
+      <div *ngIf="!registeredNeedsConfirmation">
+        <form [formGroup]="form">
+          <div class="form-group">
+            <label>E-mail Address:</label>
+            <input name="email" type="email" class="form-control" formControlName="email" [appTooltip]="registerTooltip">
+            <div *ngIf="form.get('email').errors?.['required']" class="invalid-feedback">
+              E-mail address is required
+            </div>
+            <div *ngIf="form.get('email').errors?.['invalidEmail']" class="invalid-feedback">
+              The e-mail address needs to be a UL e-mail address
+            </div>
+            <div *ngIf="!formsValidity.email.valid" class="error-text">
+              {{formsValidity.email.message}}
+            </div>
+            <div class="form-text">
+              Enter your e-mail address (12345678@studentmail.ul.ie for students, john.doe@ul.ie for staff)
+            </div>
+          </div>
+          <div class="row">
+            <div class="col form-group">
+              <label>Password:</label>
+              <input name="password" type="password" minlength="8" class="form-control" formControlName="password">
+              <div class="form-text">
+                Enter a password of at least 8 characters
+              </div>
+            </div>
+            <div class="col form-group">
+              <label>Confirm Password:</label>
+              <input name="confirmPassword" type="password" minlength="8" class="form-control" formControlName="confirmPassword">
+              <div class="form-text">
+                Re-enter your password to confirm it
+              </div>
+            </div>
+          </div>
+          <app-alert *ngIf="error" [alertType]="'alert-danger'" [dismissible]="true" [message]="error"></app-alert>
+          <div class="text-end mt-2">
+            <a routerLink="/login">Login</a> 
+            <button type="button" (click)="register()" [disabled]="disable" class="btn btn-primary w-25" style="margin-left: 3%">Register</button>
+          </div>
+        </form>
+      </div>
+      <div *ngIf="registeredNeedsConfirmation">
+        <div class="text-center" style="color:grey">
+          <p>Thank you for creating an account with the ethics application system. Your account is now registered. To confirm that it is in fact you, an e-mail has been sent
+            to the e-mail address you used for registration. Follow the instructions in the e-mail to confirm your account. Once 
+            confirmed, you will be able to create your user profile.</p>
+          <p>Thank You,<br>The Team</p>
+          <a routerLink="/login">Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

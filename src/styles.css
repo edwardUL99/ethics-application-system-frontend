@@ -1,1 +1,20 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+This class represents the styling for UL's dark green background
+*/
+.ul-dark-green-background {
+	background-color: #005844;
+}
+
+/*
+This class represents the styling for UL's white background
+*/
+.ul-white-background {
+	background-color: white;
+}
+
+/**
+This class represents red error text 
+*/
+.error-text {
+	color: red;
+}

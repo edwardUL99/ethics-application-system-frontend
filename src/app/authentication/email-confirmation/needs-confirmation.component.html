@@ -1,0 +1,28 @@
+<div>
+  <app-navbar [loginRegistration]="true"></app-navbar>
+  <div class="container" [appCenterBox]>
+    <div class="card ul-white-background shadow w-75 px-2 py-2">
+      <div class="text-center">
+        <h4 style="color: red">Account Needs Confirmation</h4>
+      </div>
+      <div class="text-center" style="color: grey">
+        <p>You cannot sign in yet as the account is not confirmed. Check your e-mail for instructions on how you can confirm your account. If you need to resend the
+          email, click the below button
+        </p>
+      </div>
+      <div class="text-center align-items-center">
+        <button type="button" class="btn btn-primary w-25" (click)="resendConfirmation()">Resend E-mail</button>
+        <div *ngIf="message" class="w-50 my-2">
+          <app-alert [alertType]="'alert-success'" [dismissible]="true" [message]="message"></app-alert>
+        </div>
+        <div *ngIf="error" class="w-50 my-2">
+          <app-alert [alertType]="'alert-danger'" [dismissible]="true" [message]="error"></app-alert>
+        </div>
+      </div>
+      <div class="text-center" style="color: grey">
+        <p>Thank You,<br>The Team</p>
+        <a routerLink="/home">Home</a>
+      </div>
+    </div>
+  </div>  
+</div>>

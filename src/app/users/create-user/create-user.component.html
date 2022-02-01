@@ -1,0 +1,28 @@
+<div>
+  <app-navbar [loginRegistration]="true"></app-navbar>
+  <div class="container" [appCenterBox]>
+    <app-center-header [text]="'Create User Profile'"></app-center-header>
+    <div class="card ul-white-background shadow w-50 px-3 py-3">
+      <form [formGroup]="form">
+        <div class="form-group">
+          <label>Name:</label>
+          <input name="name" type="text" class="form-control" formControlName="name">
+          <div class="form-text">
+            Enter your full name
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Department:</label>
+          <input name="department" type="text" class="form-control" formControlName="department">
+          <div class="form-text">
+            The department where you are based in, for example, Computer Science and Information Systems
+          </div>
+        </div>
+        <app-alert *ngIf="error" [alertType]="'alert-danger'" [dismissible]="true" [message]="error"></app-alert>
+        <div class="text-end">
+          <button type="button" (click)="create()" class="btn btn-primary w-25" style="margin-left: 3%">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
