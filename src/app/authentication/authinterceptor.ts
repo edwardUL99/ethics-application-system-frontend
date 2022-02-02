@@ -3,7 +3,6 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 
 import { JWTStore } from './jwtstore';
-import { e } from '@angular/core/src/render3';
 
 /**
  * URLs that don't need authentication

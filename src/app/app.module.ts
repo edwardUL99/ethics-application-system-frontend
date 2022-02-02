@@ -22,6 +22,7 @@ import { CenterBoxDirective } from './center-box.directive';
 import { CenterHeaderComponent } from './center-header/center-header.component';
 import { CreateUserComponent } from './users/create-user/create-user.component';
 import { UserRedirectComponent } from './users/user-redirect/user-redirect.component';
+import { FieldErrorComponent } from './field-error/field-error.component';
 
 
 @NgModule({
@@ -39,7 +40,8 @@ import { UserRedirectComponent } from './users/user-redirect/user-redirect.compo
     CenterBoxDirective,
     CenterHeaderComponent,
     CreateUserComponent,
-    UserRedirectComponent
+    UserRedirectComponent,
+    FieldErrorComponent
   ],
   imports: [
     BrowserModule,

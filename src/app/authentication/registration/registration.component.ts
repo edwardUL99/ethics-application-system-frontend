@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors, AbstractControlOptions } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { _throw as throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -10,10 +10,35 @@ import { RegistrationRequest } from '../registrationrequest';
 import { environment } from '../../../environments/environment';
 import { AccountResponse } from '../accountresponse';
 
+/**
+ * TODO add validation to login and create user in the templates as well like you did here and then look into testing. Do git commit --amend when done adding validations and tests
+ */
+
+/*
+CUSTOM VALIDATORS
+*/
+
 function EmailValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const allowed = !environment.requireULEmail || control.value.includes('ul.ie');
     return allowed ? null : {invalidEmail: control.value};
+  }
+}
+
+function PasswordConfirmValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (password.valid && confirmPassword.valid) {
+      if (password.value != confirmPassword.value) {
+        return {noMatch: true};
+      } else {
+        return null;
+      }
+    } else {
+      return {noMatch: true};
+    }
   }
 }
 
@@ -31,6 +56,10 @@ export class RegistrationComponent implements OnInit {
    */
   form: FormGroup;
   /**
+   * The group of password matching fields
+   */
+  passwordGroup: FormGroup;
+  /**
    * The confirmation key passed in as query parameter if the user knows it
    */
   private confirmationKey: string = null;
@@ -46,23 +75,20 @@ export class RegistrationComponent implements OnInit {
    * A tooltip for the email input on registration
    */
   registerTooltip: string = 'Enter your UL e-mail address. Your username after registration will be the part before the @ symbol';
-  
-  disable: boolean = true;
-
-  formsValidity = {
-    email: {valid: true, message: ''},
-    password: {valid: true, message: ''},
-    confirmPassword: {valid: true, message: ''}
-  }
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute) {
+      const options: AbstractControlOptions = {validators: PasswordConfirmValidator()};
+
+      this.passwordGroup = this.fb.group({
+        password: ['', Validators.required],
+          confirmPassword: ['', Validators.required]
+        }, options);
       this.form = this.fb.group({
         email: ['', [Validators.required, Validators.email, EmailValidator()]],
-        password: ['', Validators.required],
-        confirmPassword: ['', Validators.required]
+        passwordGroup: this.passwordGroup
       });
   }
 
@@ -70,37 +96,10 @@ export class RegistrationComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.confirmationKey = params.confirmationKey;
     });
-
-    this.form.valueChanges.subscribe(() => this.testInput());
   }
   
   private handleError(error: HttpErrorResponse) {
     return throwError('Something bad happened!');
-  }
-
-  private testInput() {
-    let valid = true;
-    const email = this.form.get('email');
-
-    if (email.errors) {
-      console.log(email.errors);
-      this.formsValidity.email.valid = false;
-      valid = false;
-
-      if (email.errors['required']) {
-        this.formsValidity.email.message = 'E-mail is required';
-      } else if (email.errors['email']) {
-        this.formsValidity.email.message = 'Invalid e-mail';
-      } else if (email.errors['invalidEmail']) {
-        this.formsValidity.email.message = 'The e-mail needs to be a UL e-mail';
-      }
-    } else {
-      this.formsValidity.email.message = '';
-      this.formsValidity.email.valid = true;
-    }
-
-    console.log(this.formsValidity)
-    this.disable = !valid;
   }
 
   /**
@@ -110,6 +109,11 @@ export class RegistrationComponent implements OnInit {
     this.error = null;
 
     const data = this.form.value;
+
+    if (data.passwordGroup) {
+      data['password'] = data.passwordGroup.password;
+      data['confirmPassword'] = data.passwordGroup.confirmPassword;
+    }
 
     if (data.email && data.password && data.confirmPassword) {
       const email: string = data.email;
