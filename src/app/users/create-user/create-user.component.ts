@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { throwError as _throw } from 'rxjs';
+import { throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { JWTStore } from '../../authentication/jwtstore';
 import { getErrorMessage } from '../../utils';
@@ -38,6 +38,9 @@ export class CreateUserComponent implements OnInit {
     }
 
   ngOnInit() {
+    this.username = null;
+    this.error = null;
+
     if (this.jwtStore.isTokenValid()) {
       this.username = this.jwtStore.getUsername();
 
@@ -49,13 +52,13 @@ export class CreateUserComponent implements OnInit {
         .pipe(
           catchError(e => {
             if (e.status != 404) {
-              return _throw('Unknown Error Occurred')
+              return throwError('Unknown Error Occurred')
             } else {
-              return _throw('OK');
+              return throwError('OK');
             }
           })
         )
-        .subscribe(() => this.router.navigate['user-redirect'],
+        .subscribe(() => this.router.navigate(['user-redirect']),
         e => {
           if (e != 'OK') {
             this.error = e;
@@ -64,6 +67,14 @@ export class CreateUserComponent implements OnInit {
     } else {
       this.router.navigate(['logout']);
     }
+  }
+
+  get name() {
+    return this.form.get('name');
+  }
+
+  get department() {
+    return this.form.get('department');
   }
 
   create() {
@@ -78,9 +89,12 @@ export class CreateUserComponent implements OnInit {
       this.userService.createUpdateUser(request, false)
         .pipe(
           retry(3),
-          catchError(e => _throw(getErrorMessage(e)))
+          catchError(e => throwError(getErrorMessage(e)))
         )
-        .subscribe(() => this.router.navigate(['user-redirect']),
+        .subscribe(response => {
+          console.log(response);
+          this.router.navigate(['user-redirect'])
+        },
         e => this.error = e);
     }
   }

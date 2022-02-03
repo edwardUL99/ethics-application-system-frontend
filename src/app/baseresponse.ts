@@ -5,9 +5,9 @@ export interface BaseResponse {
     /**
      * A field containing a simple message
      */
-    message: string;
+    message?: string;
     /**
      * A field containing an error message
      */
-    error: string;
+    error?: string;
 }

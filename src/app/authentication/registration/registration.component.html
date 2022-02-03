@@ -1,5 +1,5 @@
 <div>
-  <app-navbar [loginRegistration]="true"></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <app-center-header *ngIf="!registeredNeedsConfirmation" [text]="'Create an Account'"></app-center-header>
     <app-center-header *ngIf="registeredNeedsConfirmation" [text]="'Registered Successfully'"></app-center-header>
@@ -9,9 +9,9 @@
           <div class="form-group">
             <label>E-mail Address:</label>
             <input name="email" type="email" class="form-control" formControlName="email" [appTooltip]="registerTooltip">
-            <app-field-error [condition]="form.get('email').errors?.['required'] && form.get('email').touched" [error]="'E-mail address is required'"></app-field-error>
-            <app-field-error [condition]="form.get('email').errors?.['email'] && form.get('email').touched" [error]="'Invalid E-mail address'"></app-field-error>
-            <app-field-error [condition]="form.get('email').errors?.['invalidEmail'] && form.get('email').touched" [error]="'The e-mail address needs to be a UL e-mail address'"></app-field-error>
+            <app-field-error [condition]="email.errors?.['required'] && email.touched" [error]="'E-mail address is required'"></app-field-error>
+            <app-field-error [condition]="email.errors?.['email'] && email.touched" [error]="'Invalid E-mail address'"></app-field-error>
+            <app-field-error [condition]="email.errors?.['invalidEmail'] && email.touched" [error]="'The e-mail address needs to be a UL e-mail address'"></app-field-error>
             <div class="form-text">
               Enter your e-mail address (12345678@studentmail.ul.ie for students, john.doe@ul.ie for staff)
             </div>
@@ -20,8 +20,8 @@
             <div class="col form-group">
               <label>Password:</label>
               <input name="password" type="password" minlength="8" class="form-control" formControlName="password">
-              <app-field-error [condition]="passwordGroup.get('password').errors?.['required'] && passwordGroup.get('password').touched" [error]="'Password is required'"></app-field-error>
-              <app-field-error [condition]="passwordGroup.get('password').value.length < 8 && passwordGroup.get('password').touched" [error]="'Password must have at least 8 characters'"></app-field-error>
+              <app-field-error [condition]="password.errors?.['required'] && password.touched" [error]="'Password is required'"></app-field-error>
+              <app-field-error [condition]="password.value.length < 8 && password.touched" [error]="'Password must have at least 8 characters'"></app-field-error>
               <div class="form-text">
                 Enter a password of at least 8 characters
               </div>
@@ -29,8 +29,8 @@
             <div class="col form-group">
               <label>Confirm Password:</label>
               <input name="confirmPassword" type="password" minlength="8" class="form-control" formControlName="confirmPassword">
-              <app-field-error [condition]="passwordGroup.get('confirmPassword').errors?.['required'] && passwordGroup.get('confirmPassword').touched" [error]="'Password Confirmation is required'"></app-field-error>
-              <app-field-error [condition]="passwordGroup.errors?.['noMatch'] && (passwordGroup.get('password').touched && passwordGroup.get('confirmPassword').touched)" [error]="'Passwords must match'"></app-field-error>
+              <app-field-error [condition]="confirmPassword.errors?.['required'] && confirmPassword.touched" [error]="'Password Confirmation is required'"></app-field-error>
+              <app-field-error [condition]="passwordGroup.errors?.['noMatch'] && (password.touched && confirmPassword.touched)" [error]="'Passwords must match'"></app-field-error>
               <div class="form-text">
                 Re-enter your password to confirm it
               </div>

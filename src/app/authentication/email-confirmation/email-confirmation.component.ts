@@ -64,6 +64,11 @@ export class EmailConfirmationComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.email = null;
+    this.token = null;
+    this.initError = null;
+    this.confirmError = null;
+
     this.route.queryParams.subscribe(params => {
       if (params.email) {
         this.email = params.email;
@@ -73,7 +78,7 @@ export class EmailConfirmationComponent implements OnInit {
         this.token = params.token;
       }
 
-      this.useForm = this.email == null || this.token == null;
+      this.useForm = !this.email || !this.token;
       const allInfo = this.email != '' && this.token != '';
 
       if (this.email) {

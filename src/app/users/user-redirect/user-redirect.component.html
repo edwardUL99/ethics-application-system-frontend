@@ -1,0 +1,10 @@
+<div *ngIf="error">
+    <app-navbar></app-navbar>
+    <div class="container" [appCenterBox]>
+        <div class="row card ul-white-background shadow w-50 px-3 py-3 align-items-center justify-content-center">
+            <h4 class="error-text">Error</h4>
+            <p>An error occurred when redirecting. Reload the page to try again or logout and login again</p>
+            <a routerLink="logout">Logout</a>
+        </div>
+    </div>
+</div>>

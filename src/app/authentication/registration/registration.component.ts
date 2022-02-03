@@ -9,21 +9,12 @@ import { AuthService } from '../auth.service';
 import { RegistrationRequest } from '../registrationrequest';
 import { environment } from '../../../environments/environment';
 import { AccountResponse } from '../accountresponse';
-
-/**
- * TODO add validation to login and create user in the templates as well like you did here and then look into testing. Do git commit --amend when done adding validations and tests
- */
+import { getErrorMessage } from '../../utils';
+import { EmailValidator } from '../../validators';
 
 /*
 CUSTOM VALIDATORS
 */
-
-function EmailValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const allowed = !environment.requireULEmail || control.value.includes('ul.ie');
-    return allowed ? null : {invalidEmail: control.value};
-  }
-}
 
 function PasswordConfirmValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -62,7 +53,7 @@ export class RegistrationComponent implements OnInit {
   /**
    * The confirmation key passed in as query parameter if the user knows it
    */
-  private confirmationKey: string = null;
+  confirmationKey: string = null;
   /**
    * If this is true, registration is successful, but the user needs to confirm the account
    */
@@ -99,7 +90,19 @@ export class RegistrationComponent implements OnInit {
   }
   
   private handleError(error: HttpErrorResponse) {
-    return throwError('Something bad happened!');
+    return throwError(getErrorMessage(error));
+  }
+
+  get email() {
+    return this.form.get('email');
+  }
+
+  get password() {
+    return this.passwordGroup.get('password');
+  }
+
+  get confirmPassword() {
+    return this.passwordGroup.get('confirmPassword');
   }
 
   /**

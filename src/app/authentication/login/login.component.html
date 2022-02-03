@@ -1,5 +1,5 @@
 <div>
-  <app-navbar [loginRegistration]="true"></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <app-center-header [text]="'Login'"></app-center-header>
     <div class="card ul-white-background shadow w-50 px-3 py-3">
@@ -7,6 +7,8 @@
         <div class="form-group">
           <label>Username:</label>
           <input name="username" type="text" class="form-control" formControlName="username" [appTooltip]="loginTooltip">
+          <app-field-error [condition]="username.errors?.['required'] && username.touched" [error]="'Username is required'"></app-field-error>
+          <app-field-error [condition]="username.errors?.['username'] && username.touched" [error]="username.errors?.['username']"></app-field-error>
           <div class="form-text">
             Enter your username (12345678 for students, john.doe for staff)
           </div>
@@ -14,6 +16,8 @@
         <div class="form-group">
           <label>Password:</label>
           <input name="password" type="password" minlength="8" class="form-control" formControlName="password">
+          <app-field-error [condition]="password.errors?.['required'] && password.touched" [error]="'Password is required'"></app-field-error>
+          <app-field-error [condition]="password.value.length < 8 && password.touched && !password.errors?.['required']" [error]="'Password must be at least 8 characters'"></app-field-error>
           <div class="form-text">
             The password you registered for your account with
           </div>

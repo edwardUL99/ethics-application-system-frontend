@@ -1,5 +1,5 @@
 <div>
-  <app-navbar [loginRegistration]="true"></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <app-alert *ngIf="initError" [alertType]="'alert-danger'" [message]="initError"></app-alert>
     <app-center-header *ngIf="!initError" [text]="'Confirm Account'"></app-center-header>

@@ -109,7 +109,7 @@ export class UserService {
       permissions.push(new Permission(permissionResponse.id, permissionResponse.name, permissionResponse.description));
     }
 
-    role = new Role(response.role.id, response.role.name, response.role.error, permissions, response.role.singleUser);
+    role = new Role(response.role.id, response.role.name, response.role.description, permissions, response.role.singleUser);
 
     this.authService.getAccount(response.username, false)
         .pipe(

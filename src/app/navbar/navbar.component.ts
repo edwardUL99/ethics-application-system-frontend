@@ -10,10 +10,9 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class NavbarComponent implements OnInit {
   /**
-   * This should be set to true if the navbar is being used in a login/registration context to hide the
-   * links on the navbar
+   * This should be set to true if you want to hide the nav links
    */
-  @Input() loginRegistration = false;
+  @Input() hideLinks = false;
   /**
    * The name of the url to be active
    */

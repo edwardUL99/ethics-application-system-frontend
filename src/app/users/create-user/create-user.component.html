@@ -1,5 +1,5 @@
 <div>
-  <app-navbar [loginRegistration]="true"></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <app-center-header [text]="'Create User Profile'"></app-center-header>
     <div class="card ul-white-background shadow w-50 px-3 py-3">
@@ -7,6 +7,7 @@
         <div class="form-group">
           <label>Name:</label>
           <input name="name" type="text" class="form-control" formControlName="name">
+          <app-field-error [condition]="name.errors?.['required']" [error]="'Name is required'"></app-field-error>
           <div class="form-text">
             Enter your full name
           </div>
@@ -14,6 +15,7 @@
         <div class="form-group">
           <label>Department:</label>
           <input name="department" type="text" class="form-control" formControlName="department">
+          <app-field-error [condition]="department.errors?.['required']" [error]="'Department is required'"></app-field-error>
           <div class="form-text">
             The department where you are based in, for example, Computer Science and Information Systems
           </div>

@@ -38,12 +38,16 @@ export class NeedsConfirmationComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (!params.username) {
         this.error = "You need to specify the username of the account that needs confirmation";
+        return;
       }
 
       const username = params.username;
-      const account = params.account != null;
+      let email = params.email;
 
-      this.authService.resendConfirmationEmail(username, account)
+      if (email == undefined || email == null)
+        email = false;
+
+      this.authService.resendConfirmationEmail(username, email)
         .pipe(
           retry(3),
           catchError(this.handleError)

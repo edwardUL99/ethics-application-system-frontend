@@ -10,12 +10,18 @@ import { UserContext } from '../usercontext';
   styleUrls: ['./user-redirect.component.css']
 })
 export class UserRedirectComponent implements OnInit {
+  /**
+   * An error condition occurred
+   */
+  error: boolean;
 
   constructor(private userService: UserService,
     private router: Router,
     private jwtStore: JWTStore) { }
 
   ngOnInit() {
+    this.error = false;
+
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
@@ -33,7 +39,7 @@ export class UserRedirectComponent implements OnInit {
         if (e == '404-User') {
           this.router.navigate(['create-user'])
         } else {
-          this.router.navigate(['login']);
+          this.error = true;
         } 
       });
   }

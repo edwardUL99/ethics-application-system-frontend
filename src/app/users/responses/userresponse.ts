@@ -1,9 +1,10 @@
+import { BaseResponse } from '../../baseresponse';
 import { RoleResponse } from './roleresponse';
 
 /**
  * This cinterface represents a user response
  */
-export interface UserResponse {
+export interface UserResponse extends BaseResponse {
     /**
      * The user's username
      */

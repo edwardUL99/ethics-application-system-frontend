@@ -1,5 +1,5 @@
 <div>
-  <app-navbar [loginRegistration]="true"></app-navbar>
+  <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <div class="card ul-white-background shadow w-75 px-2 py-2">
       <div class="text-center">
@@ -12,7 +12,7 @@
       </div>
       <div class="text-center align-items-center">
         <button type="button" class="btn btn-primary w-25" (click)="resendConfirmation()">Resend E-mail</button>
-        <div *ngIf="message" class="w-50 my-2">
+        <div *ngIf="message" class="my-2 mx-5">
           <app-alert [alertType]="'alert-success'" [dismissible]="true" [message]="message"></app-alert>
         </div>
         <div *ngIf="error" class="w-50 my-2">
