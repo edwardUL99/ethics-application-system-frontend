@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject ,  throwError as _throw ,  empty } from 'rxjs';
+import { Observable, Subject ,  throwError } from 'rxjs';
 
 import { UserResponseShortened } from './responses/userresponseshortened';
 import { UserResponse } from './responses/userresponse';
@@ -112,25 +112,26 @@ export class UserService {
     role = new Role(response.role.id, response.role.name, response.role.description, permissions, response.role.singleUser);
 
     this.authService.getAccount(response.username, false)
-        .pipe(
-          catchError(e => this.handleError(e, false))
-        )
-        .subscribe(account => {
+      .pipe(
+        catchError(e => this.handleError(e, false))
+      )
+      .subscribe({
+        next: account => {
           let accountResponse: AccountResponse = account;
 
           subject.next(new User(response.username, response.name, 
             new Account(accountResponse.username, accountResponse.email, null, accountResponse.confirmed),
             response.department, role));
         },
-        e => subject.error(e)
-      );
+        error: e => subject.error(e)
+      });
   }
 
   private handleError(error: HttpErrorResponse, user: boolean) {
     if (error.status == 404) {
-      return _throw((user) ? '404-User':'404-Account');
+      return throwError(() => (user) ? '404-User':'404-Account');
     } else {
-      return _throw(getErrorMessage(error));
+      return throwError(() => getErrorMessage(error));
     }
   }
 
@@ -151,11 +152,13 @@ export class UserService {
     .pipe(
       catchError(e => this.handleError(e, true))
     )
-    .subscribe(user => {
-      const response: UserResponse = user;
-      this.populateUserAccount(subject, response);
-    },
-    e => subject.error(e));
+    .subscribe({
+      next: user => {
+        const response: UserResponse = user;
+        this.populateUserAccount(subject, response);
+      },
+      error: e => subject.error(e)
+    });
 
     return subject.asObservable();
   }

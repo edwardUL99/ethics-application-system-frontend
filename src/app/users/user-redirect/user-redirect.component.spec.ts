@@ -2,12 +2,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { JWTStore } from '../../authentication/jwtstore';
-import { Account } from '../../authentication/account';
 import { UserService } from '../user.service';
 
+import { USERNAME, NAME, ACCOUNT, DEPARTMENT, ROLE } from '../../testing/fakes';
 import { UserRedirectComponent } from './user-redirect.component';
-import { Role } from '../role';
-import { Permission } from '../permission';
 import { Router } from '@angular/router';
 import { User } from '../user';
 import { Observable } from 'rxjs';
@@ -20,14 +18,6 @@ describe('UserRedirectComponent', () => {
   let jwtStoreValid: jasmine.Spy;
   let jwtStoreUsername: jasmine.Spy;
   let userServiceSpy: jasmine.Spy;
-
-  const USERNAME = 'username';
-  const EMAIL = 'email';
-  const NAME = 'name';
-  const DEPARTMENT = 'department';
-  const ACCOUNT = new Account(USERNAME, EMAIL, null, true);
-  const ROLE = new Role(1, 'User', 'default role',
-    [new Permission(2, 'Permission', 'default permission')], false);
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -136,7 +126,7 @@ describe('UserRedirectComponent', () => {
     fixture.whenStable().then(() => {
       expect(userServiceSpy).not.toHaveBeenCalled();
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['login']);
+      expect(routerSpy).toHaveBeenCalledWith(['logout']);
     })
   });
 });

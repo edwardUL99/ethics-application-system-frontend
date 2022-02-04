@@ -28,7 +28,7 @@ export class NeedsConfirmationComponent implements OnInit {
   }
 
   handleError(error: HttpErrorResponse) {
-    return throwError(getErrorMessage(error));
+    return throwError(() => getErrorMessage(error));
   }
 
   resendConfirmation() {
@@ -52,10 +52,12 @@ export class NeedsConfirmationComponent implements OnInit {
           retry(3),
           catchError(this.handleError)
         )
-        .subscribe(() => {
-          this.message = "Confirmation E-mail re-sent";
-        },
-        e => this.error = e);
+        .subscribe({
+            next: () => {
+            this.message = "Confirmation E-mail re-sent";
+          },
+          error: e => this.error = e
+        });
     });
   }
 }

@@ -1,12 +1,10 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, inject } from '@angular/core/testing';
-import { Account } from '../authentication/account';
+import { USERNAME, EMAIL, NAME, DEPARTMENT, ROLE, createUser, createUserResponse } from '../testing/fakes';
 import { AuthService } from '../authentication/auth.service';
 import { CreateUpdateUserRequest } from './createupdateuserrequest';
-import { Permission } from './permission';
 import { UserResponse } from './responses/userresponse';
 import { UserResponseShortened } from './responses/userresponseshortened';
-import { Role } from './role';
 import { RoleResponse } from './responses/roleresponse';
 import { PermissionResponse } from './responses/permissionresponse';
 import { GetAuthorizationResponse } from './responses/getauthorizationresponse';
@@ -20,17 +18,6 @@ describe('UserService', () => {
   let service: UserService;
   let httpTestingController: HttpTestingController;
   let authService: AuthService;
-
-  const USERNAME = "username";
-  const EMAIL = "test@email.com";
-  const NAME = "name";
-  const ACCOUNT = new Account(USERNAME, EMAIL, null, true);
-  const DEPARTMENT = "department";
-  const ROLE = new Role(1, 'User', 'default role', [new Permission(2, 'permission', 'default permission')], false);
-
-  const createUser = () => {
-    return new User(USERNAME, NAME, ACCOUNT, DEPARTMENT, ROLE);
-  }
 
   beforeEach(() => {
     const accountResponse: AccountResponse = {
@@ -79,28 +66,6 @@ describe('UserService', () => {
     
     req.flush(expectedResponse);
   });
-
-  const createUserResponse = (): UserResponse => {
-    return {
-      username: USERNAME,
-      email: EMAIL,
-      name: NAME,
-      department: DEPARTMENT,
-      role: {
-        id: 1,
-        permissions: [
-          {
-            id: 2,
-            name: 'permission',
-            description: 'default permission'
-          }
-        ],
-        name: 'User',
-        description: 'default role',
-        singleUser: false
-      }
-    }
-  }
 
   it('#getUser should return user by username', () => {
     const expectedResponse: UserResponse = createUserResponse();

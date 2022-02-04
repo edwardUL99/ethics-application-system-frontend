@@ -4,17 +4,17 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { observable, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../authentication/auth.service';
 import { JWTStore } from '../../authentication/jwtstore';
 import { CreateUpdateUserRequest } from '../createupdateuserrequest';
 import { UserResponse } from '../responses/userresponse';
 import { UserService } from '../user.service';
+import { USERNAME, NAME, DEPARTMENT } from '../../testing/fakes';
 
 import { ErrorMappings } from '../../mappings';
 
 import { CreateUserComponent } from './create-user.component';
-import { notDeepEqual } from 'assert';
 
 describe('CreateUserComponent', () => {
   let component: CreateUserComponent;
@@ -24,10 +24,6 @@ describe('CreateUserComponent', () => {
   let routerSpy: jasmine.Spy;
   let jwtStoreValid: jasmine.Spy;
   let jwtStoreUsername: jasmine.Spy;
-
-  const USERNAME = 'username';
-  const NAME = 'name';
-  const DEPARTMENT = 'department';
 
   beforeEach(() => {
     TestBed.configureTestingModule({

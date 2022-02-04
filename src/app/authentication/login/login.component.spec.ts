@@ -15,6 +15,7 @@ import { AuthService } from '../auth.service';
 import { AuthenticationResponse } from '../authenticationresponse';
 import { JWTStore } from '../jwtstore';
 import { environment } from '../../../environments/environment';
+import { USERNAME, EMAIL, AUTH_RESPONSE } from '../../testing/fakes';
 
 import { LoginComponent } from './login.component';
 
@@ -29,16 +30,7 @@ describe('LoginComponent', () => {
   let jwtSpyUsername: jasmine.Spy;
   let jwtSpyStore: jasmine.Spy;
 
-  const USERNAME = "username";
-  const EMAIL = "username@email.com";
-  const TOKEN = "token";
-  const EXPIRY = new Date().toISOString();
-
-  const authResponse: AuthenticationResponse = {
-    username: USERNAME,
-    token: TOKEN,
-    expiry: EXPIRY
-  }
+  const authResponse: AuthenticationResponse = AUTH_RESPONSE;
 
   beforeEach(() => {
     TestBed.configureTestingModule({

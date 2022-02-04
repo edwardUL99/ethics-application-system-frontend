@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -10,19 +10,14 @@ import { ErrorMappings } from '../../mappings';
 import { AccountResponse } from '../accountresponse';
 import { AuthService } from '../auth.service';
 import { RegistrationRequest } from '../registrationrequest';
-
 import { RegistrationComponent } from './registration.component';
+import { USERNAME, EMAIL, PASSWORD, CONFIRMATION_KEY } from '../../testing/fakes';
 
 describe('RegistrationComponent', () => {
   let component: RegistrationComponent;
   let fixture: ComponentFixture<RegistrationComponent>;
   let authServiceSpy: jasmine.Spy;
   let routerSpy: jasmine.Spy;
-
-  const USERNAME = "username";
-  const EMAIL = "username@email.com";
-  const PASSWORD = "testPassword";
-  const CONFIRMATION_KEY = "key";
 
   beforeEach(() => {
     TestBed.configureTestingModule({

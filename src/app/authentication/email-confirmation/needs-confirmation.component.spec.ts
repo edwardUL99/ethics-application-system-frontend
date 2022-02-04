@@ -3,10 +3,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { observable, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ErrorMappings } from '../../mappings';
 import { AuthService } from '../auth.service';
-
+import { USERNAME  } from '../../testing/fakes';
 import { NeedsConfirmationComponent } from './needs-confirmation.component';
 
 describe('NeedsConfirmationComponent', () => {
@@ -15,8 +15,7 @@ describe('NeedsConfirmationComponent', () => {
   let authServiceSpy: jasmine.Spy;
   let route: ActivatedRoute;
 
-  const USERNAME = 'example@email.com';
-  const EMAIL = false;
+  const USE_EMAIL = false;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -27,7 +26,7 @@ describe('NeedsConfirmationComponent', () => {
           queryParams: new Observable(observer => {
             observer.next({
               username: USERNAME,
-              email: EMAIL
+              email: USE_EMAIL
             });
           })
         }}

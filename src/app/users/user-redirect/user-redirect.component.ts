@@ -25,22 +25,24 @@ export class UserRedirectComponent implements OnInit {
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
-      this.router.navigate(['login']);
+      this.router.navigate(['logout']);
     }
   }
 
   private redirectPostLogin(username: string) {
     this.userService.loadUser(username, false)
-      .subscribe(response => {
-        UserContext.getInstance().user = response;
-        this.router.navigate(['home']);
-      },
-      e => {
-        if (e == '404-User') {
-          this.router.navigate(['create-user'])
-        } else {
-          this.error = true;
-        } 
+      .subscribe({
+        next: response => {
+          UserContext.getInstance().user = response;
+          this.router.navigate(['home']);
+        },
+        error: e => {
+          if (e == '404-User') {
+            this.router.navigate(['create-user'])
+          } else {
+            this.error = true;
+          } 
+        }
       });
   }
 

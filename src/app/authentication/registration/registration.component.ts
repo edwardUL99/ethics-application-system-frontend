@@ -90,7 +90,7 @@ export class RegistrationComponent implements OnInit {
   }
   
   private handleError(error: HttpErrorResponse) {
-    return throwError(getErrorMessage(error));
+    return throwError(() => getErrorMessage(error));
   }
 
   get email() {
@@ -138,14 +138,17 @@ export class RegistrationComponent implements OnInit {
           retry(3),
           catchError(this.handleError)
         )
-        .subscribe(x => {
-          const response1: AccountResponse = x as AccountResponse;
-          this.registeredNeedsConfirmation = !response1.confirmed;
-          
-          if (!this.registeredNeedsConfirmation) {
-            this.router.navigate(['login']);
-          }
-        }, e => this.error = e);
+        .subscribe({
+          next: x => {
+            const response1: AccountResponse = x as AccountResponse;
+            this.registeredNeedsConfirmation = !response1.confirmed;
+            
+            if (!this.registeredNeedsConfirmation) {
+              this.router.navigate(['login']);
+            }
+          }, 
+          error: e => this.error = e
+      });
       } else {
         this.error = 'The passwords must match';
       }

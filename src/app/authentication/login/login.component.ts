@@ -102,28 +102,30 @@ export class LoginComponent implements OnInit {
 
   private handleError(error: HttpErrorResponse) {
     if (error.status == 404) {
-      return throwError('Account not found');
+      return throwError(() => 'Account not found');
     } else if (error.status == 400) {
-      return throwError(extractMappedError(error));
+      return throwError(() => extractMappedError(error));
     }
 
-    return throwError(getErrorMessage(error));
+    return throwError(() => getErrorMessage(error));
   }
 
   private redirectPostLogin(username: string) {
     this.userService.loadUser(username, false)
-      .subscribe(response => {
-        UserContext.getInstance().user = response;
-        this.router.navigate(['home']);
-      },
-      e => {
-        if (e == '404-User') {
-          this.router.navigate(['create-user'])
-        } else if (e == '404-Account') {
-          this.error = 'Account not found';
-          this.form.reset();
-        } else {
-          this.error = e; 
+      .subscribe({
+        next: response => {
+          UserContext.getInstance().user = response;
+          this.router.navigate(['home']);
+        },
+        error: e => {
+          if (e == '404-User') {
+            this.router.navigate(['create-user'])
+          } else if (e == '404-Account') {
+            this.error = 'Account not found';
+            this.form.reset();
+          } else {
+            this.error = e; 
+          }
         }
       });
   }
@@ -133,17 +135,19 @@ export class LoginComponent implements OnInit {
       .pipe(
         catchError(this.handleError)
     )
-    .subscribe(x => {
-      this.jwtStore.storeToken(x.username, x.token, x.expiry);
-      this.router.navigate(['user-redirect']);
-    },
-    e => {
-      if (e == ErrorMappings.account_not_confirmed) {
-        this.router.navigate(['needs-confirm'], {
-          queryParams: {username: request.username, email: request.email}
-        });
-      } else {
-        this.error = e;
+    .subscribe({
+      next: x => {
+        this.jwtStore.storeToken(x.username, x.token, x.expiry);
+        this.router.navigate(['user-redirect']);
+      },
+      error: e => {
+        if (e == ErrorMappings.account_not_confirmed) {
+          this.router.navigate(['needs-confirm'], {
+            queryParams: {username: request.username, email: request.email}
+          });
+        } else {
+          this.error = e;
+        }
       }
     });
   }

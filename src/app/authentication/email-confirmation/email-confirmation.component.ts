@@ -55,12 +55,12 @@ export class EmailConfirmationComponent implements OnInit {
 
   private initialisationError(error: HttpErrorResponse) {
     const e = getErrorMessage(error);
-    return throwError(e);
+    return throwError(() => e);
   }
 
   private confirmationError(error: HttpErrorResponse) {
     const e = getErrorMessage(error);
-    return throwError(e);
+    return throwError(() => e);
   }
 
   ngOnInit() {

@@ -2,6 +2,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed, inject } from '@angular/core/testing';
 import { AccountResponse } from './accountresponse';
 
+import { USERNAME, EMAIL, TOKEN, EXPIRY, PASSWORD } from '../testing/fakes';
 import { AuthService } from './auth.service';
 import { AuthenticationRequest } from './authenticationrequest';
 import { AuthenticationResponse } from './authenticationresponse';
@@ -12,12 +13,6 @@ import { RegistrationRequest } from './registrationrequest';
 describe('AuthService', () => {
   let httpTestingController: HttpTestingController;
   let service: AuthService;
-  
-  const USERNAME = 'username';
-  const EMAIL = 'test@email.com';
-  const PASSWORD = 'password';
-  const TOKEN = 'token';
-  const EXPIRY = '2021-01-01T12:30:20';
 
   beforeEach(() => {
     TestBed.configureTestingModule({

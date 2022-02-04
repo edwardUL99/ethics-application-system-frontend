@@ -1,14 +1,14 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { observable, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { ConfirmationRequest } from '../confirmationrequest';
 import { ConfirmationResponse } from '../confirmationresponse';
-
+import { EMAIL, TOKEN } from '../../testing/fakes';
 import { EmailConfirmationComponent } from './email-confirmation.component';
 
 describe('EmailConfirmationComponent', () => {
@@ -18,9 +18,6 @@ describe('EmailConfirmationComponent', () => {
   let authConfirmedSpy: jasmine.Spy;
   let routerSpy: jasmine.Spy;
   let route: ActivatedRoute;
-
-  const EMAIL = "username@example.com";
-  const TOKEN = "token";
 
   beforeEach(() => {
     TestBed.configureTestingModule({

@@ -24,7 +24,6 @@ import { CreateUserComponent } from './users/create-user/create-user.component';
 import { UserRedirectComponent } from './users/user-redirect/user-redirect.component';
 import { FieldErrorComponent } from './field-error/field-error.component';
 
-
 @NgModule({
   declarations: [
     AppComponent,

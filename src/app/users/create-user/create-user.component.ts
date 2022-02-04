@@ -52,18 +52,20 @@ export class CreateUserComponent implements OnInit {
         .pipe(
           catchError(e => {
             if (e.status != 404) {
-              return throwError('Unknown Error Occurred')
+              return throwError(() => 'Unknown Error Occurred')
             } else {
-              return throwError('OK');
+              return throwError(() => 'OK');
             }
           })
         )
-        .subscribe(() => this.router.navigate(['user-redirect']),
-        e => {
-          if (e != 'OK') {
-            this.error = e;
+        .subscribe({
+          next: () => this.router.navigate(['user-redirect']),
+          error:e => {
+            if (e != 'OK') {
+              this.error = e;
+            }
           }
-        });
+      });
     } else {
       this.router.navigate(['logout']);
     }
@@ -89,13 +91,15 @@ export class CreateUserComponent implements OnInit {
       this.userService.createUpdateUser(request, false)
         .pipe(
           retry(3),
-          catchError(e => throwError(getErrorMessage(e)))
+          catchError(e => throwError(() => getErrorMessage(e)))
         )
-        .subscribe(response => {
-          console.log(response);
-          this.router.navigate(['user-redirect'])
-        },
-        e => this.error = e);
+        .subscribe({
+          next: response => {
+            console.log(response);
+            this.router.navigate(['user-redirect'])
+          },
+          error: e => this.error = e
+        });
     }
   }
 }
