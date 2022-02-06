@@ -12,7 +12,7 @@ export abstract class CompositeComponent extends ApplicationComponent {
      * @param componentId the HTML ID of the component
      */
     constructor(databaseId: number, type: ComponentType, title: string, componentId: string) {
-        super(databaseId, type, title, false, componentId);
+        super(databaseId, type, title, true, componentId);
     }
 
     /**

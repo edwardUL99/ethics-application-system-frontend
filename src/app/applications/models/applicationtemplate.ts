@@ -32,13 +32,16 @@ export class ApplicationTemplate {
     /**
      * Construct an application template
      * @param databaseId the database ID of the template
+     * @param id the identifier of the template
      * @param name the name of the template
      * @param description the template description
      * @param version the version of the template
      * @param components the template components
      */
-    constructor(databaseId: number, name: string, description: string, version: string, components: ApplicationComponent[]) {
+    constructor(databaseId: number, id: string, name: string, description: string, version: string, components: ApplicationComponent[]) {
         this.databaseId = databaseId;
+        this.id = id;
+        this.name = name;
         this.description = description;
         this.version = version;
         this.components = components;

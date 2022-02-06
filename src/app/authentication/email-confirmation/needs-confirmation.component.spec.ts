@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Observable } from 'rxjs';
@@ -54,7 +54,7 @@ describe('NeedsConfirmationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('#resendConfirmation should resend confirmation e-mail', fakeAsync(() => {
+  it('#resendConfirmation should resend confirmation e-mail', (done) => {
     expect(component.error).toBeUndefined();
     expect(component.message).toBeUndefined();
 
@@ -63,17 +63,17 @@ describe('NeedsConfirmationComponent', () => {
     }));
 
     component.resendConfirmation();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(component.error).toBeNull();
       expect(component.message).toEqual('Confirmation E-mail re-sent');
       expect(authServiceSpy).toHaveBeenCalledWith(USERNAME, false);
+      done();
     })
-  }));
+  });
 
-  it('#resendConfirmation should catch and handle error', fakeAsync(() => {
+  it('#resendConfirmation should catch and handle error', (done) => {
     expect(component.error).toBeUndefined();
     expect(component.message).toBeUndefined();
 
@@ -84,27 +84,27 @@ describe('NeedsConfirmationComponent', () => {
     }));
 
     component.resendConfirmation();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(component.error).toEqual(ErrorMappings.account_not_exists);
       expect(component.message).toBeNull();
       expect(authServiceSpy).toHaveBeenCalledWith(USERNAME, false);
+      done();
     })
-  }));
+  });
 
-  it('#resendConfirmation should throw error if username query param is not specified', fakeAsync(() => {
+  it('#resendConfirmation should throw error if username query param is not specified', (done) => {
     route.queryParams = new Observable(observable => {
       observable.next({})
     });
 
     component.resendConfirmation();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(component.error).toEqual('You need to specify the username of the account that needs confirmation');
+      done();
     })
-  }));
+  });
 });

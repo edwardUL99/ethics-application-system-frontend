@@ -90,7 +90,7 @@ export class ApplicationTemplateParser {
                 components.push(Converters.get(component.type).convert(component))
             }
 
-            return new ApplicationTemplate(application.databaseId, application.name,
+            return new ApplicationTemplate(application.databaseId, application.id, application.name,
                 application.description, application.version, components);
         }
     }

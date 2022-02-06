@@ -98,8 +98,7 @@ export class CreateUserComponent implements OnInit {
           catchError(e => throwError(() => getErrorMessage(e)))
         )
         .subscribe({
-          next: response => {
-            console.log(response);
+          next: () => {
             this.router.navigate(['user-redirect'])
           },
           error: e => this.error = e

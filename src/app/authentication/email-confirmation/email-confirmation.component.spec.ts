@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -65,7 +65,7 @@ describe('EmailConfirmationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('#confirm should confirm account successfully', fakeAsync(() => {
+  it('#confirm should confirm account successfully', (done) => {
     const expectedResponse: ConfirmationResponse = {
       confirmed: true
     };
@@ -76,8 +76,6 @@ describe('EmailConfirmationComponent', () => {
 
     component.confirm();
 
-    tick();
-
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
@@ -85,27 +83,27 @@ describe('EmailConfirmationComponent', () => {
       expect(component.confirmError).toBeNull();
       expect(authServiceSpy).toHaveBeenCalledWith(request);
       expect(routerSpy).toHaveBeenCalledWith(['login']);
+      done();
     })
-  }));
+  });
 
-  it('if already confirmed, user should be notified', fakeAsync(() => {
+  it('if already confirmed, user should be notified', (done) => {
     authConfirmedSpy.and.returnValue(new Observable<ConfirmationResponse>(observer => {
       observer.next({confirmed: true});
     }));
 
     component.ngOnInit();
 
-    tick();
-
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(component.email).toEqual(EMAIL);
       expect(component.initError).toEqual('The user\'s account is already confirmed');
+      done();
     })
-  }));
+  });
 
-  it('The form should be used if email or token not in query param', fakeAsync(() => {
+  it('The form should be used if email or token not in query param', (done) => {
     route.queryParams = new Observable<Params>(observer => {
       observer.next({});
     });
@@ -113,12 +111,12 @@ describe('EmailConfirmationComponent', () => {
     expect(component.useForm).toBeFalsy();
 
     component.ngOnInit();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(component.useForm).toBeTruthy();
       expect(fixture.debugElement.query(By.css('form'))).toBeTruthy();
+      done();
     });
-  }));
+  });
 });
