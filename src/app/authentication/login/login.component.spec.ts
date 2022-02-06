@@ -1,6 +1,6 @@
-import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -86,7 +86,7 @@ describe('LoginComponent', () => {
     component.password.setValue(password);
   }
 
-  it('entering valid inputs should make form valid', () => {
+  it('entering valid inputs should make form valid', (done) => {
     setValues('', '');
 
     fixture.detectChanges();
@@ -100,11 +100,12 @@ describe('LoginComponent', () => {
 
       fixture.whenStable().then(() => {
         expect(component.form.valid).toEqual(true);
+        done();
       });
     })
   });
 
-  it('test invalid errors are displayed', () => {
+  it('test invalid errors are displayed', (done) => {
     setValues('', '');
 
     fixture.detectChanges();
@@ -120,11 +121,12 @@ describe('LoginComponent', () => {
 
       fixture.whenStable().then(() => {
         expect(component.username.errors?.['username']).toBeTruthy();
+        done();
       })
     })
   });
 
-  it('test invalid error is thrown if username is email and it is not a UL e-mail', () => {
+  it('test invalid error is thrown if username is email and it is not a UL e-mail', (done) => {
     environment.requireULEmail = true;
     setValues(EMAIL, 'testPassword');
 
@@ -135,10 +137,11 @@ describe('LoginComponent', () => {
       expect(component.username.errors?.['username']).toEqual('The e-mail address must be a UL e-mail');
       expect(component.password.errors?.['required']).toBeFalsy();
       environment.requireULEmail = false;
+      done();
     })
   });
 
-  it ('#login should login successfully', fakeAsync(() => {
+  it ('#login should login successfully', (done) => {
     setValues(USERNAME, 'testPassword');
 
     fixture.detectChanges();
@@ -158,8 +161,6 @@ describe('LoginComponent', () => {
 
       component.login();
 
-      tick();
-
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
@@ -167,11 +168,12 @@ describe('LoginComponent', () => {
         expect(jwtSpyStore).toHaveBeenCalled();
         expect(routerSpy).toHaveBeenCalledWith(['user-redirect']);
         expect(spy).toHaveBeenCalled();
+        done();
       })
     })
-  }));
+  });
 
-  it ('#login should navigate to needs confirm', fakeAsync(() => {
+  it ('#login should navigate to needs confirm', (done) => {
     setValues(USERNAME, 'testPassword');
 
     fixture.detectChanges();
@@ -196,17 +198,16 @@ describe('LoginComponent', () => {
     fixture.whenStable().then(() => {
       component.login();
 
-      tick();
-
       expect(component.error).toBe(null);
       expect(routerSpy).toHaveBeenCalledWith(['needs-confirm'], {
         queryParams: {username: USERNAME, email: false}
       });
       expect(spy).toHaveBeenCalled();
+      done();
     })
-  }));
+  });
 
-  it ('#login should throw unknown error and display it', fakeAsync(() => {
+  it ('#login should throw unknown error and display it', (done) => {
     setValues(USERNAME, 'testPassword');
 
     fixture.detectChanges();
@@ -229,15 +230,14 @@ describe('LoginComponent', () => {
     fixture.whenStable().then(() => {
       component.login();
 
-      tick();
-
       expect(component.error).toBe('A server error occurred. Are you connected to the internet?');
       expect(routerSpy).not.toHaveBeenCalled();
       expect(spy).toHaveBeenCalled();
+      done();
     })
-  }));
+  });
 
-  it('component should redirect if already authenticated', fakeAsync(() => {
+  it('component should redirect if already authenticated', (done) => {
     jwtSpyValid.and.returnValue(true);
     jwtSpyUsername.and.returnValue(USERNAME);
     userServiceSpy.and.returnValue(new Observable(observer => {
@@ -253,10 +253,11 @@ describe('LoginComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(routerSpy).toHaveBeenCalledWith(['home']);
+      done();
     })
-  }));
+  });
 
-  it('component should display session timeout', () => {
+  it('component should display session timeout', (done) => {
     route.queryParams = new Observable(observer => observer.next({sessionTimeout: true}));
 
     component.ngOnInit();
@@ -265,10 +266,11 @@ describe('LoginComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(component.error).toEqual('The session has timed out. Please login again');
-    })
+      done();
+    });
   })
 
-  it('component should redirect to create user if authenticated but no user profile', fakeAsync(() => {
+  it('component should redirect to create user if authenticated but no user profile', (done) => {
     jwtSpyValid.and.returnValue(true);
     jwtSpyUsername.and.returnValue(USERNAME);
     userServiceSpy.and.returnValue(new Observable(observer => observer.error('404-User')));
@@ -279,10 +281,11 @@ describe('LoginComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(routerSpy).toHaveBeenCalledWith(['create-user']);
+      done();
     })
-  }));
+  });
 
-  it('component should clear form with error if account does not exist on redirect', fakeAsync(() => {
+  it('component should clear form with error if account does not exist on redirect', (done) => {
     jwtSpyValid.and.returnValue(true);
     jwtSpyUsername.and.returnValue(USERNAME);
     userServiceSpy.and.returnValue(new Observable(observer => observer.error('404-Account')));
@@ -296,10 +299,11 @@ describe('LoginComponent', () => {
     fixture.whenStable().then(() => {
       expect(component.error).toEqual('Account not found');
       expect(formSpy).toHaveBeenCalled();
+      done();
     })
-  }));
+  });
 
-  it('component should display unknown error if it occurs on redirect', fakeAsync(() => {
+  it('component should display unknown error if it occurs on redirect', (done) => {
     const error = "Unknown error";    
 
     jwtSpyValid.and.returnValue(true);
@@ -315,8 +319,7 @@ describe('LoginComponent', () => {
     fixture.whenStable().then(() => {
       expect(component.error).toEqual(error);
       expect(formSpy).not.toHaveBeenCalled();
+      done();
     })
-  }));
-
-  // TODO do more tests and test other components too
+  });
 });

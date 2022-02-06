@@ -45,18 +45,19 @@ describe('LogoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should destroy token and navigate to login', () => {
+  it('should destroy token and navigate to login', (done) => {
     component.ngOnInit();
 
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(jwtStoreSpy).toHaveBeenCalled();
-      expect(routerSpy).toHaveBeenCalledWith(['login', {}]);
+      expect(routerSpy).toHaveBeenCalledWith(['login'], {});
+      done();
     })
   });
 
-  it('should redirect to login with sessionTimeout', () => {
+  it('should redirect to login with sessionTimeout', (done) => {
     route.queryParams = new Observable(observer => observer.next({sessionTimeout: true}));
 
     component.ngOnInit();
@@ -69,6 +70,7 @@ describe('LogoutComponent', () => {
           sessionTimeout: true
         }
       });
+      done();
     })
   })
 });

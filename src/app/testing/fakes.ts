@@ -8,6 +8,10 @@ import { Account } from '../authentication/account';
 import { Role } from '../users/role';
 import { Permission } from '../users/permission';
 import { User } from '../users/user';
+import { ApplicationTemplate } from '../applications/models/applicationtemplate';
+import { SectionComponent } from '../applications/models/components/sectioncomponent';
+import { TextQuestionComponent } from '../applications/models/components/textquestioncomponent';
+import { ApplicationTemplateResponse } from '../applications/applicationremplateresponse';
 
 export const USERNAME = "username";
 export const EMAIL = "username@email.com";
@@ -53,4 +57,58 @@ export const ROLE = new Role(1, 'User', 'default role',
 
 export function createUser(): User {
     return new User(USERNAME, NAME, ACCOUNT, DEPARTMENT, ROLE);
+}
+
+export const TEMPLATE_ID = 'test';
+export const TEMPLATE_NAME = 'test application';
+export const TEMPLATE_DESCRIPTION = 'test description'
+export const TEMPLATE_VERSION = '1.0';
+
+export function createApplicationTemplate(): ApplicationTemplate {
+    const template: ApplicationTemplate = new ApplicationTemplate(1, TEMPLATE_NAME, TEMPLATE_DESCRIPTION, TEMPLATE_VERSION, []);
+    const section = new SectionComponent(2, 'section', 'component-id', 'description', [], true);
+
+    section.components.push(new TextQuestionComponent(3, 'test question', 'component-id2', 'test description question', 'test name', true, true, 'text'));
+    template.components.push(section);
+
+    return template;
+}
+
+export function createApplicationTemplateResponse() {
+    const template = createApplicationTemplate();
+
+    return {
+        applications: {
+            TEMPLATE_ID: {
+                databaseId: 1,
+                id: TEMPLATE_ID,
+                name: TEMPLATE_NAME,
+                description: TEMPLATE_DESCRIPTION,
+                version: TEMPLATE_VERSION,
+                components: [
+                    {
+                        databaseId: 2,
+                        type: 'section',
+                        title: 'section',
+                        componentId: 'component-id',
+                        description: 'description',
+                        components: [
+                            {
+                                databaseId: 3,
+                                type: 'text-question',
+                                title: 'test question',
+                                componentId: 'component-id2',
+                                description: 'test description question',
+                                name: 'test name',
+                                required: true,
+                                singleLine: true,
+                                questionType: 'text'
+                            }
+                        ],
+                        autoSave: true
+                    }
+                ]
+            }
+        }
+    };
 }

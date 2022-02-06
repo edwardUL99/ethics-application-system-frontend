@@ -1,5 +1,7 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, retry, throwError } from 'rxjs';
+import { getErrorMessage } from '../utils';
 import { ApplicationTemplateResponse, MappedTemplateResponse, mapTemplateResponse } from './applicationremplateresponse';
 import { ApplicationTemplate } from './models/applicationtemplate';
 import { ApplicationComponent } from './models/components/applicationcomponent';
@@ -13,7 +15,7 @@ import { ComponentObject, Converters } from './models/parsing/converters';
   providedIn: 'root'
 })
 export class ApplicationTemplateService {
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   /**
    * Parse the application template and resolve it in an observable
@@ -48,13 +50,24 @@ export class ApplicationTemplateService {
     }
   }
 
+  private handleError(error: HttpErrorResponse) {
+    return throwError(() => getErrorMessage(error));
+  }
+
   /**
-   * Map the template response and resolve it in an observable
-   * @param response the response to map
+   * Retrieve and map the template response and resolve it in an observable
    */
-  mapTemplateResponse(response: ApplicationTemplateResponse): Observable<MappedTemplateResponse> {
+  mapTemplateResponse(): Observable<MappedTemplateResponse> {
     return new Observable<MappedTemplateResponse>(observer => {
-      observer.next(mapTemplateResponse(response));
-    })
+      this.http.get<ApplicationTemplateResponse>('/api/applications/templates/')
+        .pipe(
+          retry(3),
+          catchError(this.handleError)
+        )
+        .subscribe({
+          next: response => observer.next(mapTemplateResponse(response)),
+          error: e => observer.error(e)
+        });
+    });
   }
 }

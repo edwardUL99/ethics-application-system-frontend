@@ -80,7 +80,7 @@ export abstract class ApplicationComponent {
     /**
      * The ID of the component in html
      */
-    private _componentId: string;
+    readonly componentId: string;
 
     /**
      * Create an ApplicationComponent with the provided id, type, title and composite, componentId values
@@ -94,7 +94,7 @@ export abstract class ApplicationComponent {
         this.type = type;
         this.title = title;
         this.composite = composite;
-        this._componentId = componentId;
+        this.componentId = componentId;
     }
 
     /**
@@ -102,12 +102,5 @@ export abstract class ApplicationComponent {
      */
     get isComposite() {
         return this.composite;
-    }
-
-    /**
-     * Get the HTML id of the component
-     */
-    get componentId() {
-        return this._componentId;
     }
 }
