@@ -25,7 +25,11 @@ export class UserRedirectComponent implements OnInit {
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
-      this.router.navigate(['logout']);
+      this.router.navigate(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
     }
   }
 

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { JWTStore } from '../jwtstore';
 
 /**
@@ -13,11 +13,21 @@ import { JWTStore } from '../jwtstore';
 export class LogoutComponent implements OnInit {
 
   constructor(private jwtStore: JWTStore,
-    private router: Router) { }
+    private router: Router,
+    private route: ActivatedRoute) { }
 
   ngOnInit() {
-    this.jwtStore.destroyToken();
-    this.router.navigate(['login']);
-  }
+    this.route.queryParams.subscribe(params => {
+      const sessionTimeout = params.sessionTimeout;
 
+      const queryParams = (sessionTimeout) ? {
+        queryParams: {
+          sessionTimeout: true
+        }
+      } : {};
+
+      this.jwtStore.destroyToken();
+      this.router.navigate(['login'], queryParams);
+    });
+  }
 }

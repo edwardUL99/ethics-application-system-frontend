@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Observable } from 'rxjs';
 import { JWTStore } from '../jwtstore';
 
 import { LogoutComponent } from './logout.component';
@@ -10,6 +11,7 @@ describe('LogoutComponent', () => {
   let fixture: ComponentFixture<LogoutComponent>;
   let routerSpy: jasmine.Spy;
   let jwtStoreSpy: jasmine.Spy;
+  let route: ActivatedRoute;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -25,6 +27,9 @@ describe('LogoutComponent', () => {
   });
 
   beforeEach(() => {
+    route = TestBed.inject(ActivatedRoute);
+    route.queryParams = new Observable(observer => observer.next({}));
+
     fixture = TestBed.createComponent(LogoutComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -40,14 +45,30 @@ describe('LogoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it ('should destroy token and navigate to login', () => {
+  it('should destroy token and navigate to login', () => {
     component.ngOnInit();
 
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(jwtStoreSpy).toHaveBeenCalled();
-      expect(routerSpy).toHaveBeenCalledWith(['login']);
+      expect(routerSpy).toHaveBeenCalledWith(['login', {}]);
+    })
+  });
+
+  it('should redirect to login with sessionTimeout', () => {
+    route.queryParams = new Observable(observer => observer.next({sessionTimeout: true}));
+
+    component.ngOnInit();
+
+    fixture.detectChanges();
+
+    fixture.whenStable().then(() => {
+      expect(routerSpy).toHaveBeenCalledWith(['login'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
     })
   })
 });

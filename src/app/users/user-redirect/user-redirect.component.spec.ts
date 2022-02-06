@@ -126,7 +126,11 @@ describe('UserRedirectComponent', () => {
     fixture.whenStable().then(() => {
       expect(userServiceSpy).not.toHaveBeenCalled();
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
     })
   });
 });

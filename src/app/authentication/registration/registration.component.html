@@ -3,7 +3,7 @@
   <div class="container" [appCenterBox]>
     <app-center-header *ngIf="!registeredNeedsConfirmation" [text]="'Create an Account'"></app-center-header>
     <app-center-header *ngIf="registeredNeedsConfirmation" [text]="'Registered Successfully'"></app-center-header>
-    <div class="row card ul-white-background shadow w-50 px-3 py-3">
+    <div class="row card ul-white-background shadow w-50 padded-fields-box">
       <div *ngIf="!registeredNeedsConfirmation">
         <form [formGroup]="form">
           <div class="form-group">

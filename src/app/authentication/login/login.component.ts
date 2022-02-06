@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../auth.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationRequest } from '../authenticationrequest';
 import { throwError as throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -74,7 +74,8 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private jwtStore: JWTStore,
-    private userService: UserService) { 
+    private userService: UserService,
+    private route: ActivatedRoute) { 
       this.form = this.fb.group({
         username: ['', [Validators.required, EmailUsernameValidator()]],
         password: ['', Validators.required],
@@ -85,6 +86,12 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
+    } else {
+      this.route.queryParams.subscribe(params => {
+        if (params.sessionTimeout) {
+          this.error = 'The session has timed out. Please login again';
+        }
+      });
     }
   }
 

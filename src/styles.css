@@ -12,9 +12,16 @@ This class represents the styling for UL's white background
 	background-color: white;
 }
 
-/**
+/*
 This class represents red error text 
 */
 .error-text {
 	color: red;
+}
+
+/*
+A class that pads on x and y axis a box with fields in it to make them appear more aesthetically pleasing
+*/
+.padded-fields-box {
+	padding: 1rem !important;
 }

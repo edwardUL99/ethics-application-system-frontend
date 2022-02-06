@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Observable } from 'rxjs';
 import { NeedsConfirmationComponent } from '../email-confirmation/needs-confirmation.component';
@@ -29,6 +29,7 @@ describe('LoginComponent', () => {
   let jwtSpyValid: jasmine.Spy;
   let jwtSpyUsername: jasmine.Spy;
   let jwtSpyStore: jasmine.Spy;
+  let route: ActivatedRoute;
 
   const authResponse: AuthenticationResponse = AUTH_RESPONSE;
 
@@ -65,6 +66,8 @@ describe('LoginComponent', () => {
 
     const userService = TestBed.inject(UserService);
     userServiceSpy = spyOn(userService, 'loadUser');
+
+    route = TestBed.inject(ActivatedRoute);
   });
 
   beforeEach(() => {
@@ -252,6 +255,18 @@ describe('LoginComponent', () => {
       expect(routerSpy).toHaveBeenCalledWith(['home']);
     })
   }));
+
+  it('component should display session timeout', () => {
+    route.queryParams = new Observable(observer => observer.next({sessionTimeout: true}));
+
+    component.ngOnInit();
+
+    fixture.detectChanges();
+
+    fixture.whenStable().then(() => {
+      expect(component.error).toEqual('The session has timed out. Please login again');
+    })
+  })
 
   it('component should redirect to create user if authenticated but no user profile', fakeAsync(() => {
     jwtSpyValid.and.returnValue(true);

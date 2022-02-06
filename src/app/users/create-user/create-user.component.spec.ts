@@ -257,7 +257,7 @@ describe('CreateUserComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['user-redirect']);
     });
   });
 
@@ -270,7 +270,11 @@ describe('CreateUserComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
     });
   });
 });

@@ -45,7 +45,11 @@ export class CreateUserComponent implements OnInit {
       this.username = this.jwtStore.getUsername();
 
       if (!this.username) {
-        this.router.navigate(['logout']);
+        this.router.navigate(['logout'], {
+          queryParams: {
+            sessionTimeout: true
+          }
+        });
       }
 
       this.userService.getUser(this.username)
@@ -67,7 +71,7 @@ export class CreateUserComponent implements OnInit {
           }
       });
     } else {
-      this.router.navigate(['logout']);
+      this.router.navigate(['user-redirect']);
     }
   }
 
