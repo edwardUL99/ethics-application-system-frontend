@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { createApplicationTemplate, createApplicationTemplateResponse, TEMPLATE_ID } from '../testing/fakes';
 import { getErrorMessage } from '../utils';
 import { ApplicationTemplateService } from './application-template.service';
-import { ApplicationTemplateResponse, MappedTemplateResponse, TemplateMapping } from './applicationremplateresponse';
+import { ApplicationTemplateResponse, MappedTemplateResponse, TemplateMapping } from './applicationtemplateresponse';
 import { ApplicationTemplate } from './models/applicationtemplate';
 import { ApplicationComponent } from './models/components/applicationcomponent';
 import { SectionComponent } from './models/components/sectioncomponent';

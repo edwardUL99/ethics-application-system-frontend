@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, retry, throwError } from 'rxjs';
 import { getErrorMessage } from '../utils';
-import { ApplicationTemplateResponse, MappedTemplateResponse, mapTemplateResponse } from './applicationremplateresponse';
+import { ApplicationTemplateResponse, MappedTemplateResponse, mapTemplateResponse } from './applicationtemplateresponse';
 import { ApplicationTemplate } from './models/applicationtemplate';
 import { ApplicationComponent } from './models/components/applicationcomponent';
 import { ApplicationTemplateParser, ApplicationTemplateShape } from './models/parsing/applicationtemplateparser';

@@ -11,7 +11,6 @@ import { User } from '../users/user';
 import { ApplicationTemplate } from '../applications/models/applicationtemplate';
 import { SectionComponent } from '../applications/models/components/sectioncomponent';
 import { TextQuestionComponent } from '../applications/models/components/textquestioncomponent';
-import { ApplicationTemplateResponse } from '../applications/applicationremplateresponse';
 import { ContainerComponent } from '../applications/models/components/containercomponent';
 
 export const USERNAME = "username";

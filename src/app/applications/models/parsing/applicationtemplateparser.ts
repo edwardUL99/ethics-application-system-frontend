@@ -3,6 +3,7 @@ import { ApplicationComponent } from "../components/applicationcomponent";
 import { ComponentObject, Converters } from "./converters";
 import './converters.imports'; // initialise all the converters before parsing can take place
 
+
 /**
  * The shape of the application template to parse
  */

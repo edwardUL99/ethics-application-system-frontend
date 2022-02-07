@@ -31,12 +31,26 @@ describe('ApplicationTemplateContext', () => {
 
     it('#executeContainerReplacement should replace container', () => {
         const oldContainer = (template.components[0] as SectionComponent).components[0];
-        const replaceContainer = (replaceTemplate.components[0] as SectionComponent)[0] as ContainerComponent;
+        const replaceContainer = (replaceTemplate.components[0] as SectionComponent).components[0] as ContainerComponent;
 
         expect(oldContainer).not.toEqual(replaceContainer);
 
         const returned = context.executeContainerReplacement('test-container', 'test1.test-container1');
-        const templateContainer = (template.components[0] as SectionComponent)[0] as ContainerComponent;
+        const templateContainer = (template.components[0] as SectionComponent).components[0] as ContainerComponent;
+
+        expect(oldContainer).toEqual(returned);
+        expect(templateContainer).toBe(replaceContainer);
+    });
+
+    it('#executeContainerReplacement should replace container with existing container', () => {
+        const oldContainer = (template.components[0] as SectionComponent).components[0];
+        const replaceContainer = (replaceTemplate.components[0] as SectionComponent).components[0] as ContainerComponent;
+        console.log(oldContainer);
+
+        expect(oldContainer).not.toEqual(replaceContainer);
+
+        const returned = context.executeContainerReplacement('test-container', replaceContainer);
+        const templateContainer = (template.components[0] as SectionComponent).components[0] as ContainerComponent;
 
         expect(oldContainer).toEqual(returned);
         expect(templateContainer).toBe(replaceContainer);

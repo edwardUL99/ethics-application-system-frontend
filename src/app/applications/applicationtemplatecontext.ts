@@ -1,9 +1,9 @@
-import { MappedTemplateResponse, TemplateMapping } from './applicationremplateresponse';
+import { MappedTemplateResponse, TemplateMapping } from './applicationtemplateresponse';
 import { ApplicationTemplate } from './models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from './models/components/applicationcomponent';
 import { CompositeComponent } from './models/components/compositecomponent';
 import { ContainerComponent } from './models/components/containercomponent';
-import { Converters } from './models/parsing/converters';
+import { ComponentConverter, Converters } from './models/parsing/converters';
 
 /**
  * The application context provides utilities for working on the templates in the system
@@ -203,31 +203,42 @@ export class ApplicationTemplateContext {
      * Executes the replacement of containers in application templates. The IDs should be in the form of 
      * <application-id>.<container-id>. If application-id is omitted, the current template is used
      * @param toReplace the ID of the container to be replaced
-     * @param replacementID the ID of the container to replace it with 
+     * @param replacement the ID of the container to replace it with or an already existing container object
      * @returns the container that was replaced
      */
-    executeContainerReplacement(toReplace: string, replacementID: string): ApplicationComponent {
+    executeContainerReplacement(toReplace: string, replacement: string | ApplicationComponent): ApplicationComponent {
         const replace: ReplacementID = this.parseReplacementID(toReplace);
-        const replacement: ReplacementID = this.parseReplacementID(replacementID);
 
-        if (replace.template == null || replacement.template == null) {
+        let replacementInstance: ApplicationComponent | ReplacementID;
+        
+        if (replacement instanceof String || typeof(replacement) == 'string') {
+            replacementInstance = this.parseReplacementID(replacement as string);
+        } else {
+            replacementInstance = replacement as ContainerComponent;
+        }
+
+        const componentProvided = replacementInstance instanceof ApplicationComponent;
+
+        if (replace.template == null || (!componentProvided && (replacementInstance as ReplacementID).template == null)) {
             return null;
         } else {
             const replaceObj = this.getSubComponent(replace.template.id, replace.container, true, true);
-            const replacementObj = this.getSubComponent(replacement.template.id, replacement.container, true, true);
+            const replacementId = (componentProvided) ? null : replacementInstance as ReplacementID;
+            const replacementObj = (componentProvided) ? 
+                replacementInstance as ApplicationComponent : this.getSubComponent(replacementId.template.id, replacementId.container, true, true);
 
             if (replaceObj == null || replacementObj == null) {
                 return null;
             }
 
             const foundReplace = replaceObj as FoundComponent;
-            const foundReplacement = replacementObj as FoundComponent;
+            const foundReplacement = (componentProvided) ? replacementObj : replacementObj as FoundComponent;
 
-            if (foundReplace.component == null || foundReplacement.component == null) {
+            if (foundReplace.component == null || (!componentProvided && (foundReplacement as FoundComponent).component == null)) {
                 return null;
             } else {
                 const toBeReplaced = Converters.get(ComponentType.CONTAINER).convert(JSON.parse(JSON.stringify(foundReplace.component)));
-                foundReplace.array[foundReplace.index] = foundReplacement.component;
+                foundReplace.array[foundReplace.index] = (componentProvided) ? foundReplacement as ApplicationComponent : (foundReplacement as FoundComponent).component;
 
                 return toBeReplaced;
             }
