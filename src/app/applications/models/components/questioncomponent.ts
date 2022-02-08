@@ -34,4 +34,12 @@ export abstract class QuestionComponent extends SimpleComponent {
         this.name = name;
         this.required = required;
     }
+
+    /**
+     * This is a form element, so returns true
+     * @returns true
+     */
+    isFormElement(): boolean {
+       return true; 
+    }
 }

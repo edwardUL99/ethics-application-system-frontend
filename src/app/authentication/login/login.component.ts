@@ -75,7 +75,8 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private jwtStore: JWTStore,
     private userService: UserService,
-    private route: ActivatedRoute) { 
+    private route: ActivatedRoute,
+    private userContext: UserContext) { 
       this.form = this.fb.group({
         username: ['', [Validators.required, EmailUsernameValidator()]],
         password: ['', Validators.required],
@@ -121,7 +122,7 @@ export class LoginComponent implements OnInit {
     this.userService.loadUser(username, false)
       .subscribe({
         next: response => {
-          UserContext.getInstance().user = response;
+          this.userContext.setUser(response);
           this.router.navigate(['home']);
         },
         error: e => {

@@ -1,3 +1,4 @@
+import { mergeSpaces } from "../../../utils";
 import { ComponentType } from "./applicationcomponent";
 import { QuestionComponent } from "./questioncomponent";
 
@@ -55,6 +56,10 @@ export class Option {
      * The option value
      */
     value: string;
+    /**
+     * The name constructed from the option label
+     */
+    name: string;
 
     /**
      * Create an Option
@@ -66,5 +71,6 @@ export class Option {
         this.id = id;
         this.label = label;
         this.value = value;
+        this.name = mergeSpaces(this.label);
     }
 }

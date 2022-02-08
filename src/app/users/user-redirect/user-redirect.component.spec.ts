@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { User } from '../user';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../authentication/auth.service';
+import { UserContext } from '../usercontext';
 
 describe('UserRedirectComponent', () => {
   let component: UserRedirectComponent;
@@ -25,7 +26,8 @@ describe('UserRedirectComponent', () => {
       providers: [
         UserService,
         JWTStore,
-        AuthService  
+        AuthService,
+        UserContext 
       ],
       imports: [
         RouterTestingModule,

@@ -1,0 +1,16 @@
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form">
+    <label>{{questionComponent?.title}}</label>
+    <div class="form-text">
+        {{questionComponent?.description}}
+    </div>
+    <div *ngIf="questionComponent?.singleLine">
+        <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" class="form-control" [formControlName]="questionComponent?.name">
+    </div>
+    <div *ngIf="!questionComponent?.singleLine">
+        <textarea [name]="questionComponent?.name" class="form-control" [formControlName]="questionComponent?.name"></textarea>
+    </div>
+    <div *ngIf="control?.errors">
+        <app-field-error [condition]="control.errors?.['required']" [message]="'This field is required'"></app-field-error>
+        <app-field-error [condition]="control.errors?.['email']" [message]="'Please enter a valid e-mail address'"></app-field-error>
+    </div>
+</div>

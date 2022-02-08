@@ -13,6 +13,8 @@ import { ErrorMappings } from './mappings';
 export function getErrorMessage(error: HttpErrorResponse) {
     if (error.status == 400) {
         return extractMappedError(error);
+    } else if (error.status == 401) {
+        return 'You are no longer authorized, so you will have to login again'
     } else if (error.status >= 300 && error.status < 500) {
         return 'An unknown error occurred, please try again later';
     } else {
@@ -35,4 +37,19 @@ export function extractMappedError(error: HttpErrorResponse) {
     }
 
     return 'An unknown error occurred, please try again later';
+}
+
+/**
+ * Replace spaces in the string with _, remove punctuation and make all letters
+ * lowercase
+ */
+export function mergeSpaces(str: string) {
+    str = str.replace('/[^\w\s]|_/g', "")
+        .replace('/\s+/g', " ");
+    
+    for (let value of str.split(' ')) {
+        this.name += value.toLowerCase() + '_';
+    }
+
+    return str.substring(0, this.name.length - 1);
 }

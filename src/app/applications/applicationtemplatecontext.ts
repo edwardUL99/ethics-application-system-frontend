@@ -62,7 +62,7 @@ export class ApplicationTemplateContext {
      * @param id the ID of the template
      * @returns the template if found, null if not
      */
-    getTemplate(id?: string): ApplicationTemplate | null {
+    getTemplate(id: string): ApplicationTemplate | null {
         if (id in this._applications) {
             return this._applications[id];
         } else {
@@ -159,6 +159,7 @@ export class ApplicationTemplateContext {
      */
     clear() {
         Object.keys(this._applications).forEach(key => delete this._applications[key]);
+        this._currentTemplate = null;
     }
 
     /**
@@ -244,8 +245,6 @@ export class ApplicationTemplateContext {
             }
         }
     }
-
-    // TODO add other methods like find sub-container to find and methods for replacing containers etc. For replacing, if an application-id.container-id string does not contain application-id, use the current template
     
     /**
      * Get the singleton instance of the context

@@ -18,6 +18,7 @@ import { environment } from '../../../environments/environment';
 import { USERNAME, EMAIL, AUTH_RESPONSE } from '../../testing/fakes';
 
 import { LoginComponent } from './login.component';
+import { UserContext } from '../../users/usercontext';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -40,6 +41,7 @@ describe('LoginComponent', () => {
         AuthService,
         JWTStore,
         UserService,
+        UserContext,
         FormBuilder
       ],
       imports: [

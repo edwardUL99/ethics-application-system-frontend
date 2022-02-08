@@ -3,6 +3,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 
 import { JWTStore } from './jwtstore';
+import { Router } from '@angular/router';
 
 /**
  * URLs that don't need authentication
@@ -20,22 +21,28 @@ export const AllowedURLS = [
  */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-    constructor(private jwtStore: JWTStore) {}
+    constructor(private jwtStore: JWTStore,
+        private router: Router) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        const url = req.url;
+        
         const token = this.jwtStore.getToken();
 
-        if (token) {
+        if (AllowedURLS.indexOf(url) == -1 && token) {
             if (!this.jwtStore.isTokenValid()) {
-                this.jwtStore.destroyToken();
-                return next.handle(req);
+                this.router.navigate(['logout'], {
+                    queryParams: {
+                        sessionTimeout: true
+                    }
+                });
+            } else {
+                const cloned = req.clone({
+                    headers: req.headers.set('Authorization', 'Bearer ' + token)
+                });
+
+                return next.handle(cloned);
             }
-
-            const cloned = req.clone({
-                headers: req.headers.set('Authorization', 'Bearer ' + token)
-            });
-
-            return next.handle(cloned);
         } else {
             return next.handle(req);
         }

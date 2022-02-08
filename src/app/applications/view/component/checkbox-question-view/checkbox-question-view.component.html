@@ -1,0 +1,11 @@
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form">
+    <label>{{questionComponent?.title}}</label>
+    <div class="form-text">{{questionComponent?.description}}</div>
+    <div [id]="questionComponent?.componentId + '-checkboxes'">
+        <div *ngFor="let checkbox of getCheckboxes()" class="form-check">
+            <label class="form-check-label">{{checkbox?.title}}</label>
+            <input type="checkbox" class="form-check-input" [value]="checkbox?.value" (change)="onCheckChange($event, checkbox?.name)" 
+            [name]="checkbox?.name" [checked]="selectedCheckboxes[checkbox?.name]">
+        </div>
+    </div>
+</div>

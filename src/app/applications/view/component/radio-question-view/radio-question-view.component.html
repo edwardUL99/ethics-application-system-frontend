@@ -1,0 +1,11 @@
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form">
+    <label>{{questionComponent?.title}}</label>
+    <div class="form-text">{{questionComponent?.description}}</div>
+    <div [id]="questionComponent?.componentId + '-radios'">
+        <div *ngFor="let radio of getRadios()" class="form-check">
+            <label class="form-check-label">{{radio?.title}}</label>
+            <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event, radio?.name)" 
+            [name]="component?.name" [checked]="radioControls[radio]?.value == selectedRadioValue">
+        </div>
+    </div>
+</div>

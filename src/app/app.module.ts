@@ -23,6 +23,18 @@ import { CenterHeaderComponent } from './center-header/center-header.component';
 import { CreateUserComponent } from './users/create-user/create-user.component';
 import { UserRedirectComponent } from './users/user-redirect/user-redirect.component';
 import { FieldErrorComponent } from './field-error/field-error.component';
+import { SectionViewComponent } from './applications/view/component/section-view/section-view.component';
+import { ComponentHostDirective } from './applications/view/component/component-host.directive';
+import { ContainerViewComponent } from './applications/view/component/container-view/container-view.component';
+import { TextViewComponent } from './applications/view/component/text-view/text-view.component';
+import { TextQuestionViewComponent } from './applications/view/component/text-question-view/text-question-view.component';
+import { SelectQuestionViewComponent } from './applications/view/component/select-question-view/select-question-view.component';
+import { CheckboxGroupViewComponent } from './applications/view/component/checkbox-group-view/checkbox-group-view.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ModalComponent } from './modal/modal.component';
+import { UserContext } from './users/usercontext';
+import { CheckboxQuestionViewComponent } from './applications/view/component/checkbox-question-view/checkbox-question-view.component';
+import { RadioQuestionViewComponent } from './applications/view/component/radio-question-view/radio-question-view.component';
 
 @NgModule({
   declarations: [
@@ -40,13 +52,24 @@ import { FieldErrorComponent } from './field-error/field-error.component';
     CenterHeaderComponent,
     CreateUserComponent,
     UserRedirectComponent,
-    FieldErrorComponent
+    FieldErrorComponent,
+    SectionViewComponent,
+    ComponentHostDirective,
+    ContainerViewComponent,
+    TextViewComponent,
+    TextQuestionViewComponent,
+    SelectQuestionViewComponent,
+    CheckboxGroupViewComponent,
+    ModalComponent,
+    CheckboxQuestionViewComponent,
+    RadioQuestionViewComponent
   ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NgbModule
   ],
   providers: [
     AuthService,
@@ -56,7 +79,8 @@ import { FieldErrorComponent } from './field-error/field-error.component';
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    },
+    UserContext
   ],
   bootstrap: [AppComponent]
 })

@@ -17,7 +17,8 @@ export class UserRedirectComponent implements OnInit {
 
   constructor(private userService: UserService,
     private router: Router,
-    private jwtStore: JWTStore) { }
+    private jwtStore: JWTStore,
+    private userContext: UserContext) { }
 
   ngOnInit() {
     this.error = false;
@@ -37,7 +38,7 @@ export class UserRedirectComponent implements OnInit {
     this.userService.loadUser(username, false)
       .subscribe({
         next: response => {
-          UserContext.getInstance().user = response;
+          this.userContext.setUser(response);
           this.router.navigate(['home']);
         },
         error: e => {

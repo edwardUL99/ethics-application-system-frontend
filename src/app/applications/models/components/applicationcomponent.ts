@@ -111,4 +111,12 @@ export abstract class ApplicationComponent {
     get isComposite() {
         return this.composite;
     }
+
+    /**
+     * If this component is intended to be a form input that takes an answer, this should return true. It is by default
+     * set to return fals, unless overriden
+     */
+    isFormElement(): boolean {
+        return false;
+    }
 }

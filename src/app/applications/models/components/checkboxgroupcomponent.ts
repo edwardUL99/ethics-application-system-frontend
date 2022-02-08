@@ -1,3 +1,4 @@
+import { mergeSpaces } from "../../../utils";
 import { ComponentType } from "./applicationcomponent";
 import { Branch } from "./branch";
 import { SimpleComponent } from "./simplecomponent";
@@ -35,6 +36,14 @@ export class CheckboxGroupComponent extends SimpleComponent {
         this.checkboxes = checkboxes;
         this.multiple = multiple;
     }
+
+    /**
+     * This is a form element, so returns true
+     * @returns true
+     */
+    isFormElement(): boolean {
+        return true;
+    }
 }
 
 /**
@@ -53,16 +62,27 @@ export class Checkbox {
      * The branch to override the default branch with
      */
     branch: Branch;
+    /**
+     * The name of the checkbox (it is constructed from the title made lowercase, punctuation stripped and spaces replaced with _)
+     */
+    name: string;
+    /**
+     * An optional value
+     */
+    value: string;
 
     /**
      * Create a Checkbox
      * @param id the database ID
      * @param title the title of the checkbox
      * @param branch the branch to override the default branch with
+     * @param an optional value
      */
-    constructor(id: number, title: string, branch: Branch) {
+    constructor(id: number, title: string, branch?: Branch, value?: string) {
         this.id = id;
         this.title = title;
-        this.branch = branch;
+        this.branch = (branch == undefined) ? null:branch;
+        this.name = mergeSpaces(this.title);
+        this.value = (value == undefined) ? null:value;
     }
 }
