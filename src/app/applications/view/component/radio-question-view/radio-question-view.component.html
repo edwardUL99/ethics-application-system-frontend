@@ -8,4 +8,5 @@
             [name]="component?.name" [checked]="radioControls[radio]?.value == selectedRadioValue">
         </div>
     </div>
+    <app-field-error [condition]="radioArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
 </div>

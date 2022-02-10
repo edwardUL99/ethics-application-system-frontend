@@ -13,6 +13,7 @@
   },
   "private": true,
   "dependencies": {
+    "@almothafar/angular-signature-pad": "^4.0.1",
     "@angular/animations": "^13.2.1",
     "@angular/common": "^13.2.0",
     "@angular/compiler": "^13.2.1",

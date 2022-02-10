@@ -3,7 +3,7 @@
     <div class="form-text">
         {{questionComponent?.description}}
     </div>
-    <select [multiple]="questionComponent.multiple" [name]="questionComponent.name" [formControlName]="questionComponent.name">
+    <select [multiple]="questionComponent.multiple" [name]="questionComponent.name" [formControlName]="questionComponent.name" (change)="onChange()">
         <option *ngFor="let option of questionComponent.options" [value]="option.value">{{option.label}}</option>
     </select>
     <div *ngIf="control?.errors">

@@ -23,6 +23,9 @@ describe('ApplicationTemplateService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule
+      ],
+      providers: [
+        ApplicationTemplateService
       ]
     });
     service = TestBed.inject(ApplicationTemplateService);

@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, OnChanges, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ViewChild, ViewChildren, ChangeDetectorRef } from '@angular/core';
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { ApplicationViewComponent } from '../application-view.component';
+import { ApplicationViewComponent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
 import { ViewComponentRegistration, registeredComponents } from '../registered.components';
 import { FormGroup } from '@angular/forms';
+import { AbstractComponentHost } from '../abstractcomponenthost';
 
 @Component({
   selector: 'app-container-view',
@@ -12,7 +13,7 @@ import { FormGroup } from '@angular/forms';
   styleUrls: ['./container-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.CONTAINER)
-export class ContainerViewComponent implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
+export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
   /**
    * The component to be displayed
    */
@@ -35,15 +36,23 @@ export class ContainerViewComponent implements OnInit, OnChanges, ApplicationVie
   /**
    * The flag to track if the view is initialised
    */
-   private _viewInitialised: boolean = false;
+  private _viewInitialised: boolean = false;
 
-  constructor() { }
+  constructor(private readonly cd: ChangeDetectorRef) { 
+    super();
+  }
+
+  initialise(data: ViewComponentShape): void {
+    const questionData = data as QuestionViewComponentShape;
+    this.component = questionData.component;
+    this.form = questionData.form;
+  }
 
   ngOnInit(): void {
   }
 
   ngOnChanges(): void {
-      this.loadComponents();
+    this.loadComponents();
   }
 
   ngAfterViewInit(): void {
@@ -71,21 +80,18 @@ export class ContainerViewComponent implements OnInit, OnChanges, ApplicationVie
       const castedComponent = this.castComponent();
       const viewContainerRef = this.componentHost.viewContainerRef;
       viewContainerRef.clear();
-      
-      for (let sub of castedComponent.components) {
-        const componentRef = viewContainerRef.createComponent<ApplicationViewComponent>(registeredComponents.getComponent(sub.getType()));
-        componentRef.instance.component = sub;
 
-        if (sub.isFormElement()) {
-          componentRef.instance.form = this.form;
-        }
-
-        componentRef.changeDetectorRef.detectChanges();
-      }
+      castedComponent.components.forEach(component => this.loadComponent(this.componentHost, component, this.form));
     }
+
+    this.detectChanges();
   }
 
   castComponent() {
     return this.component as ContainerComponent;
+  }
+
+  detectChanges(): void {
+    this.cd.detectChanges();
   }
 }

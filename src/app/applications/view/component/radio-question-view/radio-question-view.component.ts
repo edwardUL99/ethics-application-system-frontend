@@ -1,11 +1,12 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
-import { ApplicationViewComponent } from '../application-view.component';
+import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
+import { StringValueType, ValueType } from '../valuetype';
 
 @Component({
   selector: 'app-radio-question-view',
@@ -13,7 +14,7 @@ import { ViewComponentRegistration } from '../registered.components';
   styleUrls: ['./radio-question-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.RADIO_QUESTION)
-export class RadioQuestionViewComponent implements OnInit, ApplicationViewComponent {
+export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
    */
@@ -42,10 +43,28 @@ export class RadioQuestionViewComponent implements OnInit, ApplicationViewCompon
   * Mapping of option names to controls
   */
   radioControls = {};
+  /**
+   * The question change event emitter
+   */
+  @Output() questionChange: EventEmitter<QuestionViewEvent>;
 
   constructor() { }
 
+  initialise(data: ViewComponentShape): void {
+    const questionData = data as QuestionViewComponentShape;
+    this.component = questionData.component;
+    this.form = questionData.form;
+  }
+
   ngOnInit(): void {
+    this.questionComponent = this.castComponent();
+
+    this.addToForm();
+    this.questionComponent.options.forEach(option => {
+      const checkbox = new Checkbox(option.id, option.label, null);
+      checkbox.name = option.name;
+      this.radios[option.name] = checkbox;
+    });
   }
 
   getRadios() {
@@ -55,18 +74,24 @@ export class RadioQuestionViewComponent implements OnInit, ApplicationViewCompon
     return radioList;
   }
 
-  ngOnChanges(): void {
-    this.questionComponent = this.castComponent();
+  private _addToForm(): void {
+    this.radioArray = (this.radioArray) ? this.radioArray:new FormArray([]);
 
-    if (this.form && !this.form.get(this.questionComponent.componentId)) {
-      this.radioArray = new FormArray([]);
-      this.form.addControl(this.questionComponent.componentId, this.radioArray);
-      this.questionComponent.options.forEach(option => {
-        const checkbox = new Checkbox(option.id, option.label, null);
-        checkbox.name = option.name;
-        this.radios[option.name] = checkbox;
-      });
+    if (this.questionComponent.required && !this.radioArray.hasValidator(Validators.required)) {
+      this.radioArray.addValidators(Validators.required);
     }
+
+    this.form.addControl(this.questionComponent.componentId, this.radioArray);
+  }
+
+  addToForm(): void {
+    if (!this.form.get(this.questionComponent.componentId)) {
+      this._addToForm();
+    }
+  }
+
+  removeFromForm(): void {
+    this.form.removeControl(this.questionComponent.componentId);
   }
 
   castComponent() {
@@ -77,8 +102,8 @@ export class RadioQuestionViewComponent implements OnInit, ApplicationViewCompon
    * Get the value of this view
    * @return the radio value chosen
    */
-  get value() {
-    return this.selectedRadioValue;
+  value(): ValueType {
+    return new StringValueType(this.selectedRadioValue);
   }
 
   /**
@@ -106,5 +131,7 @@ export class RadioQuestionViewComponent implements OnInit, ApplicationViewCompon
         i++;
       });
     }
+
+    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
   }
 }

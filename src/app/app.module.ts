@@ -35,6 +35,11 @@ import { ModalComponent } from './modal/modal.component';
 import { UserContext } from './users/usercontext';
 import { CheckboxQuestionViewComponent } from './applications/view/component/checkbox-question-view/checkbox-question-view.component';
 import { RadioQuestionViewComponent } from './applications/view/component/radio-question-view/radio-question-view.component';
+import { MultipartQuestionViewComponent } from './applications/view/component/multipart-question-view/multipart-question-view.component';
+import { ApplicationTemplateService } from './applications/application-template.service';
+import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
+import { SignatureQuestionViewComponent } from './applications/view/component/signature-question-view/signature-question-view.component'
+import { SignatureFieldComponent } from './applications/view/component/signature-question-view/signature-field/signature-field.component';
 
 @NgModule({
   declarations: [
@@ -62,14 +67,18 @@ import { RadioQuestionViewComponent } from './applications/view/component/radio-
     CheckboxGroupViewComponent,
     ModalComponent,
     CheckboxQuestionViewComponent,
-    RadioQuestionViewComponent
+    RadioQuestionViewComponent,
+    MultipartQuestionViewComponent,
+    SignatureQuestionViewComponent,
+    SignatureFieldComponent
   ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
     HttpClientModule,
     AppRoutingModule,
-    NgbModule
+    NgbModule,
+    AngularSignaturePadModule
   ],
   providers: [
     AuthService,
@@ -80,8 +89,9 @@ import { RadioQuestionViewComponent } from './applications/view/component/radio-
       useClass: AuthInterceptor,
       multi: true
     },
-    UserContext
+    UserContext,
+    ApplicationTemplateService
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

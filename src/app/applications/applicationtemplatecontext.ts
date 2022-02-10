@@ -3,7 +3,7 @@ import { ApplicationTemplate } from './models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from './models/components/applicationcomponent';
 import { CompositeComponent } from './models/components/compositecomponent';
 import { ContainerComponent } from './models/components/containercomponent';
-import { ComponentConverter, Converters } from './models/parsing/converters';
+import { Converters } from './models/parsing/converters';
 
 /**
  * The application context provides utilities for working on the templates in the system

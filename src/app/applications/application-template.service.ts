@@ -11,9 +11,7 @@ import { ComponentObject, Converters } from './models/parsing/converters';
 /**
  * This service provides functions for working with application templates
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class ApplicationTemplateService {
   constructor(private http: HttpClient) { }
 

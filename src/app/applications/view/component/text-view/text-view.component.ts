@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextComponent } from '../../../models/components/textcomponent';
-import { ApplicationViewComponent } from '../application-view.component';
+import { ApplicationViewComponent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 
 @Component({
@@ -21,7 +21,9 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
   ngOnInit(): void {
   }
 
-  ngOnChanges(): void { }
+  initialise(data: ViewComponentShape): void {
+    this.component = data.component;
+  }
 
   castComponent() {
     return this.component as TextComponent;

@@ -1,10 +1,12 @@
-import { Component, Input, OnInit, OnChanges, ViewChildren } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ViewChildren, ChangeDetectorRef } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { ApplicationViewComponent } from '../application-view.component';
+import { ApplicationViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
 import { ViewComponentRegistration, registeredComponents } from '../registered.components';
-import { FormGroup } from '@angular/forms';
+import { AbstractComponentHost } from '../abstractcomponenthost';
+
 
 @Component({
   selector: 'app-section-view',
@@ -12,7 +14,7 @@ import { FormGroup } from '@angular/forms';
   styleUrls: ['./section-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.SECTION)
-export class SectionViewComponent implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
+export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
   /**
    * The component to be displayed
    */
@@ -35,12 +37,20 @@ export class SectionViewComponent implements OnInit, OnChanges, ApplicationViewC
    */
   private _viewInitialised: boolean = false;
 
-  constructor() { }
+  constructor(private readonly cd: ChangeDetectorRef) {
+    super();
+  }
+
+  initialise(data: ViewComponentShape): void {
+    const questionData = data as QuestionViewComponentShape;
+    this.component = questionData.component;
+    this.form = questionData.form;
+  }
 
   ngOnInit(): void {
   }
 
-  ngOnChanges(changes): void {
+  ngOnChanges(): void {
     this.loadComponents();
   }
 
@@ -70,23 +80,20 @@ export class SectionViewComponent implements OnInit, OnChanges, ApplicationViewC
       const viewContainerRef = this.componentHost.viewContainerRef;
       viewContainerRef.clear();
       
-      for (let sub of castedComponent.components) {
-        const componentRef = viewContainerRef.createComponent<ApplicationViewComponent>(registeredComponents.getComponent(sub.getType()));
-        componentRef.instance.component = sub;
-
-        if (sub.isFormElement()) {
-          componentRef.instance.form = this.form;
-        }
-
-        componentRef.changeDetectorRef.detectChanges();
-      }
+      castedComponent.components.forEach(component => this.loadComponent(this.componentHost, component, this.form));
     }
+
+    this.detectChanges();
   }
 
   castComponent() {
     return this.component as SectionComponent;
   }
 
-  // TODO implement the other component views. Implement the view for viewing an application template also which has an element marked as componentHost and load components like this
+  detectChanges(): void {
+    this.cd.detectChanges();
+  }
+
+  // TODO implement the other component views (think it's only QuestionTable left). Implement the view for viewing an application template also which has an element marked as componentHost and load components like this
   // TODO Also implement application models like the application class and request/response classes. Then have an ApplicationContext class that holds the application being worked on. This context class can be made an attribute of the ApplicationViewComponent interface since to render (and perform actions) on the rendered components (such as save sections, answers etc.) you need the application context which may also hold the application service reference etc.
 }

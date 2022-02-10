@@ -4,13 +4,11 @@
         {{questionComponent?.description}}
     </div>
     <div *ngIf="questionComponent?.singleLine">
-        <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" class="form-control" [formControlName]="questionComponent?.name">
+        <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" (change)="onChange()" class="form-control" [formControlName]="questionComponent?.name">
     </div>
     <div *ngIf="!questionComponent?.singleLine">
-        <textarea [name]="questionComponent?.name" class="form-control" [formControlName]="questionComponent?.name"></textarea>
+        <textarea [name]="questionComponent?.name" class="form-control" (change)="onChange()" [formControlName]="questionComponent?.name"></textarea>
     </div>
-    <div *ngIf="control?.errors">
-        <app-field-error [condition]="control.errors?.['required']" [message]="'This field is required'"></app-field-error>
-        <app-field-error [condition]="control.errors?.['email']" [message]="'Please enter a valid e-mail address'"></app-field-error>
-    </div>
+    <app-field-error [condition]="control.errors?.['required'] && control.touched" [error]="'This field is required'"></app-field-error>
+    <app-field-error [condition]="control.errors?.['email'] && control.touched" [error]="'Please enter a valid e-mail address'"></app-field-error>
 </div>

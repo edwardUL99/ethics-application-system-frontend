@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
-import { ApplicationViewComponent } from '../application-view.component';
+import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component'
 import { ViewComponentRegistration } from '../registered.components';
+import { StringValueType, ValueType } from '../valuetype';
 
 @Component({
   selector: 'app-text-question-view',
@@ -11,7 +12,7 @@ import { ViewComponentRegistration } from '../registered.components';
   styleUrls: ['./text-question-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.TEXT_QUESTION)
-export class TextQuestionViewComponent implements OnInit, ApplicationViewComponent {
+export class TextQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
    */
@@ -28,31 +29,61 @@ export class TextQuestionViewComponent implements OnInit, ApplicationViewCompone
    * The form control behind the text question view
    */
   control: FormControl;
+  /**
+   * The value change that occurred
+   */
+  @Output() questionChange: EventEmitter<QuestionViewEvent> = new EventEmitter<QuestionViewEvent>();
 
-  constructor() { 
-    this.questionComponent = this.castComponent();
+  constructor() {}
+
+  initialise(data: ViewComponentShape): void {
+    const questionData = data as QuestionViewComponentShape;
+    this.component = questionData.component;
+    this.form = questionData.form;
   }
 
   ngOnInit(): void {
+    this.questionComponent = this.castComponent();
+
+    if (this.form && !this.form.get(this.questionComponent.name)) {
+      this._addToForm();
+    }
   }
 
-  ngOnChanges(): void {
-    if (this.form && !this.form.get(this.questionComponent.name)) {
-      this.control = new FormControl('');
+  private _addToForm(): void {
+    this.control = (this.control) ? this.control:new FormControl('');
 
-      if (this.questionComponent.questionType == 'email') {
-        this.control.addValidators(Validators.email);
-      } 
+    if (this.questionComponent.questionType == 'email' && !this.control.hasValidator(Validators.email)) {
+      this.control.setValidators(Validators.email);
+    } 
 
-      if (this.questionComponent.required) {
-        this.control.addValidators(Validators.required);
-      }
-
-      this.form.addControl(this.questionComponent.name, this.control);
+    if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
     }
+
+    this.form.addControl(this.questionComponent.name, this.control);
+    this.control.updateValueAndValidity();
+  }
+
+  addToForm(): void {
+    if (!this.form.get(this.questionComponent.name)) {
+      this._addToForm();
+    }
+  }
+
+  removeFromForm(): void {
+    this.form.removeControl(this.questionComponent.name);
   }
 
   castComponent() {
     return this.component as TextQuestionComponent;
+  }
+
+  value(): ValueType  {
+    return new StringValueType(this.control?.value);    
+  }
+
+  onChange() {
+    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
   }
 }

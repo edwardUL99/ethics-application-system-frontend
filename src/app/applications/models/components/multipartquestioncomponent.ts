@@ -29,7 +29,7 @@ export class MultipartQuestionComponent extends QuestionComponent {
      * @param componentId the HTML ID of the component
      * @param required true if required, false if not
      */
-     constructor(databaseId: number, title: string, componentId: string, required: boolean, conditional: boolean, parts: PartsMapping) {
+    constructor(databaseId: number, title: string, componentId: string, required: boolean, conditional: boolean, parts: PartsMapping) {
         super(databaseId, ComponentType.MULTIPART_QUESTION, title, componentId, null, null, required);
         this.conditional = conditional;
         this.parts = parts;

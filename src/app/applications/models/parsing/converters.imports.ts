@@ -4,7 +4,6 @@
  * annotation and this file, the only place a converter file should be imported is here, and then the client that requires converter functionality through the Converters.get()
  * method, should import this file
  */
-
 import './sectionconverter';
 import './containerconverter';
 import './textconverter';

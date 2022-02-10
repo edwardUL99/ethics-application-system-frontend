@@ -52,7 +52,9 @@ export class QuestionTableConverter implements ComponentConverter {
                 const cellsInstance: Cells = new Cells(cells.databaseId, cells.columnName, components);
 
                 for (let component of cells.components) {
-                    components.push(Converters.get(component.type).convert(component) as QuestionComponent);
+                    const questionComponent = Converters.get(component.type).convert(component) as QuestionComponent;
+                    questionComponent.title = undefined; // make it undefined so it won't be rendered in a question table view
+                    components.push(questionComponent);
                 }
 
                 columnsMapping[cells.columnName] = cellsInstance;

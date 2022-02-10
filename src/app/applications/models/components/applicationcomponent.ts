@@ -114,7 +114,10 @@ export abstract class ApplicationComponent {
 
     /**
      * If this component is intended to be a form input that takes an answer, this should return true. It is by default
-     * set to return fals, unless overriden
+     * set to return fals, unless overridden.
+     * 
+     * The corresponding ApplicationViewComponent should implement the more specific sub-interface QuestionViewComponent if 
+     * this returns true
      */
     isFormElement(): boolean {
         return false;

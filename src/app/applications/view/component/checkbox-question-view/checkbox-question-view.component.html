@@ -8,4 +8,5 @@
             [name]="checkbox?.name" [checked]="selectedCheckboxes[checkbox?.name]">
         </div>
     </div>
+    <app-field-error [condition]="checkboxArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
 </div>

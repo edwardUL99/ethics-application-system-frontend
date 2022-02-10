@@ -1,10 +1,6 @@
 import { Type } from "@angular/core";
 import { ComponentType } from "../../models/components/applicationcomponent"
 import { ApplicationViewComponent } from "./application-view.component";
-import { ContainerViewComponent } from "./container-view/container-view.component";
-import { SectionViewComponent } from "./section-view/section-view.component"
-import { TextViewComponent } from './text-view/text-view.component';
-import { TextQuestionViewComponent } from "./text-question-view/text-question-view.component";
 
 /**
  * The type of the registered components mapping
@@ -52,7 +48,7 @@ export const registeredComponents = new RegisteredViewComponents();
  * @returns the decorator instance
  */
 export function ViewComponentRegistration(type: ComponentType) {
-    return <T extends ApplicationViewComponent>(target: new () => T): new () => T => {
+    return <T extends ApplicationViewComponent>(target: new (arg?: any) => T): new (arg?: any) => T => {
         registeredComponents.registerComponent(type, target);
 
         return target;
