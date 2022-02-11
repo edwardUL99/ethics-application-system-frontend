@@ -1,12 +1,13 @@
-import { ChangeDetectorRef, Component, Input, OnInit, Output, ViewChildren, OnChanges } from '@angular/core';
-import { QuestionChange, QuestionChangeCallback, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { ChangeDetectorRef, Component, Input, OnInit, Output, ViewChildren, OnChanges, OnDestroy } from '@angular/core';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { MultipartQuestionComponent } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
-import { QuestionComponentHost, ComponentHostDirective } from '../component-host.directive';
-import { ViewComponentRegistration, registeredComponents } from '../registered.components';
+import { QuestionComponentHost, ComponentHostDirective, MatchedComponentHosts, MatchedQuestionComponents } from '../component-host.directive';
+import { ViewComponentRegistration } from '../registered.components';
 import { ObjectValueType, ValueType } from '../valuetype';
 import { AbstractComponentHost } from '../abstractcomponenthost';
+import { DynamicComponentLoader } from '../dynamiccomponents';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -14,20 +15,6 @@ import { AbstractComponentHost } from '../abstractcomponenthost';
 type DisplayedParts = {
   [key: string]: boolean
 };
-
-/**
- * The mapping for matched parts and component host directives
- */
-type MatchedComponentHosts = {
-  [key: string]: ComponentHostDirective
-}
-
-/** 
- * The mapping of question view components
- */
-type MatchedQuestionComponents = {
-  [key: string]: QuestionViewComponent
-}
 
 /**
  * Mapping of part values
@@ -42,7 +29,7 @@ type PartValues = {
   styleUrls: ['./multipart-question-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.MULTIPART_QUESTION)
-export class MultipartQuestionViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnChanges {
+export class MultipartQuestionViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnChanges, OnDestroy {
   /**
    * The component being rendered by this view
    */
@@ -98,7 +85,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    */
   private readonly allowedQuestionParts = [ComponentType.TEXT_QUESTION, ComponentType.SELECT_QUESTION, ComponentType.CHECKBOX_QUESTION, ComponentType.RADIO_QUESTION];
 
-  constructor(private readonly cd: ChangeDetectorRef) {
+  constructor(private readonly cd: ChangeDetectorRef,
+    private loader: DynamicComponentLoader) {
     super();
   }
 
@@ -124,6 +112,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
         this.setDisplayedPart(key);
       }
     }
+  }
+
+  ngOnDestroy(): void {
+    this.componentHosts.forEach(host => this.loader.destroyComponents(host.hostId));
   }
 
   viewInitialised(): boolean {
@@ -155,12 +147,11 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
         const type = part.question.getType();
           
-        if (this.validComponent(type)) {
+        if (!this.validComponent(type)) {
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, part.partName);
-
-          this.matchedComponents[part.partName] = this.loadComponent(hostDirective, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          this.matchedComponents[part.partName] = this.loadComponent(this.loader, hostDirective, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
     }
@@ -169,8 +160,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   private loadDirectives() {
-    this.multipartQuestion = this.castComponent();
-
     for (let hostDirective of this.componentHosts) {
       const componentId = hostDirective.hostId;
 
@@ -248,9 +237,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     return new ObjectValueType(copiedParts);
   }
 
-  onInput(event: any, part: string) {
-    const partComponent = this.matchedComponents[part];
-    const value = partComponent.value();
+  onInput(event: QuestionChangeEvent, part: string) {
+    const value = event.value;
     this.values[part] = value;
 
     if (this.multipartQuestion.conditional) {

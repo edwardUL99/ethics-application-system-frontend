@@ -48,7 +48,7 @@ export const registeredComponents = new RegisteredViewComponents();
  * @returns the decorator instance
  */
 export function ViewComponentRegistration(type: ComponentType) {
-    return <T extends ApplicationViewComponent>(target: new (arg?: any) => T): new (arg?: any) => T => {
+    return <T extends ApplicationViewComponent>(target: new (...arg: any) => T): new (...arg: any) => T => {
         registeredComponents.registerComponent(type, target);
 
         return target;

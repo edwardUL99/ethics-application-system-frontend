@@ -1,12 +1,19 @@
-import { Component, Input, OnInit, OnChanges, ViewChildren, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ViewChildren, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
-import { ViewComponentRegistration, registeredComponents } from '../registered.components';
+import { ViewComponentRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
+import { DynamicComponentLoader } from '../dynamiccomponents';
 
+export interface SectionViewComponentShape extends QuestionViewComponentShape {
+  /**
+   * Determines if the section is a sub-section of another section. If so it is not displayed in another card
+   */
+  subSection?: boolean;
+}
 
 @Component({
   selector: 'app-section-view',
@@ -14,7 +21,7 @@ import { AbstractComponentHost } from '../abstractcomponenthost';
   styleUrls: ['./section-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.SECTION)
-export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
+export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
   /**
    * The component to be displayed
    */
@@ -33,18 +40,29 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    */
   componentHost!: ComponentHostDirective;
   /**
+   * Determines if the section is a sub-section of another section. If so it is not displayed in another card
+   */
+  subSection: boolean = false;
+  /**
+   * The css class for the section
+   */
+  sectionClass: string;
+  /**
    * The flag to track if the view is initialised
    */
   private _viewInitialised: boolean = false;
 
-  constructor(private readonly cd: ChangeDetectorRef) {
+  constructor(private readonly cd: ChangeDetectorRef,
+    private loader: DynamicComponentLoader) {
     super();
   }
 
   initialise(data: ViewComponentShape): void {
-    const questionData = data as QuestionViewComponentShape;
+    const questionData = data as SectionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+    this.subSection = questionData.subSection;
+    this.sectionClass = (!this.subSection) ? 'card mx-2 my-2 pl-2 pr-2':'';
   }
 
   ngOnInit(): void {
@@ -54,12 +72,17 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     this.loadComponents();
   }
 
+  ngOnDestroy(): void {
+    this.loader.destroyComponents(this.componentHost.hostId);
+  }
+
   ngAfterViewInit(): void {
     this._viewInitialised = true;
 
     for (let host of this.componentHosts) {
       if (host.hostId == this.component.componentId) {
         this.componentHost = host;
+        break;
       }
     }
 
@@ -80,7 +103,13 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
       const viewContainerRef = this.componentHost.viewContainerRef;
       viewContainerRef.clear();
       
-      castedComponent.components.forEach(component => this.loadComponent(this.componentHost, component, this.form));
+      castedComponent.components.forEach(component => {
+        if (component.getType() == ComponentType.SECTION) {
+          this.loadComponentSubSection(this.loader, this.componentHost, {component: component, form: this.form, subSection: true}); // section is being loaded inside in a section, so, it is a sub-section
+        } else {
+          this.loadComponent(this.loader, this.componentHost, component, this.form);
+        }
+      });
     }
 
     this.detectChanges();

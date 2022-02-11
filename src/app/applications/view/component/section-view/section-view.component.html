@@ -1,5 +1,6 @@
-<div class="card mx-2 my-2 pl-2 pr-2" [id]="component?.componentId">
+<div [ngClass]="sectionClass" [id]="component?.componentId">
+    <hr *ngIf="subSection" class="my-2 ml-2">
     <h5>{{component?.title}}</h5>
     <p>{{castComponent()?.description}}</p>
     <ng-template componentHost [hostId]="component?.componentId"></ng-template>
-</div>>
+</div>

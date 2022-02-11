@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, ViewChild, ViewChildren, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ViewChild, ViewChildren, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
@@ -6,6 +6,7 @@ import { ComponentHost, ComponentHostDirective } from '../component-host.directi
 import { ViewComponentRegistration, registeredComponents } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
+import { DynamicComponentLoader } from '../dynamiccomponents';
 
 @Component({
   selector: 'app-container-view',
@@ -13,7 +14,7 @@ import { AbstractComponentHost } from '../abstractcomponenthost';
   styleUrls: ['./container-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.CONTAINER)
-export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost {
+export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
   /**
    * The component to be displayed
    */
@@ -38,7 +39,8 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    */
   private _viewInitialised: boolean = false;
 
-  constructor(private readonly cd: ChangeDetectorRef) { 
+  constructor(private readonly cd: ChangeDetectorRef,
+    private loader: DynamicComponentLoader) { 
     super();
   }
 
@@ -55,12 +57,17 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
     this.loadComponents();
   }
 
+  ngOnDestroy(): void {
+    this.loader.destroyComponents(this.componentHost.hostId);
+  }
+
   ngAfterViewInit(): void {
     this._viewInitialised = true;
 
     for (let host of this.componentHosts) {
       if (host.hostId == this.component.componentId) {
         this.componentHost = host;
+        break;
       }
     }
 
@@ -81,7 +88,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
       const viewContainerRef = this.componentHost.viewContainerRef;
       viewContainerRef.clear();
 
-      castedComponent.components.forEach(component => this.loadComponent(this.componentHost, component, this.form));
+      castedComponent.components.forEach(component => this.loadComponent(this.loader, this.componentHost, component, this.form));
     }
 
     this.detectChanges();

@@ -40,6 +40,8 @@ import { ApplicationTemplateService } from './applications/application-template.
 import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
 import { SignatureQuestionViewComponent } from './applications/view/component/signature-question-view/signature-question-view.component'
 import { SignatureFieldComponent } from './applications/view/component/signature-question-view/signature-field/signature-field.component';
+import { QuestionTableViewComponent } from './applications/view/component/question-table-view/question-table-view.component';
+import { DynamicComponentLoader } from './applications/view/component/dynamiccomponents';
 
 @NgModule({
   declarations: [
@@ -70,7 +72,8 @@ import { SignatureFieldComponent } from './applications/view/component/signature
     RadioQuestionViewComponent,
     MultipartQuestionViewComponent,
     SignatureQuestionViewComponent,
-    SignatureFieldComponent
+    SignatureFieldComponent,
+    QuestionTableViewComponent
   ],
   imports: [
     BrowserModule,
@@ -90,7 +93,8 @@ import { SignatureFieldComponent } from './applications/view/component/signature
       multi: true
     },
     UserContext,
-    ApplicationTemplateService
+    ApplicationTemplateService,
+    DynamicComponentLoader
   ],
   bootstrap: [AppComponent]
 })

@@ -1,6 +1,7 @@
 import { AfterViewInit, Input } from '@angular/core';
 import { Directive, ViewContainerRef } from '@angular/core';
 import { ComponentType } from '../../models/components/applicationcomponent';
+import { QuestionViewComponent } from './application-view.component';
 
 @Directive({
   selector: '[componentHost]'
@@ -44,6 +45,20 @@ export interface ComponentHost extends AfterViewInit {
    * This should be called at the end of every loadComponents() call
    */
   detectChanges(): void;
+}
+
+/**
+ * A type for mapping component IDs of the sub-components and their matching component host directives
+ */
+ export type MatchedComponentHosts = {
+  [key: string]: ComponentHostDirective
+}
+
+/** 
+ * A type for mapping of some form of ID to their matched component references
+ */
+export type MatchedQuestionComponents = {
+  [key: string]: QuestionViewComponent
 }
 
 /**
