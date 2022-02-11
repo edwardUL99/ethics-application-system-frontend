@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
-import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { StringValueType, ValueType } from '../valuetype';
@@ -46,7 +46,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   /**
    * The question change event emitter
    */
-  @Output() questionChange: EventEmitter<QuestionViewEvent>;
+  @Output() questionChange: QuestionChange = new QuestionChange();
 
   constructor() { }
 
@@ -54,6 +54,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -132,6 +136,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       });
     }
 
-    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
   }
 }

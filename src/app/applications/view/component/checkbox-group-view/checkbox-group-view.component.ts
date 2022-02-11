@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
-import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ActionBranch } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
@@ -60,7 +60,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   /**
    * The question change event emitter
    */
-  @Output() questionChange: EventEmitter<QuestionViewEvent>;
+  @Output() questionChange: QuestionChange = new QuestionChange();
 
   constructor() { }
 
@@ -68,6 +68,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -140,7 +144,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       });
     }
 
-    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
   }
 
   castComponent() {

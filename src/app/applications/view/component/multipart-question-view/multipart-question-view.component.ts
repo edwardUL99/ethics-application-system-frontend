@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChildren, OnChanges } from '@angular/core';
-import { ApplicationViewComponent, QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
+import { ChangeDetectorRef, Component, Input, OnInit, Output, ViewChildren, OnChanges } from '@angular/core';
+import { QuestionChange, QuestionChangeCallback, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { MultipartQuestionComponent } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponentHost, ComponentHostDirective } from '../component-host.directive';
 import { ViewComponentRegistration, registeredComponents } from '../registered.components';
-import { ValueType } from '../valuetype';
+import { ObjectValueType, ValueType } from '../valuetype';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 
 /**
@@ -71,7 +71,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   /**
    * The question change event emitter
    */
-  @Output() questionChange: EventEmitter<QuestionViewEvent>;
+  @Output() questionChange: QuestionChange = new QuestionChange();
   /**
    * The list of component hosts found in the view
    */
@@ -106,6 +106,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -154,7 +158,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
         if (this.validComponent(type)) {
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
-          this.matchedComponents[part.partName] = this.loadComponent(hostDirective, part.question, this.group).instance as QuestionViewComponent;
+          const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, part.partName);
+
+          this.matchedComponents[part.partName] = this.loadComponent(hostDirective, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
     }
@@ -230,7 +236,16 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   value(): ValueType {
-    return undefined; // TODO define the value returned. If this.displayedParts[partName] is false,(even though it is still in the dom), don't display it
+    const copiedParts = {};
+
+    Object.keys(this.values).forEach(part => {
+      const partComponent = this.multipartQuestion.parts[part].question.componentId;
+      const value = this.matchedComponents[part].value();
+
+      copiedParts[partComponent] = value;
+    });
+
+    return new ObjectValueType(copiedParts);
   }
 
   onInput(event: any, part: string) {
@@ -261,7 +276,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
       }
     }
 
-    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
   }
 
   detectChanges(): void {

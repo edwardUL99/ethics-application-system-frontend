@@ -9,7 +9,7 @@ export class ComponentHostDirective {
   /**
    * The ID if the component host
    */
-   @Input() hostId: string = '';
+  @Input() hostId: string = '';
 
   constructor(public viewContainerRef: ViewContainerRef) { }
 
@@ -34,7 +34,7 @@ export interface ComponentHost extends AfterViewInit {
   /**
    * The method the component should call to load and create the components that it hosts.
    * <b>Important: </b>After calling initialise on any component, ensure to call changeDetectorRef.detectChanges() on the created component reference to ensure 
-   * the component gets created correctly
+   * the component gets created
    */
   loadComponents(): void;
 

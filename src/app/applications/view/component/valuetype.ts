@@ -4,27 +4,43 @@
  */
 
 /**
+ * This enum represents the type of the value type returned
+ */
+export enum ValueTypes {
+  STRING = 'string',
+  OBJECT = 'object',
+  ARRAY = 'array'
+}
+
+/**
  * This interface represents a value type to be returned by a question view component
  */
- export interface ValueType {
-    /**
-     * A value can be matched wholely (i.e. the whole value must match) or else it can be matched
-     * loosely, where the value provided can solely be contained within the value type. For example with
-     * a checkbox question, the value provided can be just "present" in the returned value to be matched
-     * @param value the value to "match"
-     */
-    matches(value: string): boolean;
+export interface ValueType {
+  /**
+   * The type of the value
+   */
+  type: ValueTypes;
+
+  /**
+   * A value can be matched wholely (i.e. the whole value must match) or else it can be matched
+   * loosely, where the value provided can solely be contained within the value type. For example with
+   * a checkbox question, the value provided can be just "present" in the returned value to be matched
+   * @param value the value to "match"
+   */
+  matches(value: string): boolean;
 }
 
 /**
  * This class represents a string value type that is used when a single return value is required
  */
 export class StringValueType implements ValueType {
-    constructor(public value: string) {}
+  readonly type = ValueTypes.STRING;
 
-    matches(value: string): boolean {
-        return this.value == value;
-    }
+  constructor(public value: string) { }
+
+  matches(value: string): boolean {
+    return this.value == value;
+  }
 }
 
 /**
@@ -32,30 +48,34 @@ export class StringValueType implements ValueType {
  * a key-value pair that the value matches the provided value
  */
 export class ObjectValueType implements ValueType {
-    constructor(public value: Object) {}
+  readonly type = ValueTypes.OBJECT;
 
-    matches(value: string): boolean {
-        let found: boolean = false;
+  constructor(public value: Object) { }
 
-        for (let key of Object.keys(this.value)) {
-            found = this.value[key] == value;
+  matches(value: string): boolean {
+    let found: boolean = false;
 
-            if (found) {
-                break;
-            }
-        }
+    for (let key of Object.keys(this.value)) {
+      found = this.value[key] == value;
 
-        return found;
+      if (found) {
+        break;
+      }
     }
+
+    return found;
+  }
 }
 
 /**
  * A value type that contains an array and matches if the array contains the provided value
  */
 export class ArrayValueType implements ValueType {
-    constructor(public value: string[]) {}
+  readonly type = ValueTypes.ARRAY;
 
-    matches(value: string): boolean {
-        return this.value.indexOf(value) != -1;
-    }
+  constructor(public value: string[]) { }
+
+  matches(value: string): boolean {
+    return this.value.indexOf(value) != -1;
+  }
 }

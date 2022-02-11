@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
-import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { ArrayValueType, StringValueType, ValueType } from '../valuetype';
 
@@ -32,7 +32,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   /**
    * The question change event emitter
    */
-  @Output() questionChange: EventEmitter<QuestionViewEvent>;
+  @Output() questionChange: QuestionChange = new QuestionChange();
 
   constructor() { }
 
@@ -40,6 +40,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -76,6 +80,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   onChange() {
-    this.questionChange.emit(new QuestionViewEvent(this.component.componentId, this.value()));
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
   }
 }

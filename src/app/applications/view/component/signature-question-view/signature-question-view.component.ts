@@ -1,8 +1,8 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
-import { QuestionViewComponent, QuestionViewComponentShape, QuestionViewEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { StringValueType, ValueType } from '../valuetype';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
@@ -39,7 +39,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   /**
    * The question change event
    */
-  @Output() questionChange: EventEmitter<QuestionViewEvent>;
+  @Output() questionChange: QuestionChange = new QuestionChange();
   /**
    * The entered signature
    */
@@ -51,6 +51,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
