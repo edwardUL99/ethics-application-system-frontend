@@ -13,12 +13,12 @@ export class AbstractComponentHost {
   /**
    * Load the individual sub-component. If multiple components need to be loaded, this can be called iteratively
    * @param loader the loader injected into the subclass
-   * @param componentHost the host directive to load the component into
+   * @param componentHost the ID of the host directive to load the component into
    * @param component the component to load
    * @param form the form to pass in if it is required
    * @param questionChangeCallback An optional callback function to respond to QuestionChangeEvents that may be emitted by the loaded component
    */
-  protected loadComponent(loader: DynamicComponentLoader, componentHost: ComponentHostDirective, component: ApplicationComponent, form: FormGroup, questionChangeCallback?: QuestionChangeCallback): ComponentRef<ApplicationViewComponent>  {
+  protected loadComponent(loader: DynamicComponentLoader, componentHost: string, component: ApplicationComponent, form: FormGroup, questionChangeCallback?: QuestionChangeCallback): ComponentRef<ApplicationViewComponent>  {
     const componentRef = loader.loadComponent(componentHost, component.getType());
     const data = (component.isFormElement() || component.isComposite) ? {component: component, form: form, questionChangeCallback: questionChangeCallback}
       : {component: component};
@@ -32,10 +32,10 @@ export class AbstractComponentHost {
   /**
    * If the sub component being loaded is a sub section, use this method to load it instead of loadComponent
    * @param loader the loader injected into the subclass
-   * @param componentHost the host directive to load the component into
+   * @param componentHost the ID of the host directive to load the component into
    * @param data the data representing the component initialisation information
    */
-  protected loadComponentSubSection(loader: DynamicComponentLoader, componentHost: ComponentHostDirective, data: SectionViewComponentShape) {
+  protected loadComponentSubSection(loader: DynamicComponentLoader, componentHost: string, data: SectionViewComponentShape) {
     const componentRef = loader.loadComponent(componentHost, data.component.getType());
 
     componentRef.instance.initialise(data);

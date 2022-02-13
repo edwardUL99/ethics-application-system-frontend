@@ -1,9 +1,9 @@
-import { Component, Input, OnInit, OnChanges, ViewChild, ViewChildren, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { ApplicationViewComponent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
-import { ViewComponentRegistration, registeredComponents } from '../registered.components';
+import { ApplicationViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { ComponentHost } from '../component-host.directive';
+import { ViewComponentRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -23,17 +23,6 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    * A form to add any sub-components to if they require it
    */
   @Input() form: FormGroup;
-  /**
-   * All the component hosts found in the view
-   */
-  @ViewChildren(ComponentHostDirective)
-  componentHosts: ComponentHostDirective[];
-  /**
-   * The directive for storing sub-components
-   */
-  // @ViewChild(ComponentHostDirective, {static: true})
-  @ViewChild(ComponentHostDirective)
-  componentHost!: ComponentHostDirective
   /**
    * The flag to track if the view is initialised
    */
@@ -58,23 +47,11 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
   }
 
   ngOnDestroy(): void {
-    this.loader.destroyComponents(this.componentHost.hostId);
+    this.loader.destroyComponents(this.component.componentId);
   }
 
   ngAfterViewInit(): void {
     this._viewInitialised = true;
-
-    for (let host of this.componentHosts) {
-      if (host.hostId == this.component.componentId) {
-        this.componentHost = host;
-        break;
-      }
-    }
-
-    if (this.componentHost == undefined || this.componentHost == null) {
-      throw new Error('You need to specify the componentHost [hostId]="component.componentId" on the ng-template');
-    }
-
     this.loadComponents();
   }
 
@@ -85,10 +62,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
   loadComponents() {
     if (this.component && this.viewInitialised()) {
       const castedComponent = this.castComponent();
-      const viewContainerRef = this.componentHost.viewContainerRef;
-      viewContainerRef.clear();
-
-      castedComponent.components.forEach(component => this.loadComponent(this.loader, this.componentHost, component, this.form));
+      castedComponent.components.forEach(component => this.loadComponent(this.loader, this.component.componentId, component, this.form));
     }
 
     this.detectChanges();

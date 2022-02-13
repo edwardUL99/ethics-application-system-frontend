@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, Input, OnInit, Output, ViewChildren, OnChanges, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, Output, OnChanges, OnDestroy } from '@angular/core';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { MultipartQuestionComponent } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
-import { QuestionComponentHost, ComponentHostDirective, MatchedComponentHosts, MatchedQuestionComponents } from '../component-host.directive';
+import { QuestionComponentHost, MatchedQuestionComponents } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
 import { ObjectValueType, ValueType } from '../valuetype';
 import { AbstractComponentHost } from '../abstractcomponenthost';
@@ -52,22 +52,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    */
   displayedParts: DisplayedParts = {}
   /**
-   * Determines if all the directives have been loaded and bound to
-   */
-  directivesLoaded: boolean = false;
-  /**
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
-  /**
-   * The list of component hosts found in the view
-   */
-  @ViewChildren(ComponentHostDirective)
-  private componentHosts: ComponentHostDirective[];
-  /**
-   * The matched component hosts with the question parts
-   */
-  private matchedComponentHosts: MatchedComponentHosts = {}
   /**
    * The matched question view components
    */
@@ -115,7 +102,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   ngOnDestroy(): void {
-    this.componentHosts.forEach(host => this.loader.destroyComponents(host.hostId));
+    Object.keys(this.multipartQuestion.parts).forEach(part => this.loader.destroyComponents(this.multipartQuestion.parts[part].question.componentId));
   }
 
   viewInitialised(): boolean {
@@ -139,39 +126,18 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
       if (this.matchedComponents[part.partName] == undefined) {
         // only load the component if it has not been loaded before
-        const hostDirective = this.matchedComponentHosts[part.partName];
-
-        if (hostDirective == undefined) {
-          throw new Error("No componentHost directive has been found with [hostId] set to the componentId of the question: " + part.question.componentId);
-        }
-
         const type = part.question.getType();
           
         if (!this.validComponent(type)) {
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, part.partName);
-          this.matchedComponents[part.partName] = this.loadComponent(this.loader, hostDirective, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
     }
 
     this.detectChanges();
-  }
-
-  private loadDirectives() {
-    for (let hostDirective of this.componentHosts) {
-      const componentId = hostDirective.hostId;
-
-      for (let key of Object.keys(this.multipartQuestion.parts)) {
-        const part = this.multipartQuestion.parts[key];
-        
-        if (part.question.componentId == componentId) {
-          // If the componentId of this part's question matches the hostId directive property, we have found a matched host for the question
-          this.matchedComponentHosts[part.partName] = hostDirective;
-        }
-      }
-    }
   }
 
   ngAfterViewInit(): void {
@@ -211,11 +177,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   ngOnChanges(): void {
     if (this._viewInitialised) {
-      if (!this.directivesLoaded) {
-        this.loadDirectives();
-        this.directivesLoaded = true;
-      }
-
       this.loadComponents();
     }
   }

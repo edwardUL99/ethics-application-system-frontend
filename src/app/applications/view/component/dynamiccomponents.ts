@@ -1,5 +1,5 @@
 /**
- * This file is used for managing the dynamically loaded component refs
+ * This file is used for managing the dynamically loaded component references
  */
 
 import { ComponentRef, Injectable } from '@angular/core';
@@ -11,20 +11,31 @@ import { registeredComponents } from './registered.components';
 /**
  * The mapping of host component ID to the list of component references loaded for that host
  */
-type HostsMapping = {
+type HostsIDMapping = {
   [key: string]: ComponentRef<ApplicationViewComponent>[];
 }
 
+/** 
+ * A mapping of the host ID to the loaded ComponentHost directive 
+ */
+type HostsMapping = {
+  [key: string]: ComponentHostDirective;
+}
+
 /**
- * This class is used to load, store and return the component ref. It allows for the creation and subsequent
- * destruction of all sub components
+ * This class is used to load, store and return the component reference of ApplicationViewComponents. It allows for the creation and subsequent
+ * destruction of all sub components in a component host
  */
 @Injectable()
 export class DynamicComponentLoader {
   /**
    * The mapping of the loader
    */
-  private mapping: HostsMapping = {}
+  private mapping: HostsIDMapping = {}
+  /**
+   * Mapping of host ID to component host directive
+   */
+  private hosts: HostsMapping = {}
 
   /**
    * Register the component reference 
@@ -59,13 +70,45 @@ export class DynamicComponentLoader {
   }
 
   /**
+   * Gets the component host for the given ID
+   * @param hostId the ID of the component host
+   */
+  getComponentHost(hostId: string): ComponentHostDirective {
+    const host = this.hosts[hostId];
+
+    if (host == undefined) {
+      throw new Error('No ComponentHost registered for ID: ' + hostId);
+    }
+
+    return host;
+  }
+
+  /**
+   * Register the given component host with the component loader
+   * @param host the host to register
+   */
+  registerComponentHost(host: ComponentHostDirective) {
+    this.hosts[host.hostId] = host;
+  }
+
+  /**
+   * Remove the component host with the given ID from the loader
+   * @param hostId the host of the directive to remove
+   */
+  removeComponentHost(hostId: string) {
+    delete this.hosts[hostId];
+  }
+
+  /**
    * Register and load the component into the provided host
-   * @param componentHost the host to register and load the component into
+   * @param componentHost the ID of the host to register and load the component into
    * @param componentType the type of component to load
    */
-  loadComponent(componentHost: ComponentHostDirective, componentType: ComponentType): ComponentRef<ApplicationViewComponent> {
-    const componentRef = componentHost.viewContainerRef.createComponent<ApplicationViewComponent>(registeredComponents.getComponent(componentType));
-    this.register(componentHost.hostId, componentRef);
+  loadComponent(componentHost: string, componentType: ComponentType): ComponentRef<ApplicationViewComponent> {
+    const host = this.getComponentHost(componentHost);
+    host.viewContainerRef.clear();
+    const componentRef = host.viewContainerRef.createComponent<ApplicationViewComponent>(registeredComponents.getComponent(componentType));
+    this.register(componentHost, componentRef);
 
     return componentRef;
   }

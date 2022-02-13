@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, ViewChildren, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -30,15 +30,6 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    * The optional form parameter if the child components require it
    */
   @Input() form: FormGroup;
-  /**
-   * The list of component hosts found in the view
-   */
-  @ViewChildren(ComponentHostDirective)
-  componentHosts: ComponentHostDirective[]
-  /**
-   * The single component host found
-   */
-  componentHost!: ComponentHostDirective;
   /**
    * Determines if the section is a sub-section of another section. If so it is not displayed in another card
    */
@@ -73,23 +64,11 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   }
 
   ngOnDestroy(): void {
-    this.loader.destroyComponents(this.componentHost.hostId);
+    this.loader.destroyComponents(this.component.componentId);
   }
 
   ngAfterViewInit(): void {
     this._viewInitialised = true;
-
-    for (let host of this.componentHosts) {
-      if (host.hostId == this.component.componentId) {
-        this.componentHost = host;
-        break;
-      }
-    }
-
-    if (this.componentHost == undefined || this.componentHost == null) {
-      throw new Error('You need to specify the componentHost [hostId]="component.componentId" on the ng-template');
-    }
-
     this.loadComponents();
   }
 
@@ -100,14 +79,12 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   loadComponents() {
     if (this.component && this.viewInitialised()) {
       const castedComponent = this.castComponent();
-      const viewContainerRef = this.componentHost.viewContainerRef;
-      viewContainerRef.clear();
       
       castedComponent.components.forEach(component => {
         if (component.getType() == ComponentType.SECTION) {
-          this.loadComponentSubSection(this.loader, this.componentHost, {component: component, form: this.form, subSection: true}); // section is being loaded inside in a section, so, it is a sub-section
+          this.loadComponentSubSection(this.loader, this.component.componentId, {component: component, form: this.form, subSection: true}); // section is being loaded inside in a section, so, it is a sub-section
         } else {
-          this.loadComponent(this.loader, this.componentHost, component, this.form);
+          this.loadComponent(this.loader, this.component.componentId, component, this.form);
         }
       });
     }

@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Output, ViewChildren } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { ComponentHostDirective, MatchedComponentHosts, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import {  MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ObjectValueType, ValueType } from '../valuetype';
 import { ViewComponentRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -55,22 +55,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    */
   group: FormGroup;
   /**
-   * Determines if all the directives have been loaded and bound to
-   */
-  directivesLoaded: boolean = false;
-  /**
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
-  /**
-   * The list of component hosts found in the view
-   */
-  @ViewChildren(ComponentHostDirective)
-  private componentHosts: ComponentHostDirective[];
-  /**
-   * The matched host directives with the questions in the table
-   */
-  private matchedComponentHosts: MatchedComponentHosts;
   /**
    * The mapping of question IDs to their component instances
    */
@@ -130,7 +117,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   ngOnDestroy(): void {
-    this.componentHosts.forEach(host => this.loader.destroyComponents(host.hostId));
+    Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
   }
 
   private populateRows() {
@@ -162,12 +149,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     for (let key of Object.keys(this.questionsMapping)) {
       if (this.matchedComponents[key] == undefined) {
         // only load the component if it has not been loaded before
-        const hostDirective = this.matchedComponentHosts[key];
-
-        if (hostDirective == undefined) {
-          throw new Error("No componentHost directive has been found with [hostId] set to the componentId of the question: " + key);
-        }
-
         const questionComponent = this.questionsMapping[key];
         const type = questionComponent.getType();
 
@@ -175,7 +156,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
           throw new Error(`The component type ${type} is not a supported question type in a QuestionTable`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, key);
-          this.matchedComponents[key] = this.loadComponent(this.loader, hostDirective, questionComponent, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
     }
@@ -187,29 +168,12 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     this.cd.detectChanges();
   }
 
-  private loadDirectives() {
-    for (let hostDirective of this.componentHosts) {
-      const componentId = hostDirective.hostId;
-
-      for (let key of Object.keys(this.questionsMapping)) {
-        if (componentId == key) {
-          this.matchedComponentHosts[componentId] = hostDirective;
-        }
-      }
-    }
-  }
-
   ngAfterViewInit(): void {
     this._viewInitialised = true;
   }
 
   ngOnChanges(): void {
     if (this._viewInitialised) {
-      if (!this.directivesLoaded) {
-        this.loadDirectives();
-        this.directivesLoaded = true;
-      }
-
       this.loadComponents();
     }
   }

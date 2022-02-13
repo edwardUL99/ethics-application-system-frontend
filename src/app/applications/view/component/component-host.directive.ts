@@ -2,18 +2,33 @@ import { AfterViewInit, Input } from '@angular/core';
 import { Directive, ViewContainerRef } from '@angular/core';
 import { ComponentType } from '../../models/components/applicationcomponent';
 import { QuestionViewComponent } from './application-view.component';
+import { DynamicComponentLoader } from './dynamiccomponents';
 
+/**
+ * This class marks a directive that marks an element as a placeholder/container to load ApplicationViewComponents into dynamically.
+ * It should be used on ng-templates like so:
+ * <code>
+ *  <ng-template componentHost [hostId]="component.componentId"></ng-template>
+ * </code>
+ * where component is the component that contains sub-components
+ */
 @Directive({
   selector: '[componentHost]'
 })
-export class ComponentHostDirective {
+export class ComponentHostDirective implements AfterViewInit {
   /**
-   * The ID if the component host
+   * The ID of the component host. Should be the ID of the component being rendered by the view that is the parent of the directive
    */
   @Input() hostId: string = '';
 
-  constructor(public viewContainerRef: ViewContainerRef) { }
+  constructor(public viewContainerRef: ViewContainerRef, private loader: DynamicComponentLoader) { }
 
+  /**
+   * When the directive is fully loaded it registers itself with the component loader so that child components can be loaded into it
+   */
+  ngAfterViewInit(): void {
+    this.loader.registerComponentHost(this);
+  }
 }
 
 /**
@@ -22,11 +37,6 @@ export class ComponentHostDirective {
  * Extends the AfterViewInit interface since the loadComponents call should be made from that callback function
  */
 export interface ComponentHost extends AfterViewInit {
-  /**
-   * The directive that marked the element as a ComponentHost
-   */
-  componentHost?: ComponentHostDirective;
-
   /**
    * Determines if the view is initialised or not
    */
@@ -45,13 +55,6 @@ export interface ComponentHost extends AfterViewInit {
    * This should be called at the end of every loadComponents() call
    */
   detectChanges(): void;
-}
-
-/**
- * A type for mapping component IDs of the sub-components and their matching component host directives
- */
- export type MatchedComponentHosts = {
-  [key: string]: ComponentHostDirective
 }
 
 /** 

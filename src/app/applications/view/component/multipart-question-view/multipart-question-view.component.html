@@ -8,7 +8,7 @@
             </div> 
             TODO the way this is if ngIf is false, the component gets destroyed and needs to be created again, d-none might be better as below, still in the dom but not visible
             -->
-            <div *ngClass="(directivesLoaded && displayedParts[part?.partName]) ? 'd-none':''">
+            <div *ngClass="(displayedParts[part?.partName]) ? 'd-none':''">
                 <ng-template componentHost [hostId]="part?.question?.componentId" (questionChange)="onInput($event, part?.partName)"></ng-template>
             </div>
         </div>
