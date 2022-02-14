@@ -5,7 +5,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { FormGroup } from '@angular/forms';
 import { QuestionComponentHost, MatchedQuestionComponents } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
-import { ObjectValueType, ValueType } from '../valuetype';
+import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 
@@ -205,11 +205,27 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     return new ObjectValueType(copiedParts);
   }
 
+  // TODO do the same for question table
+  setValue(componentId: string, value: ValueType): boolean {
+    const parts = this.multipartQuestion.parts;
+
+    for (let key of Object.keys(parts)) {
+      const part = parts[key];
+
+      if (part.question.componentId == componentId) {
+        this.onInput(new QuestionChangeEvent(componentId, value), part.partName, false);
+        return this.matchedComponents[part.partName].setValue(componentId, value);
+      }
+    }
+
+    return false;
+  }
+
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
     // TODO no-op for now, may be needed
   }
 
-  onInput(event: QuestionChangeEvent, part: string) {
+  onInput(event: QuestionChangeEvent, part: string, emitEvent: boolean = true) {
     const value = event.value;
     this.values[part] = value;
 
@@ -236,7 +252,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
       }
     }
 
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+    if (emitEvent) {
+      this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+    } 
   }
 
   detectChanges(): void {

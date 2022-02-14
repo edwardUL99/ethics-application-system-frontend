@@ -28,6 +28,11 @@ export interface ValueType {
    * @param value the value to "match"
    */
   matches(value: string): boolean;
+
+  /**
+   * Returns the value held by the value type
+   */
+  getValue(): any;
 }
 
 /**
@@ -40,6 +45,10 @@ export class StringValueType implements ValueType {
 
   matches(value: string): boolean {
     return this.value == value;
+  }
+
+  getValue() {
+    return this.value;
   }
 }
 
@@ -65,6 +74,10 @@ export class ObjectValueType implements ValueType {
 
     return found;
   }
+
+  getValue() {
+    return this.value;
+  }
 }
 
 /**
@@ -77,5 +90,9 @@ export class ArrayValueType implements ValueType {
 
   matches(value: string): boolean {
     return this.value.indexOf(value) != -1;
+  }
+
+  getValue() {
+    return this.value;
   }
 }

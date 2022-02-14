@@ -84,6 +84,20 @@ export class DynamicComponentLoader {
   }
 
   /**
+   * Gets the list of components loaded into the component host identified by the given ID
+   * @param hostId the ID of the component host to retrieve the sub-components for
+   */
+  getLoadedComponents(hostId: string): ApplicationViewComponent[] {
+    const components = [];
+
+    if (hostId in this.mapping) {
+      this.mapping[hostId].forEach(ref => components.push(ref.instance));
+    }
+
+    return components;
+  }
+
+  /**
    * Register the given component host with the component loader
    * @param host the host to register
    */

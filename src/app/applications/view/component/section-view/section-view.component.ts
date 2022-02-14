@@ -3,10 +3,11 @@ import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
+import { ComponentHost } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
+import { ValueType } from '../valuetype';
 
 export interface SectionViewComponentShape extends QuestionViewComponentShape {
   /**
@@ -25,7 +26,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   /**
    * The component to be displayed
    */
-  @Input() component: ApplicationComponent;
+  @Input() component: ApplicationComponent; // TODO need to have an event for if auto save is true
   /**
    * The optional form parameter if the child components require it
    */
@@ -111,6 +112,16 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
     questionChange.emit(e);
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    for (let component of this.loader.getLoadedComponents(this.component.componentId)) {
+      if (component.setValue(componentId, value)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   // TODO implement the other component views (think it's only QuestionTable left). Implement the view for viewing an application template also which has an element marked as componentHost and load components like this

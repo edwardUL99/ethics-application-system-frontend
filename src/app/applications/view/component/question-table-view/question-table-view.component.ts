@@ -6,7 +6,7 @@ import { QuestionTableComponent } from '../../../models/components/questiontable
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import {  MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
-import { ObjectValueType, ValueType } from '../valuetype';
+import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { ViewComponentRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 
@@ -212,14 +212,25 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     return new ObjectValueType(copiedValues);
   }
 
+  setValue(componentId: string, value: ValueType): boolean {
+    if (componentId in this.matchedComponents) {
+      this.onInput(new QuestionChangeEvent(componentId, value), componentId, false);
+      return this.matchedComponents[componentId].setValue(componentId, value);
+    }
+
+    return false;
+  }
+
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
     // TODO no-op for now, may be needed
   }
 
-  onInput(event: QuestionChangeEvent, question: string) {
+  onInput(event: QuestionChangeEvent, question: string, emitEvent: boolean = true) {
     const value = event.value;
     this.values[question] = value;
     
-    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this.value()));
+    if (emitEvent) {
+      this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this.value()));
+    }
   }
 }

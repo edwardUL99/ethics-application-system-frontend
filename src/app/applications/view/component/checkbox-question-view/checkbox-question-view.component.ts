@@ -6,7 +6,7 @@ import { CheckboxQuestionComponent } from '../../../models/components/checkboxqu
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { ObjectValueType, ValueType } from '../valuetype';
+import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 
 
 @Component({
@@ -70,6 +70,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxes[option.name] = checkbox;
 
       this.selectedCheckboxes[checkbox.name] = false;
+      this.checkboxControls[checkbox.name] = new FormControl('');
     });
   }
 
@@ -115,7 +116,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       values[key] = control.value;
     });
 
-
     return new ObjectValueType(values);
   }
 
@@ -128,8 +128,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     if (event.target.checked) {
       this.selectedCheckboxes[checkbox] = true;
       
-      const control = new FormControl(event.target.value);
-      this.checkboxControls[checkbox] = control;
+      const control = this.checkboxControls[checkbox];
+      control.setValue(true, {emitEvent: false})
       this.checkboxArray.push(control);
 
       
@@ -137,7 +137,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       let i = 0;
       
       this.selectedCheckboxes[checkbox] = false;
-      delete this.checkboxControls[checkbox];
       this.checkboxArray.controls.forEach(control => {
         if (control.value == event.target.value) {
           this.checkboxArray.removeAt(i);
@@ -149,5 +148,24 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     }
 
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (this.component.componentId == componentId) {
+      if (value.type != ValueTypes.OBJECT) {
+        console.warn('Invalid type for a checkbox question component, not setting value');
+      } else {
+        const storedValue = value.getValue();
+
+        for (let key of Object.keys(this.checkboxControls)) {
+          if (key in storedValue) {
+            this.checkboxControls[key].setValue(storedValue[key], {emitEvent: false});
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

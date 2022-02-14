@@ -4,7 +4,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { StringValueType, ValueType } from '../valuetype';
+import { StringValueType, ValueType, ValueTypes } from '../valuetype';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 
 @Component({
@@ -100,5 +100,19 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   signatureEntered(signature: string) {
     console.log(signature);
     this.signature = signature;
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (componentId == this.component.componentId) {
+      if (value.type == ValueTypes.STRING) {
+        this.signatureFieldComponent.signaturePad.fromDataURL(value.getValue());
+      } else {
+        console.warn('Invalid ValueType for a SignatureQuestion, not setting value');
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

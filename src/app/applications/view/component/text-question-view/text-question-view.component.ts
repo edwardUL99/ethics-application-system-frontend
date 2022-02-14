@@ -4,7 +4,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
 import { ViewComponentRegistration } from '../registered.components';
-import { StringValueType, ValueType } from '../valuetype';
+import { StringValueType, ValueType, ValueTypes } from '../valuetype';
 
 @Component({
   selector: 'app-text-question-view',
@@ -89,5 +89,19 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
   onChange() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (componentId == this.component.componentId) {
+      if (value.type == ValueTypes.STRING) {
+        this.control.setValue(value.getValue(), {emitEvent: false});
+      } else {
+        console.warn('Invalid ValueType for a TextQuestion, not setting value');
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

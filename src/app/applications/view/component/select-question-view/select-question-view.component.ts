@@ -4,7 +4,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { ArrayValueType, StringValueType, ValueType } from '../valuetype';
+import { ArrayValueType, StringValueType, ValueType, ValueTypes } from '../valuetype';
 
 @Component({
   selector: 'app-select-question-view',
@@ -81,5 +81,19 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
 
   onChange() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (componentId == this.component.componentId) {
+      if (value.type == ValueTypes.ARRAY) {
+        this.control.setValue(value.getValue(), {emitEvent: false});
+      } else {
+        console.warn('Invalid ValueType for a SelectQuestion, not setting value');
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

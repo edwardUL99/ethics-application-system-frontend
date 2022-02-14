@@ -6,7 +6,7 @@ import { RadioQuestionComponent } from '../../../models/components/radioquestion
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { StringValueType, ValueType } from '../valuetype';
+import { StringValueType, ValueType, ValueTypes } from '../valuetype';
 
 @Component({
   selector: 'app-radio-question-view',
@@ -36,7 +36,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   */
   radios: CheckboxMapping = {};
   /**
-   * The selected radio valu
+   * The selected radio value
    */
   selectedRadioValue: string;
   /**
@@ -68,6 +68,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       const checkbox = new Checkbox(option.id, option.label, null);
       checkbox.name = option.name;
       this.radios[option.name] = checkbox;
+      this.radioControls[checkbox.name] = new FormControl('');
     });
   }
 
@@ -111,24 +112,23 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   /**
-   * Responds to a checkbox group selected
+   * Responds to a radio selected
    * @param event the event
    * @param checkboxId the title of the checkbox
    */
   onCheckChange(event, checkbox: string) {
     if (event.target.checked) {
-      const control = new FormControl(event.target.value);
-      this.radioControls[checkbox] = control;
+      const control = this.radioControls[checkbox];
+      control.setValue(true, {emitEvent: false});
       this.radioArray.push(control);
-
-      
+      this.selectedRadioValue = checkbox;
     } else {
       let i = 0;
 
-      delete this.radioControls[checkbox];
       this.radioArray.controls.forEach(control => {
         if (control.value == event.target.value) {
           this.radioArray.removeAt(i);
+          this.selectedRadioValue = undefined;
           return;
         }
 
@@ -137,5 +137,26 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     }
 
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (this.component.componentId == componentId) {
+      if (value.type != ValueTypes.OBJECT) {
+        console.warn('Invalid value type for a radio question component, not setting value');
+      } else {
+        const storedValue = value.getValue();
+
+        for (let key of Object.keys(this.radioControls)) {
+          if (key in storedValue) {
+            this.radioControls[key].setValue(true, {emitEvent: false});
+            this.selectedRadioValue = key;
+
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

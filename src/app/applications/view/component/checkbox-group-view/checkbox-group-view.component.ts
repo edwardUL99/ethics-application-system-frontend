@@ -7,7 +7,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { ActionBranch } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
-import { ObjectValueType, ValueType } from '../valuetype';
+import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -21,6 +21,13 @@ export type CheckboxMapping = {
  */
 export type CheckboxSelection = {
   [key: string]: boolean
+}
+
+/**
+ * A mapping of a key to a form control
+ */
+export type ControlsMapping = {
+  [key: string]: FormControl;
 }
 
 @Component({
@@ -44,7 +51,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   /**
    * The mapping of checkbox name to controls
    */
-  private controlsMapping: Object = {};
+  private controlsMapping: ControlsMapping = {};
   /**
    * The cast checkbox group compoennt
    */
@@ -80,6 +87,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
       this.checkboxes[checkbox.name] = checkbox;
       this.selectedCheckboxes[checkbox.name] = false;
+      this.controlsMapping[checkbox.name] = new FormControl('');
     });
   }
 
@@ -125,7 +133,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
         this.uncheckAllExcept(checkbox);
       }
 
-      this.checkboxArray.push(new FormControl(event.target.value));
+      const control = this.controlsMapping[checkbox];
+      control.setValue(true, {emitEvent: false});
+      this.checkboxArray.push(control);
 
       // execute the checked branch if it exists or else the default branch
       this.executeBranch((branch == null) ? defaultBranch : branch);
@@ -180,5 +190,24 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     })
 
     return new ObjectValueType(value);
+  }
+
+  setValue(componentId: string, value: ValueType): boolean {
+    if (this.component.componentId == componentId) {
+      if (value.type != ValueTypes.OBJECT) {
+        console.warn('Invalid type for a checkbox group component, not setting value');
+      } else {
+        const storedValue = value.getValue();
+
+        for (let key of Object.keys(this.controlsMapping)) {
+          if (key in storedValue) {
+            this.controlsMapping[key].setValue(storedValue[key], {emitEvent: false});
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

@@ -73,6 +73,20 @@ export interface ApplicationViewComponent {
    * @param data the data (Object in the shape of a view component) to initialise the component with
    */
   initialise(data: ViewComponentShape): void;
+
+  /**
+   * Set the value of the component with the given component ID. If the component is a QuestionView component, this 
+   * may involve setting the value of the question it contains or the sub-question. If the question is being changed as a result
+   * of setValue, questionChange events should not be propagated.
+   * 
+   * If the component is not a question view component, but it does hold sub-components (composite), it should propagate the 
+   * call down all of its components until it returns true. If it is not composite and not a question, it can be a no-op (returns false)
+   * 
+   * @param componentId the component ID
+   * @param value the value to set
+   * @return true if the matching component has been found and value set
+   */
+  setValue(componentId: string, value: ValueType): boolean;
 }
 
 /**
