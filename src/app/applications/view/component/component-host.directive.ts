@@ -1,7 +1,7 @@
 import { AfterViewInit, Input } from '@angular/core';
 import { Directive, ViewContainerRef } from '@angular/core';
 import { ComponentType } from '../../models/components/applicationcomponent';
-import { QuestionViewComponent } from './application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
 
 /**
@@ -55,6 +55,18 @@ export interface ComponentHost extends AfterViewInit {
    * This should be called at the end of every loadComponents() call
    */
   detectChanges(): void;
+
+  /**
+   * Propagate up all the question change events from the sub components in the component host. Pass in the host
+   * component's instance of QuestionChange at callback construction time to capture it:
+   * <code>
+   * const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
+   * component.initialise(*params*, callback)
+   * </code>
+   * @param questionChange the question change instance
+   * @param e the event being propagated
+   */
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent);
 }
 
 /** 

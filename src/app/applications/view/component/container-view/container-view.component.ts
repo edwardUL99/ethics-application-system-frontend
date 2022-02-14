@@ -1,7 +1,7 @@
-import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output } from '@angular/core';
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { ApplicationViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
@@ -24,6 +24,10 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    */
   @Input() form: FormGroup;
   /**
+   * A question change component to propagate changes
+   */
+  @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
    * The flag to track if the view is initialised
    */
   private _viewInitialised: boolean = false;
@@ -37,6 +41,10 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
     this.form = questionData.form;
+
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -61,11 +69,17 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   loadComponents() {
     if (this.component && this.viewInitialised()) {
+      const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
       const castedComponent = this.castComponent();
-      castedComponent.components.forEach(component => this.loadComponent(this.loader, this.component.componentId, component, this.form));
+      castedComponent.components.forEach(component => 
+        this.loadComponent(this.loader, this.component.componentId, component, this.form, callback));
     }
 
     this.detectChanges();
+  }
+
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
+    questionChange.emit(e);
   }
 
   castComponent() {

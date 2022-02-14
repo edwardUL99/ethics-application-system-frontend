@@ -1,8 +1,8 @@
-import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { ApplicationViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost, ComponentHostDirective } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
@@ -31,6 +31,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    */
   @Input() form: FormGroup;
   /**
+   * The question change to propagate changes
+   */
+  @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
    * Determines if the section is a sub-section of another section. If so it is not displayed in another card
    */
   subSection: boolean = false;
@@ -53,7 +57,11 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     this.component = questionData.component;
     this.form = questionData.form;
     this.subSection = questionData.subSection;
-    this.sectionClass = (!this.subSection) ? 'card mx-2 my-2 pl-2 pr-2':'';
+    this.sectionClass = (!this.subSection) ? 'card my-4 pl-2 pr-2':'m';
+  
+    if (questionData.questionChangeCallback) {
+      this.questionChange.register(questionData.questionChangeCallback);
+    }
   }
 
   ngOnInit(): void {
@@ -78,13 +86,14 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   loadComponents() {
     if (this.component && this.viewInitialised()) {
+      const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
       const castedComponent = this.castComponent();
       
       castedComponent.components.forEach(component => {
         if (component.getType() == ComponentType.SECTION) {
-          this.loadComponentSubSection(this.loader, this.component.componentId, {component: component, form: this.form, subSection: true}); // section is being loaded inside in a section, so, it is a sub-section
+          this.loadComponentSubSection(this.loader, this.component.componentId, {component: component, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
         } else {
-          this.loadComponent(this.loader, this.component.componentId, component, this.form);
+          this.loadComponent(this.loader, this.component.componentId, component, this.form, callback);
         }
       });
     }
@@ -98,6 +107,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   detectChanges(): void {
     this.cd.detectChanges();
+  }
+
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
+    questionChange.emit(e);
   }
 
   // TODO implement the other component views (think it's only QuestionTable left). Implement the view for viewing an application template also which has an element marked as componentHost and load components like this

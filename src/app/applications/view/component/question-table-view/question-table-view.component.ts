@@ -31,6 +31,11 @@ class TableRow {
   constructor(public components: QuestionComponent[]) {}
 }
 
+// static call to have a reference to 'this' in a callback
+function onInputStatic(component: QuestionTableViewComponent, event: QuestionChangeEvent, question: string) {
+  component.onInput(event, question);
+}
+
 @Component({
   selector: 'app-question-table-view',
   templateUrl: './question-table-view.component.html',
@@ -146,6 +151,8 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   loadComponents(): void {
+    const thisInstance = this; // capture the instance of this to pass into callback
+
     for (let key of Object.keys(this.questionsMapping)) {
       if (this.matchedComponents[key] == undefined) {
         // only load the component if it has not been loaded before
@@ -155,7 +162,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
         if (!this.validComponent(type)) {
           throw new Error(`The component type ${type} is not a supported question type in a QuestionTable`)
         } else {
-          const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, key);
+          const questionChangeCallback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, key);
           this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
@@ -203,6 +210,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     });
 
     return new ObjectValueType(copiedValues);
+  }
+
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
+    // TODO no-op for now, may be needed
   }
 
   onInput(event: QuestionChangeEvent, question: string) {

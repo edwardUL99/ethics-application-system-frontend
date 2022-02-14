@@ -42,6 +42,7 @@ import { SignatureQuestionViewComponent } from './applications/view/component/si
 import { SignatureFieldComponent } from './applications/view/component/signature-question-view/signature-field/signature-field.component';
 import { QuestionTableViewComponent } from './applications/view/component/question-table-view/question-table-view.component';
 import { DynamicComponentLoader } from './applications/view/component/dynamiccomponents';
+import { ApplicationTemplateDisplayComponent } from './applications/view/application-template-display/application-template-display.component';
 
 @NgModule({
   declarations: [
@@ -73,7 +74,8 @@ import { DynamicComponentLoader } from './applications/view/component/dynamiccom
     MultipartQuestionViewComponent,
     SignatureQuestionViewComponent,
     SignatureFieldComponent,
-    QuestionTableViewComponent
+    QuestionTableViewComponent,
+    ApplicationTemplateDisplayComponent
   ],
   imports: [
     BrowserModule,

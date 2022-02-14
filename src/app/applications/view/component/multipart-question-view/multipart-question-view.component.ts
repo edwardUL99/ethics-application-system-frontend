@@ -23,6 +23,11 @@ type PartValues = {
   [key: string]: ValueType
 }
 
+// static call to use as callback
+function onInputStatic(component: MultipartQuestionViewComponent, event: QuestionChangeEvent, part: string) {
+  component.onInput(event, part);
+}
+
 @Component({
   selector: 'app-multipart-question-view',
   templateUrl: './multipart-question-view.component.html',
@@ -121,6 +126,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   loadComponents(): void {
+    const thisInstance = this; // capture the instance of this to pass into callback
+
     for (let key of Object.keys(this.multipartQuestion.parts)) {
       const part = this.multipartQuestion.parts[key];
 
@@ -131,8 +138,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
         if (!this.validComponent(type)) {
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
-          const questionChangeCallback = (e: QuestionChangeEvent) => this.onInput(e, part.partName);
-          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          const callback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, part.partName);
+          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, this.group, callback).instance as QuestionViewComponent;
         }
       }
     }
@@ -196,6 +203,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     });
 
     return new ObjectValueType(copiedParts);
+  }
+
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
+    // TODO no-op for now, may be needed
   }
 
   onInput(event: QuestionChangeEvent, part: string) {
