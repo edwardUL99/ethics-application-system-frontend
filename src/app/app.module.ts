@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { Injector, NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
@@ -43,6 +43,7 @@ import { SignatureFieldComponent } from './applications/view/component/signature
 import { QuestionTableViewComponent } from './applications/view/component/question-table-view/question-table-view.component';
 import { DynamicComponentLoader } from './applications/view/component/dynamiccomponents';
 import { ApplicationTemplateDisplayComponent } from './applications/view/application-template-display/application-template-display.component';
+import { InjectorLocator } from './injectorlocator';
 
 @NgModule({
   declarations: [
@@ -100,4 +101,8 @@ import { ApplicationTemplateDisplayComponent } from './applications/view/applica
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private injector: Injector) {
+    InjectorLocator.injector = this.injector;
+  }
+}

@@ -5,5 +5,5 @@
 
 export const environment = {
   production: false,
-  requireULEmail: false
+  requireULEmail: false,
 };

@@ -17,6 +17,14 @@ export abstract class QuestionComponent extends SimpleComponent {
      * True if the question is required, false if not
      */
     required: boolean;
+    /**
+     * Determines if the component can be edited
+     */
+    editable: boolean = true;
+    /**
+     * The autofill query string
+     */
+    autofill: string;
     
     /**
      * Create a QuestionComponent
@@ -27,12 +35,17 @@ export abstract class QuestionComponent extends SimpleComponent {
      * @param description the question description
      * @param name the name of the question field
      * @param required true if required, false if not
+     * @param editable determines if the component can be edited 
+     * @param autofill the autofill query string
      */
-    constructor(databaseId: number, type: ComponentType, title: string, componentId: string, description: string, name: string, required: boolean) {
+    constructor(databaseId: number, type: ComponentType, title: string, componentId: string, description: string, name: string, required: boolean,
+        editable: boolean = true, autofill: string = undefined) {
         super(databaseId, type, title, componentId);
         this.description = description;
         this.name = name;
         this.required = required;
+        this.editable = editable;
+        this.autofill = autofill;
     }
 
     /**

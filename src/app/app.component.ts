@@ -21,7 +21,5 @@ export class AppComponent implements OnInit {
     context.setCurrentTemplate(template.id);
   }
 
-  ngOnInit(): void {
-      
-  }
+  ngOnInit(): void {}
 }

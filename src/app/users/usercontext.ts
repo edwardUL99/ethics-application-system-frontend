@@ -29,7 +29,9 @@ export class UserContext {
         }
     }
 
-    static clearContext() {
+    clearContext() {
+        this._user = undefined;
+        this._username = undefined;
         localStorage.removeItem('_username');
     }
 
