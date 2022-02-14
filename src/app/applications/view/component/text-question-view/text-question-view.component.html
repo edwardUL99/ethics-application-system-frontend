@@ -4,7 +4,8 @@
         {{questionComponent?.description}}
     </div>
     <div *ngIf="questionComponent?.singleLine">
-        <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" (change)="onChange()" class="form-control" [formControlName]="questionComponent?.name">
+        <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" (change)="onChange()" class="form-control"
+        [formControlName]="questionComponent?.name" [readonly]="!questionComponent.editable">
     </div>
     <div *ngIf="!questionComponent?.singleLine">
         <textarea [name]="questionComponent?.name" class="form-control" (change)="onChange()" [formControlName]="questionComponent?.name"></textarea>

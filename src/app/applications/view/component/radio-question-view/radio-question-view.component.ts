@@ -111,15 +111,24 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     return new StringValueType(this.selectedRadioValue);
   }
 
+  private deselectOthers(radio: string) {
+    Object.keys(this.radioControls).forEach(key => {
+      if (radio != key) {
+        this.radioControls[key].setValue('', {emitEvent: false})
+      }
+    })
+  }
+
   /**
    * Responds to a radio selected
    * @param event the event
-   * @param checkboxId the title of the checkbox
+   * @param checkbox the title of the checkbox
    */
   onCheckChange(event, checkbox: string) {
     if (event.target.checked) {
       const control = this.radioControls[checkbox];
       control.setValue(true, {emitEvent: false});
+      this.deselectOthers(checkbox);
       this.radioArray.push(control);
       this.selectedRadioValue = checkbox;
     } else {
@@ -129,6 +138,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
         if (control.value == event.target.value) {
           this.radioArray.removeAt(i);
           this.selectedRadioValue = undefined;
+          control.setValue('', {emitEvent: false});
           return;
         }
 

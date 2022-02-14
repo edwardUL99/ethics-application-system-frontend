@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
@@ -51,6 +52,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
     if (this.form && !this.form.get(this.questionComponent.name)) {
       this._addToForm();
+      this.autofill();
     }
   }
 
@@ -103,5 +105,15 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     }
 
     return false;
+  }
+
+  autofill(): void {
+    if (this.questionComponent.autofill) {
+      const resolver = getResolver();
+      resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
+        this.setValue(this.component.componentId, new StringValueType(value));
+        this.onChange(); // propagate the answer
+      });
+    }
   }
 }

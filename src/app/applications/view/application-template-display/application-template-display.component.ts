@@ -8,6 +8,12 @@ import { QuestionChange, QuestionChangeEvent } from '../component/application-vi
 import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponentShape } from '../component/section-view/section-view.component';
+import { AutofillResolver, setResolver } from '../../autofill/resolver';
+
+/*
+TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
+Test that this happens when you get this far 
+*/
 
 @Component({
   selector: 'app-application-template-display',
@@ -52,6 +58,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     }
 
     this.form = new FormGroup({});
+    setResolver(AutofillResolver.fromConfig()); // initialise the autofill for the application templates
   }
 
   ngAfterViewInit(): void {
@@ -61,6 +68,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   ngOnDestroy(): void {
     this.loader.destroyComponents();
+    setResolver(undefined); // clean up and remove the set autofill resolver
   }
 
   viewInitialised(): boolean {

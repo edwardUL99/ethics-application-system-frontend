@@ -3,8 +3,9 @@
     <div class="form-text">
         {{questionComponent?.description}}
     </div>
-    <select [multiple]="questionComponent.multiple" [name]="questionComponent.name" [formControlName]="questionComponent.name" (change)="onChange()">
-        <option *ngFor="let option of questionComponent.options" [value]="option.value">{{option.label}}</option>
+    <select [multiple]="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
+    (change)="onChange($event)" [disabled]="!questionComponent?.editable">
+        <option *ngFor="let option of questionComponent?.options" [value]="option.value">{{option.label}}</option>
     </select>
     <div *ngIf="control?.errors">
         <app-field-error [condition]="control.errors?.['required']" [message]="'You must select an option'"></app-field-error>

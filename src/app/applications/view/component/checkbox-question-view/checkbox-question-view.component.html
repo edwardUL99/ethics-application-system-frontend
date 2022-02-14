@@ -5,7 +5,7 @@
         <div *ngFor="let checkbox of getCheckboxes()" class="form-check">
             <label class="form-check-label">{{checkbox?.title}}</label>
             <input type="checkbox" class="form-check-input" [value]="checkbox?.value" (change)="onCheckChange($event, checkbox?.name)" 
-            [name]="checkbox?.name" [checked]="selectedCheckboxes[checkbox?.name]">
+            [name]="checkbox?.name" [checked]="selectedCheckboxes[checkbox?.name]" [disabled]="!questionComponent?.disabled">
         </div>
     </div>
     <app-field-error [condition]="checkboxArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>

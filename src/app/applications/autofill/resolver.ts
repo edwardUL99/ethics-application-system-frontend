@@ -132,6 +132,26 @@ export class AutofillResolver {
   }
 
   /**
+   * Resolve the retrieved value from the resolvables map
+   * @param queryParams the split parameters of the query
+   * @param value the value retrieved from resolvables
+   * @returns the resolved property promise
+   */
+  private resolveValue(queryParams: string[], value: any): ResolvedProperty {
+    value = (value instanceof Function) ? value() : value;
+
+    if (value instanceof Observable) {
+      return this.createNestedObservable(value, queryParams);
+    } else {
+      if (queryParams.length > 1) {
+        return new ResolvedProperty(observer => observer.next(this.resolveRecursive(queryParams, value, 1)));
+      } else {
+        return new ResolvedProperty(observer => observer.next(value));
+      }
+    }
+  }
+
+  /**
    * Resolve the autofill query string
    * @param query the autofill query to resolve
    */
@@ -143,18 +163,7 @@ export class AutofillResolver {
 
       if (key in this.resolvable) {
         let value = this.resolvable[key];
-        console.log(value);
-        value = (value instanceof Function) ? value() : value;
-
-        if (value instanceof Observable) {
-          return this.createNestedObservable(value, queryParams);
-        } else {
-          if (queryParams.length > 1) {
-            return new ResolvedProperty(observer => observer.next(this.resolveRecursive(queryParams, value, 1)));
-          } else {
-            return new ResolvedProperty(observer => observer.next(value));
-          }
-        }
+        return this.resolveValue(queryParams, value);
       }
     }
 

@@ -78,7 +78,8 @@ export function createApplicationTemplateWithContainer(): ApplicationTemplate {
     const template: ApplicationTemplate = new ApplicationTemplate(1, TEMPLATE_ID, TEMPLATE_NAME, TEMPLATE_DESCRIPTION, TEMPLATE_VERSION, []);
     const section = new SectionComponent(2, 'section', 'component-id', 'description', [], true);
     const container = new ContainerComponent(3, 'component-id2', 'test-container', []);
-    container.components.push(new TextQuestionComponent(4, 'test question', 'component-id3', 'test description question', 'test name', true, true, 'text'));
+    const question = new TextQuestionComponent(4, 'test question', 'component-id3', 'test description question', 'test name', true, true, 'text');
+    container.components.push(question);
 
     section.components.push(container);
     template.components.push(section);

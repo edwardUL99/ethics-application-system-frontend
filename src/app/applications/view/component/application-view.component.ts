@@ -141,4 +141,13 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * This should be called from the component's ngOnInit method, i.e. before the view is initialized
    */
   addToForm(): void;
+
+  /**
+   * This method is used to autofill the component if it supports it. If the question component
+   * does not support autofill, there is no need to implement this method or satisy an autofill field passed into the
+   * associated component
+   * 
+   * TODO: For now, autofill is only supported in text and select question views. In the future, it may be expanded to other components
+   */
+  autofill?(): void;
 }
