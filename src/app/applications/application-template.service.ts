@@ -49,7 +49,11 @@ export class ApplicationTemplateService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    return throwError(() => getErrorMessage(error));
+    if (error.status == 404) {
+      return throwError(() => "Not Found");
+    } else {
+      return throwError(() => getErrorMessage(error));
+    }
   }
 
   /**
@@ -66,6 +70,25 @@ export class ApplicationTemplateService {
           next: response => observer.next(mapTemplateResponse(response)),
           error: e => observer.error(e)
         });
+    });
+  }
+
+  /**
+   * Retrieve the saved template with the given ID
+   * @param id the ID of the saved template
+   * @returns the retrieved and parsed template
+   */
+  getTemplate(id: number): Observable<ApplicationTemplate> {
+    return new Observable<ApplicationTemplate>(observer => {
+      this.http.get<ApplicationTemplateShape>(`/api/applications/templates?id=${id}`)
+      .pipe(
+        retry(3),
+        catchError(this.handleError)
+      )
+      .subscribe({
+        next: response => observer.next(ApplicationTemplateParser.parseApplication(response)),
+        error: e => observer.error(e)
+      });
     });
   }
 }

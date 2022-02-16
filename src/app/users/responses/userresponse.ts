@@ -1,4 +1,8 @@
+import { Account } from '../../authentication/account';
 import { BaseResponse } from '../../baseresponse';
+import { Permission } from '../permission';
+import { Role } from '../role';
+import { User } from '../user';
 import { RoleResponse } from './roleresponse';
 
 /**
@@ -25,4 +29,17 @@ export interface UserResponse extends BaseResponse {
      * The user's role
      */
     role: RoleResponse;
+}
+
+/**
+ * Maps the user response to a user with a minimal account instance (only has email and username populated, i.e. no request to retrieve the account
+ * from the API is made)
+ * @param response the response to map
+ */
+export function userResponseMapper(response: UserResponse): User {
+    const role: Role = new Role(response.role.id, response.role.name, response.role.description,
+        response.role.permissions.map(permission => new Permission(permission.id, permission.name, permission.description)), response.role.singleUser);
+    const account: Account = new Account(response.username, response.email, undefined, true); // assumed to be confirmed if they have a user profile in the first place
+
+    return new User(response.username, response.name, account, response.department, role);
 }

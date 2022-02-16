@@ -136,7 +136,8 @@ export class UserService {
   }
 
   /**
-   * Loads the user and its account
+   * Loads the user and its account at the same time. It's preferable however to use {@link getUser} and then use the userResponseMapper function in
+   * userresponse.ts as usually you do not need all the account information. However, if you need the user and the account fully loaded, use this method.
    * @param username the username of the user
    * @param email true if the username is an email, false if username
    */

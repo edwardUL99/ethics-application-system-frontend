@@ -12,6 +12,10 @@ import { ApplicationTemplate } from '../applications/models/applicationtemplate'
 import { SectionComponent } from '../applications/models/components/sectioncomponent';
 import { TextQuestionComponent } from '../applications/models/components/textquestioncomponent';
 import { ContainerComponent } from '../applications/models/components/containercomponent';
+import { ApplicationTemplateShape } from '../applications/models/parsing/applicationtemplateparser';
+import { DraftApplication, ReferredApplication, SubmittedApplication } from '../applications/models/applications/application';
+import { ApplicationStatus } from '../applications/models/applications/applicationstatus';
+import { DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from '../applications/models/requests/applicationresponse';
 
 export const USERNAME = "username";
 export const EMAIL = "username@email.com";
@@ -121,5 +125,112 @@ export function createApplicationTemplateResponse() {
                 ]
             }
         }
+    };
+}
+
+export function createApplicationTemplateShape() {
+  return {
+    databaseId: 1,
+    id: TEMPLATE_ID,
+    name: TEMPLATE_NAME,
+    description: TEMPLATE_DESCRIPTION,
+    version: TEMPLATE_VERSION,
+    components: [
+      {
+        databaseId: 2,
+        type: 'section',
+        title: 'section',
+        componentId: 'component-id',
+        description: 'description',
+        components: [
+            {
+                databaseId: 3,
+                type: 'text-question',
+                title: 'test question',
+                componentId: 'component-id2',
+                description: 'test description question',
+                name: 'test name',
+                required: true,
+                singleLine: true,
+                questionType: 'text'
+            }
+        ],
+        autoSave: true
+      }
+    ]
+  }
+}
+
+export const APPLICATION_ID: string = 'test-application-id';
+
+export function createDraftApplication(): DraftApplication {
+    return new DraftApplication(1, APPLICATION_ID, createUser(), ApplicationStatus.DRAFT, 
+        createApplicationTemplate(), {}, {}, new Date());
+}
+
+export function createDraftApplicationResponse(): DraftApplicationResponse {
+    const draft = createDraftApplication();
+
+    return {
+        dbId: draft.id,
+        id: draft.applicationId,
+        username: draft.user.username,
+        status: ApplicationStatus.DRAFT,
+        templateId: draft.applicationTemplate.databaseId,
+        answers: {},
+        attachedFiles: {},
+        lastUpdated: new Date().toISOString()    
+    };
+}
+
+export function createSubmittedApplication(status: ApplicationStatus): SubmittedApplication {
+    return new SubmittedApplication(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
+    {}, {}, new Date(), {}, [], undefined, [], undefined);
+}
+
+export function createSubmittedApplicationResponse(status: ApplicationStatus): SubmittedApplicationResponse {
+    const submitted = createSubmittedApplication(status);
+
+    return {
+        dbId: submitted.id,
+        id: submitted.applicationId,
+        username: submitted.user.username,
+        status: status,
+        templateId: submitted.applicationTemplate.databaseId,
+        answers: {},
+        attachedFiles: {},
+        lastUpdated: new Date().toISOString(),
+        comments: {},
+        assignedCommitteeMembers: [],
+        finalComment: undefined,
+        previousCommitteeMembers: undefined,
+        approvalTime: undefined
+    };
+}
+
+export function createReferredApplication(): ReferredApplication {
+    return new ReferredApplication(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
+    createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, [], undefined);
+}
+
+export function createReferredApplicationResponse(): ReferredApplicationResponse {
+    const referred = createReferredApplication();
+
+    return {
+        dbId: referred.id,
+        id: referred.applicationId,
+        username: referred.user.username,
+        status: ApplicationStatus.REFERRED,
+        templateId: referred.applicationTemplate.databaseId,
+        answers: {},
+        attachedFiles: {},
+        lastUpdated: new Date().toISOString(),
+        comments: {},
+        assignedCommitteeMembers: [],
+        finalComment: undefined,
+        previousCommitteeMembers: undefined,
+        approvalTime: undefined,
+        editableFields: [],
+        referredBy: undefined
     };
 }

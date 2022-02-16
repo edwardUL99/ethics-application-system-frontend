@@ -3,7 +3,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 
-import { createApplicationTemplate, createApplicationTemplateResponse, TEMPLATE_ID } from '../testing/fakes';
+import { createApplicationTemplate, createApplicationTemplateResponse, createApplicationTemplateShape, TEMPLATE_ID } from '../testing/fakes';
 import { getErrorMessage } from '../utils';
 import { ApplicationTemplateService } from './application-template.service';
 import { ApplicationTemplateResponse, MappedTemplateResponse, TemplateMapping } from './applicationtemplateresponse';
@@ -119,9 +119,43 @@ describe('ApplicationTemplateService', () => {
 
     service.mapTemplateResponse().subscribe({
       error: e => {
-        expect(e).toEqual(getErrorMessage(error));
+        expect(e).toEqual('Not Found');
         done();
       }
     });
-  })
+  });
+
+  it('#getTemplate should return template', (done) => {
+    const templateShape = createApplicationTemplateShape();
+
+    httpSpy.and.returnValue(new Observable<ApplicationTemplateShape>(observer => {
+      observer.next(templateShape);
+    }));
+
+    const template = createApplicationTemplate();
+
+    service.getTemplate(1).subscribe(value => {
+      expect(value).toBeTruthy();
+      expect(value instanceof ApplicationTemplate).toBeTruthy();
+      expect(value).toEqual(template);
+      expect(httpSpy).toHaveBeenCalled();
+
+      done();
+    });
+  });
+
+  it('#getTemplate should catch error if it occurs', (done) => {
+    const error: HttpErrorResponse = new HttpErrorResponse({
+      status: 404
+    });
+    
+    httpSpy.and.returnValue(new Observable(observer => observer.error(error)));
+
+    service.getTemplate(1).subscribe({
+      error: e => {
+        expect(e).toEqual('Not Found');
+        done();
+      }
+    });
+  });
 });

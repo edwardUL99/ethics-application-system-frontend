@@ -43,7 +43,10 @@ import { SignatureFieldComponent } from './applications/view/component/signature
 import { QuestionTableViewComponent } from './applications/view/component/question-table-view/question-table-view.component';
 import { DynamicComponentLoader } from './applications/view/component/dynamiccomponents';
 import { ApplicationTemplateDisplayComponent } from './applications/view/application-template-display/application-template-display.component';
-import { InjectorLocator } from './injectorlocator';
+import { InjectorService } from './injector.service';
+import { ApplicationService } from './applications/application.service';
+
+import './applications/models/requests/mapping/applicationmapper';
 
 @NgModule({
   declarations: [
@@ -87,6 +90,7 @@ import { InjectorLocator } from './injectorlocator';
     AngularSignaturePadModule
   ],
   providers: [
+    InjectorService,
     AuthService,
     UserService,
     JWTStore,
@@ -97,12 +101,9 @@ import { InjectorLocator } from './injectorlocator';
     },
     UserContext,
     ApplicationTemplateService,
-    DynamicComponentLoader
+    DynamicComponentLoader,
+    ApplicationService
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {
-  constructor(private injector: Injector) {
-    InjectorLocator.injector = this.injector;
-  }
-}
+export class AppModule {}

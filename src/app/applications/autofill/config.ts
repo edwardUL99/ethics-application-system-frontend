@@ -1,4 +1,4 @@
-import { InjectorLocator } from "../../injectorlocator"
+import { InjectorService } from "../../injector.service"
 import { UserContext } from '../../users/usercontext';
 import { AutofillConfig } from "./types";
 
@@ -13,6 +13,6 @@ export const Config: AutofillConfig = {
     }
   }*/
   user: {
-    value: () => InjectorLocator.injector.get(UserContext).getUser()
+    value: () => InjectorService.getInstance().inject(UserContext).getUser()
   }
 }
