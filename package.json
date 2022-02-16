@@ -8,6 +8,7 @@
     "startTest": "ng serve --configuration=test",
     "build": "ng build --prod",
     "test": "ng test",
+    "headlessTest": "ng test --no-watch --no-progress --browsers=FirefoxHeadless",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
