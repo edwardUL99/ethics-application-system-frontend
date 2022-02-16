@@ -12,8 +12,8 @@ import { ApplicationTemplate } from '../applications/models/applicationtemplate'
 import { SectionComponent } from '../applications/models/components/sectioncomponent';
 import { TextQuestionComponent } from '../applications/models/components/textquestioncomponent';
 import { ContainerComponent } from '../applications/models/components/containercomponent';
-import { ApplicationTemplateShape } from '../applications/models/parsing/applicationtemplateparser';
-import { DraftApplication, ReferredApplication, SubmittedApplication } from '../applications/models/applications/application';
+import { Application } from '../applications/models/applications/application';
+import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from '../applications/models/applications/applicationinit';
 import { ApplicationStatus } from '../applications/models/applications/applicationstatus';
 import { DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from '../applications/models/requests/applicationresponse';
 
@@ -163,9 +163,9 @@ export function createApplicationTemplateShape() {
 
 export const APPLICATION_ID: string = 'test-application-id';
 
-export function createDraftApplication(): DraftApplication {
-    return new DraftApplication(1, APPLICATION_ID, createUser(), ApplicationStatus.DRAFT, 
-        createApplicationTemplate(), {}, {}, new Date());
+export function createDraftApplication(): Application {
+    return Application.create(new DraftApplicationInitialiser(1, APPLICATION_ID, createUser(), 
+        createApplicationTemplate(), {}, {}, new Date()));
 }
 
 export function createDraftApplicationResponse(): DraftApplicationResponse {
@@ -183,9 +183,9 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
     };
 }
 
-export function createSubmittedApplication(status: ApplicationStatus): SubmittedApplication {
-    return new SubmittedApplication(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
-    {}, {}, new Date(), {}, [], undefined, [], undefined);
+export function createSubmittedApplication(status: ApplicationStatus): Application {
+    return Application.create(new SubmittedApplicationInitialiser(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
+    {}, {}, new Date(), {}, [], undefined, [], undefined));
 }
 
 export function createSubmittedApplicationResponse(status: ApplicationStatus): SubmittedApplicationResponse {
@@ -208,9 +208,9 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
     };
 }
 
-export function createReferredApplication(): ReferredApplication {
-    return new ReferredApplication(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
-    createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, [], undefined);
+export function createReferredApplication(): Application {
+    return Application.create(new ReferredApplicationInitialiser(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
+        createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, [], undefined));
 }
 
 export function createReferredApplicationResponse(): ReferredApplicationResponse {

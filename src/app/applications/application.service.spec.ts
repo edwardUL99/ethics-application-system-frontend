@@ -19,16 +19,16 @@ import { ApproveApplicationRequest } from './models/requests/approveapplicationr
 import { ReferApplicationRequest } from './models/requests/referapplicationrequest';
 import { Comment } from './models/applications/comment';
 import { MapApplicationResponse, ResponseMapperKeys, ApplicationResponseMapper } from './models/requests/mapping/applicationmapper';
-import { SubmittedApplication } from './models/applications/application';
+import { Application } from './models/applications/application';
 
 /**
  * A test mapper to return fake values
  */
 @MapApplicationResponse(ResponseMapperKeys.SUBMITTED)
 class TestResponseMapper implements ApplicationResponseMapper {
-  map(response: ApplicationResponse): Observable<SubmittedApplication> {
+  map(response: ApplicationResponse): Observable<Application> {
     console.log(response);
-    return new Observable<SubmittedApplication>(observable => {
+    return new Observable<Application>(observable => {
       observable.next(createSubmittedApplication(ApplicationStatus.SUBMITTED));
     });
   }

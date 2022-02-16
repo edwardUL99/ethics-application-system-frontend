@@ -1,4 +1,6 @@
-import { AnswersMapping, Application, AttachedFilesMapping, CommentsMapping, DraftApplication, ReferredApplication, SubmittedApplication } from "../../applications/application";
+import { Application } from "../../applications/application";
+import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from "../../applications/types";
+import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from "../../applications/applicationinit";
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from "../applicationresponse";
 import { Observable, Observer } from 'rxjs';
 import { Answer } from "../../applications/answer";
@@ -200,11 +202,12 @@ function mapComment(comment: CommentShape): Comment {
 class DraftApplicationResponseMapper implements ApplicationResponseMapper {
   private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFilesMapping) {
     loadUserAndTemplate(observer, response,
-      value => observer.next(new DraftApplication(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles, new Date(response.lastUpdated))));
+      value => observer.next(Application.create(new DraftApplicationInitialiser(response.dbId, response.id, value.user, 
+        value.template, answers, attachedFiles, new Date(response.lastUpdated)))));
   }
 
-  map(response: DraftApplicationResponse): Observable<DraftApplication> {
-    return new Observable<DraftApplication>(observer => {
+  map(response: DraftApplicationResponse): Observable<Application> {
+    return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
       const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
 
@@ -226,10 +229,10 @@ function mapUsersArray(array: UserResponse[]): User[] {
  */
 @MapApplicationResponse([ResponseMapperKeys.SUBMITTED, ResponseMapperKeys.RESUBMITTED])
 export class SubmittedApplicationResponseMapper implements ApplicationResponseMapper {
-  map(response: SubmittedApplicationResponse): Observable<SubmittedApplication> {
+  map(response: SubmittedApplicationResponse): Observable<Application> {
     const userService: UserService = injector.inject(UserService);
 
-    return new Observable<SubmittedApplication>(observer => {
+    return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
       const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapComments(response.comments);
@@ -246,8 +249,8 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
-            value => observer.next(new SubmittedApplication(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))));
+            value => observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime)))));
         },
         error: e => observer.next(e)
       })
@@ -260,10 +263,10 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
  */
 @MapApplicationResponse(ResponseMapperKeys.REFERRED)
 export class ReferredApplicationResponseMapper implements ApplicationResponseMapper {
-  map(response: ReferredApplicationResponse): Observable<ReferredApplication> {
+  map(response: ReferredApplicationResponse): Observable<Application> {
     const userService: UserService = injector.inject(UserService);
 
-    return new Observable<ReferredApplication>(observer => {
+    return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
       const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapComments(response.comments);
@@ -282,9 +285,9 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
-            value => observer.next(new ReferredApplication(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
-              response.editableFields, userResponseMapper(usersArray[1]))));
+            value => observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+                new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
+                response.editableFields, userResponseMapper(usersArray[1])))));
         },
         error: e => observer.next(e)
       })
