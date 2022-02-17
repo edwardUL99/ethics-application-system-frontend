@@ -7,6 +7,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 
 @Component({
@@ -20,6 +21,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The form group passed into this component
    */
@@ -54,6 +59,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

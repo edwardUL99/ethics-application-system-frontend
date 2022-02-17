@@ -1,6 +1,6 @@
 <div>
   <app-navbar></app-navbar>
-  <div class="container my-5">
+  <div *ngIf="application" class="container my-5">
     <div class="card text-center my-2">
       <div class="mb-2">
         <h3>{{template?.name}}</h3>

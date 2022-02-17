@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
@@ -22,6 +23,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The cast component
    */
   questionComponent: SignatureQuestionComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The component containing the signature
    */
@@ -50,6 +55,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

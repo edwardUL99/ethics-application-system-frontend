@@ -1,5 +1,6 @@
 import { EventEmitter } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
 import { ValueType } from './valuetype';
 
@@ -33,6 +34,10 @@ export interface ViewComponentShape {
    * The component being rendered by this view
    */
   component: ApplicationComponent;
+  /**
+   * The application object representing the current application
+   */
+  application?: Application;
 }
 
 /**
@@ -59,6 +64,13 @@ export interface ApplicationViewComponent {
    * The component being rendered by this view
    */
   component: ApplicationComponent;
+
+  /**
+   * The object representing the current application being viewed. Not all components need an application for their
+   * context, so it is an optional parameter. However it should be passed to all composite components like sections
+   * and containers so that they can pass it to their sub-components
+   */
+  application?: Application;
 
   /**
    * Cast the component in this view to the specific application template component the view

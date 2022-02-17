@@ -8,6 +8,7 @@ import { ViewComponentRegistration } from '../registered.components';
 import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
+import { Application } from '../../../models/applications/application';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -43,6 +44,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    * The multipart question component cast from the compoennt
    */
   multipartQuestion: MultipartQuestionComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The form passed into the view component
    */
@@ -85,6 +90,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {
@@ -139,7 +145,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
           const callback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, part.partName);
-          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, this.group, callback).instance as QuestionViewComponent;
+          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, this.application, this.group, callback).instance as QuestionViewComponent;
         }
       }
     }

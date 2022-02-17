@@ -8,6 +8,7 @@ import { ActionBranch } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
 import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -40,6 +41,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The form group passed into this component
    */
@@ -74,6 +79,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = this.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

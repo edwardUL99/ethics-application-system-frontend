@@ -6,6 +6,7 @@ import { SelectQuestionComponent } from '../../../models/components/selectquesti
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { ArrayValueType, StringValueType, ValueType, ValueTypes } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 /**
  * A type that holds the selected options
@@ -34,6 +35,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   questionComponent: SelectQuestionComponent;
   /**
+   * The current application object
+   */
+  @Input() application: Application;
+  /**
    * The form control representing the select question
    */
   control: FormControl;
@@ -51,6 +56,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

@@ -8,6 +8,7 @@ import { ViewComponentRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { ValueType } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 export interface SectionViewComponentShape extends QuestionViewComponentShape {
   /**
@@ -31,6 +32,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    * The optional form parameter if the child components require it
    */
   @Input() form: FormGroup;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The question change to propagate changes
    */
@@ -56,6 +61,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   initialise(data: ViewComponentShape): void {
     const questionData = data as SectionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
     this.subSection = questionData.subSection;
     this.sectionClass = (!this.subSection) ? 'card my-4 pl-2 pr-2':'m';
@@ -92,9 +98,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
       
       castedComponent.components.forEach(component => {
         if (component.getType() == ComponentType.SECTION) {
-          this.loadComponentSubSection(this.loader, this.component.componentId, {component: component, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
+          this.loadComponentSubSection(this.loader, this.component.componentId,
+            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
         } else {
-          this.loadComponent(this.loader, this.component.componentId, component, this.form, callback);
+          this.loadComponent(this.loader, this.component.componentId, component, this.application, this.form, callback);
         }
       });
     }

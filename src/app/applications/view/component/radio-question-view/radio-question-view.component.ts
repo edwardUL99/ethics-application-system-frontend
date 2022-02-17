@@ -7,6 +7,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
 import { StringValueType, ValueType, ValueTypes } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 @Component({
   selector: 'app-radio-question-view',
@@ -20,9 +21,13 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    */
   @Input() component: ApplicationComponent;
   /**
+   * The current application object
+   */
+  @Input() application: Application;
+  /**
    * The form group passed into this component
    */
-  form: FormGroup;
+  @Input() form: FormGroup;
   /**
    * The array of radios
    */
@@ -53,6 +58,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

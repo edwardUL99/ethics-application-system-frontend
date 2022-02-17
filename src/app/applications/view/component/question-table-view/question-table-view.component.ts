@@ -9,6 +9,7 @@ import {  MatchedQuestionComponents, QuestionComponentHost } from '../component-
 import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { ViewComponentRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
+import { Application } from '../../../models/applications/application';
 
 /**
  * Mapping of question values
@@ -51,6 +52,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * The question table component cast from the passed in component
    */
   questionTable: QuestionTableComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * The form passed into the view component
    */
@@ -100,6 +105,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {
@@ -163,7 +169,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
           throw new Error(`The component type ${type} is not a supported question type in a QuestionTable`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, key);
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.application, this.group, questionChangeCallback).instance as QuestionViewComponent;
         }
       }
     }

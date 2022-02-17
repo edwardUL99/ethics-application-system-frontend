@@ -8,6 +8,7 @@ import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { ValueType } from '../valuetype';
+import { Application } from '../../../models/applications/application';
 
 @Component({
   selector: 'app-container-view',
@@ -20,6 +21,10 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    * The component to be displayed
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The current application object
+   */
+  @Input() application: Application;
   /**
    * A form to add any sub-components to if they require it
    */
@@ -41,6 +46,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {
@@ -73,7 +79,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
       const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
       const castedComponent = this.castComponent();
       castedComponent.components.forEach(component => 
-        this.loadComponent(this.loader, this.component.componentId, component, this.form, callback));
+        this.loadComponent(this.loader, this.component.componentId, component, this.application, this.form, callback));
     }
 
     this.detectChanges();

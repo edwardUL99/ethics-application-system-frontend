@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Application } from '../../../models/applications/application';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
@@ -23,6 +24,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    */
   questionComponent: TextQuestionComponent;
   /**
+   * The current application object
+   */
+  @Input() application: Application;
+  /**
    * The form group the question is being added to
    */
   @Input() form: FormGroup;
@@ -40,6 +45,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.application = data.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {

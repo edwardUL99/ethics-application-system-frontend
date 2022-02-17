@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { ApplicationTemplate } from '../../models/applicationtemplate';
@@ -9,6 +9,7 @@ import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
+import { Application } from '../../models/applications/application';
 
 /*
 TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
@@ -33,6 +34,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * The form group instance to pass to the child components
    */
   form: FormGroup;
+  /**
+   * The object representing the current application
+   */
+  @Input() application: Application;
   /**
    * The output to propagate question changes up
    */
@@ -81,13 +86,14 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   }
 
   loadComponents(): void {
-    if (this._viewInitialised) {
+    if (this._viewInitialised && this.application) {
       const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
 
       for (let component of this.template.components) {
         if (component.getType() == ComponentType.SECTION) {
           const data: SectionViewComponentShape = {
             component: component,
+            application: this.application,
             form: this.form,
             subSection: false,
             questionChangeCallback: callback
@@ -95,7 +101,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
           this.loadComponentSubSection(this.loader, '', data);
         } else {
-          this.loadComponent(this.loader, '', component, this.form, callback);
+          this.loadComponent(this.loader, '', component, this.application, this.form, callback);
         }
       }
     }
