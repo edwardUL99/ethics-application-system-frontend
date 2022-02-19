@@ -1,4 +1,4 @@
-<div [id]="questionTable?.componentId" [formGroup]="group">
+<div [id]="questionTable?.componentId" [formGroup]="group" *ngIf="display()">
   <label>{{questionTable?.title}}</label>
   <div [id]="questionTable?.componentId + '-cells'">
     <table class="table table-bordered">

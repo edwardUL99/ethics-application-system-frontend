@@ -6,8 +6,9 @@ import { CheckboxQuestionComponent } from '../../../models/components/checkboxqu
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { Application } from '../../../models/applications/application';
+import { Answer, ValueType } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 
 @Component({
@@ -21,6 +22,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
   /**
    * The current application object
    */
@@ -53,12 +58,17 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
+   * The css clas for checkboxes
+   */
+  checkClass: string;
 
-  constructor() { }
+  constructor() {}
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
 
@@ -69,15 +79,17 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
   ngOnInit(): void {
     this.questionComponent = this.castComponent();
+    this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
     this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, null);
-      checkbox.name = option.name;
-      this.checkboxes[option.name] = checkbox;
+      const checkbox = new Checkbox(option.id, option.label, option.identifier, null);
+      this.checkboxes[option.identifier] = checkbox;
 
-      this.selectedCheckboxes[checkbox.name] = false;
-      this.checkboxControls[checkbox.name] = new FormControl('');
+      this.selectedCheckboxes[checkbox.identifier] = false;
+      this.checkboxControls[checkbox.identifier] = new FormControl('');
     });
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   getCheckboxes() {
@@ -98,7 +110,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   addToForm(): void {
-    if (!this.form.get(this.questionComponent.componentId)) {
+    if (this.edit() && !this.form.get(this.questionComponent.componentId)) {
       this._addToForm();
     }
   }
@@ -111,41 +123,33 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     return this.component as CheckboxQuestionComponent;
   }
 
-  /**
-   * Get the value of this view
-   * @return mapping of selected values
-   */
-  value(): ValueType {
-    const values = {};
-    Object.keys(this.checkboxControls).forEach(key => {
-      const control = this.checkboxControls[key];
-      values[key] = control.value;
-    });
+  private _emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  }
 
-    return new ObjectValueType(values);
+  private select(checkbox: string) {
+    this.selectedCheckboxes[checkbox] = true;
+      
+    const control = this.checkboxControls[checkbox];
+    control.setValue(checkbox, {emitEvent: false})
+    this.checkboxArray.push(control);
   }
 
   /**
    * Responds to a checkbox group selected
    * @param event the event
-   * @param checkboxId the title of the checkbox
    */
-  onCheckChange(event, checkbox: string) {
+  onCheckChange(event) {
     if (event.target.checked) {
-      this.selectedCheckboxes[checkbox] = true;
-      
-      const control = this.checkboxControls[checkbox];
-      control.setValue(true, {emitEvent: false})
-      this.checkboxArray.push(control);
-
-      
+      this.select(event.target.value);
     } else {
       let i = 0;
       
-      this.selectedCheckboxes[checkbox] = false;
+      this.selectedCheckboxes[event.target.value] = false;
       this.checkboxArray.controls.forEach(control => {
         if (control.value == event.target.value) {
           this.checkboxArray.removeAt(i);
+          control.setValue('', {emitEvent: false})
           return;
         }
 
@@ -153,25 +157,34 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       });
     }
 
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+    this._emit();
+  }
+  
+  display(): boolean {
+    return QuestionViewUtils.display(this);
   }
 
-  setValue(componentId: string, value: ValueType): boolean {
-    if (this.component.componentId == componentId) {
-      if (value.type != ValueTypes.OBJECT) {
-        console.warn('Invalid type for a checkbox question component, not setting value');
-      } else {
-        const storedValue = value.getValue();
+  edit(): boolean {
+    return QuestionViewUtils.edit(this);
+  }
 
-        for (let key of Object.keys(this.checkboxControls)) {
-          if (key in storedValue) {
-            this.checkboxControls[key].setValue(storedValue[key], {emitEvent: false});
-            return true;
-          }
-        }
-      }
+  setFromAnswer(answer: Answer): void {
+    if (answer.valueType != ValueType.OPTIONS) {
+      throw new Error('Invalid answer type for a radio question component');
     }
 
-    return false;
+    answer.value.split(',').forEach(option => {
+      const value = (option.includes('=')) ? option.split('=')[0]:option;
+      this.select(value);
+    });
+
+    this._emit();
+  }
+
+  value(): Answer {
+    const options = Object.keys(this.selectedCheckboxes)
+      .filter(key => this.selectedCheckboxes[key]).join(',');
+
+    return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS);
   }
 }

@@ -29,10 +29,11 @@ export class CheckboxQuestionConverter extends QuestionConverter {
         const options: Option[] = [];
 
         for (let option of componentMap.options) {
-            options.push(new Option(option.id, option.label, option.value));
+            options.push(new Option(option.id, option.label, option.value, option.identifier));
         }
 
-        return new CheckboxQuestionComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, componentMap.description, componentMap.name, componentMap.required, options);
+        return new CheckboxQuestionComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, componentMap.description, componentMap.name, 
+            componentMap.required, options, componentMap.inline);
         
     }
 }

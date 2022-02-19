@@ -1,8 +1,8 @@
 import { EventEmitter } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
-import { ValueType } from './valuetype';
 
 /**
  * This type represents a callback for when a question change event is fired
@@ -53,6 +53,11 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
    * A callback to call whenever a question change event occurs
    */
   questionChangeCallback?: QuestionChangeCallback;
+
+  /**
+   * An optional parent if one exists
+   */
+  parent?: QuestionViewComponent;
 }
 
 /**
@@ -85,20 +90,6 @@ export interface ApplicationViewComponent {
    * @param data the data (Object in the shape of a view component) to initialise the component with
    */
   initialise(data: ViewComponentShape): void;
-
-  /**
-   * Set the value of the component with the given component ID. If the component is a QuestionView component, this 
-   * may involve setting the value of the question it contains or the sub-question. If the question is being changed as a result
-   * of setValue, questionChange events should not be propagated.
-   * 
-   * If the component is not a question view component, but it does hold sub-components (composite), it should propagate the 
-   * call down all of its components until it returns true. If it is not composite and not a question, it can be a no-op (returns false)
-   * 
-   * @param componentId the component ID
-   * @param value the value to set
-   * @return true if the matching component has been found and value set
-   */
-  setValue(componentId: string, value: ValueType): boolean;
 }
 
 /**
@@ -110,13 +101,13 @@ export class QuestionChangeEvent {
    */
   id: string;
   /**
-   * The value returned in the event
+   * The view that emitted the question change event
    */
-  value: ValueType;
+  view: QuestionViewComponent;
 
-  constructor(id: string, value: ValueType) {
+  constructor(id: string, view: QuestionViewComponent) {
     this.id = id;
-    this.value = value;
+    this.view = view;
   }
 }
 
@@ -133,26 +124,35 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * The event that is triggered when a value changes
    */
   questionChange: QuestionChange;
+  /**
+   * A question view component may have a parent component. If a parent exists and parent.display or parent.edit is true,
+   * the childs respective methods must return true. Be careful to avoid infinite recursion
+   */
+  parent: QuestionViewComponent;
 
   /**
-   * Retrieve the value entered into the component. The shape of the value is determined by
-   * the specific component
-   * @returns the value of the component
+   * There may be instances where the value of a component may need to be set from an answer for that component. For example,
+   * if an application is referred and a field is editable, the field(s) should be set from the previous answers. If the component contains multiple other questions,
+   * for example multipart question, it should set each part of the individual answer and react to the value change events (ie. multipart will need to display other
+   * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
+   * component should be made editable automatically and set the answers
+   * 
+   * @param answer the answer to set the value from
    */
-  value(): ValueType;
+  setFromAnswer(answer: Answer): void;
+
+  /**
+   * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
+   * If it is already a part of the form, it should be a no-op. If edit() returns false, that component should not be added to the form
+   * 
+   * This should be called from the component's ngOnInit method, i.e. before the view is initialized
+   */
+  addToForm(): void;
 
   /**
    * This method should be called to remove the component (and all sub-components if the question has multiple parts) from the form
    */
   removeFromForm(): void;
-
-  /**
-   * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
-   * If it is already a part of the form, it should be a no-op.
-   * 
-   * This should be called from the component's ngOnInit method, i.e. before the view is initialized
-   */
-  addToForm(): void;
 
   /**
    * This method is used to autofill the component if it supports it. If the question component
@@ -162,4 +162,21 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * TODO: For now, autofill is only supported in text and select question views. In the future, it may be expanded to other components
    */
   autofill?(): void;
+
+  /**
+   * Determine whether the question component should be displayed based on the status of the application
+   * and if it is to be edited based on that status and other conditions
+   */
+  display(): boolean;
+
+  /**
+   * Determine whether the question component can be edited or if it is to be just displayed as a question and answer if an answer if available
+   */
+  edit(): boolean;
+
+  /**
+   * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,
+   * the answers can be returned as an array of answers
+   */
+  value(): Answer | Answer[];
 }

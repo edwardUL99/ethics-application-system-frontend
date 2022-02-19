@@ -28,10 +28,10 @@ export class SelectQuestionConverter extends QuestionConverter {
         const options: Option[] = [];
 
         for (let option of componentMap.options) {
-            options.push(new Option(option.id, option.label, option.value));
+            options.push(new Option(option.id, option.label, option.value, option.identifier));
         };
 
         return new SelectQuestionComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, 
-            componentMap.description, componentMap.name, componentMap.required, componentMap.multiple, options, componentMap.addOther);
+            componentMap.description, componentMap.name, componentMap.required, componentMap.multiple, options);
     }
 }

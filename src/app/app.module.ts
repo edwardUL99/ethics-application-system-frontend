@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { Injector, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
@@ -45,8 +45,10 @@ import { DynamicComponentLoader } from './applications/view/component/dynamiccom
 import { ApplicationTemplateDisplayComponent } from './applications/view/application-template-display/application-template-display.component';
 import { InjectorService } from './injector.service';
 import { ApplicationService } from './applications/application.service';
-
-import './applications/models/requests/mapping/applicationmapper';
+import { ApplicationContext } from './applications/applicationcontext';
+import { AnswerViewComponent } from './applications/view/answer-view/answer-view.component';
+import { CacheManager } from './caching/cachemanager';
+import { CachingInterceptor } from './caching/interceptor';
 
 @NgModule({
   declarations: [
@@ -79,7 +81,8 @@ import './applications/models/requests/mapping/applicationmapper';
     SignatureQuestionViewComponent,
     SignatureFieldComponent,
     QuestionTableViewComponent,
-    ApplicationTemplateDisplayComponent
+    ApplicationTemplateDisplayComponent,
+    AnswerViewComponent
   ],
   imports: [
     BrowserModule,
@@ -99,10 +102,17 @@ import './applications/models/requests/mapping/applicationmapper';
       useClass: AuthInterceptor,
       multi: true
     },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CachingInterceptor,
+      multi: true
+    },
     UserContext,
     ApplicationTemplateService,
     DynamicComponentLoader,
-    ApplicationService
+    ApplicationService,
+    ApplicationContext,
+    CacheManager
   ],
   bootstrap: [AppComponent]
 })

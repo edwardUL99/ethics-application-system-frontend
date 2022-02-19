@@ -1,13 +1,20 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form">
-    <label>{{questionComponent?.title}}</label>
-    <div class="form-text">
-        {{questionComponent?.description}}
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+    <div *ngIf="edit(); else notEdit">
+        <label>{{questionComponent?.title}}</label>
+        <div class="form-text">
+            {{questionComponent?.description}}
+        </div>
+        <select [multiple]="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
+        (change)="onChange($event)" [disabled]="!questionComponent?.editable" class="form-select">
+            <option *ngIf="!questionComponent?.multiple" selected></option>
+            <option *ngFor="let option of questionComponent?.options" [value]="option.value">{{option.label}}</option>
+        </select>
+        <div *ngIf="control?.errors">
+            <app-field-error [condition]="control.errors?.['required']" [message]="'You must select an option'"></app-field-error>
+        </div>
     </div>
-    <select [multiple]="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
-    (change)="onChange($event)" [disabled]="!questionComponent?.editable">
-        <option *ngFor="let option of questionComponent?.options" [value]="option.value">{{option.label}}</option>
-    </select>
-    <div *ngIf="control?.errors">
-        <app-field-error [condition]="control.errors?.['required']" [message]="'You must select an option'"></app-field-error>
-    </div>
+    <ng-template #notEdit>
+        <app-answer-view *ngIf="questionComponent?.componentId in application?.answers"
+            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    </ng-template>
 </div>

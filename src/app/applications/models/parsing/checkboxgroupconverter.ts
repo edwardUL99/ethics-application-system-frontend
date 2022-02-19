@@ -62,7 +62,7 @@ export class CheckboxGroupConverter implements ComponentConverter {
 
             for (let checkbox of componentMap.checkboxes) {
                 const branch: Branch = ('branch' in checkbox) ? this.parseBranch(checkbox.branch):null;
-                checkboxes.push(new Checkbox(checkbox.id, checkbox.title, branch));
+                checkboxes.push(new Checkbox(checkbox.id, checkbox.title, checkbox.identifier, branch));
             }
 
             return new CheckboxGroupComponent(componentMap.databaseId, componentMap.componentId, componentMap.title,

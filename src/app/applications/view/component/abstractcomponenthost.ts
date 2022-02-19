@@ -1,6 +1,6 @@
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
 import { ComponentHostDirective } from './component-host.directive'
-import { ApplicationViewComponent, QuestionChangeCallback } from './application-view.component';
+import { ApplicationViewComponent, QuestionChangeCallback, QuestionViewComponent } from './application-view.component';
 import { FormGroup } from '@angular/forms';
 import { ComponentRef } from '@angular/core';
 import { SectionViewComponentShape } from './section-view/section-view.component';
@@ -19,11 +19,13 @@ export class AbstractComponentHost {
    * @param application the application to pass into the element
    * @param form the form to pass in if it is required
    * @param questionChangeCallback An optional callback function to respond to QuestionChangeEvents that may be emitted by the loaded component
+   * @param parent an option question parent if it exists
    */
   protected loadComponent(loader: DynamicComponentLoader, componentHost: string, component: ApplicationComponent, application: Application,
-    form: FormGroup, questionChangeCallback?: QuestionChangeCallback): ComponentRef<ApplicationViewComponent>  {
+    form: FormGroup, questionChangeCallback?: QuestionChangeCallback, parent?: QuestionViewComponent): ComponentRef<ApplicationViewComponent>  {
+    
     const componentRef = loader.loadComponent(componentHost, component.getType());
-    const data = (component.isFormElement() || component.isComposite) ? {component: component, application: application, form: form, questionChangeCallback: questionChangeCallback}
+    const data = (component.isFormElement() || component.isComposite) ? {component: component, application: application, form: form, questionChangeCallback: questionChangeCallback, parent: parent}
       : {component: component, application: application};
 
     componentRef.instance.initialise(data);

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UserContext } from '../../users/usercontext';
 import { JWTStore } from '../jwtstore';
 
 /**
@@ -14,7 +15,8 @@ export class LogoutComponent implements OnInit {
 
   constructor(private jwtStore: JWTStore,
     private router: Router,
-    private route: ActivatedRoute) { }
+    private route: ActivatedRoute,
+    private userContext: UserContext) { }
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -27,6 +29,7 @@ export class LogoutComponent implements OnInit {
       } : {};
 
       this.jwtStore.destroyToken();
+      this.userContext.clearContext();
       this.router.navigate(['login'], queryParams);
     });
   }

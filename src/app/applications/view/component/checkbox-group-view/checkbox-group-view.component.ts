@@ -7,8 +7,9 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { ActionBranch } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
-import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { Application } from '../../../models/applications/application';
+import { Answer, ValueType } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -42,6 +43,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @Input() component: ApplicationComponent;
   /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
+  /**
    * The current application object
    */
   @Input() application: Application;
@@ -74,7 +79,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
 
-  constructor() { }
+  constructor() {}
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
@@ -91,14 +96,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
     this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
-      this.checkboxes[checkbox.name] = checkbox;
-      this.selectedCheckboxes[checkbox.name] = false;
-      this.controlsMapping[checkbox.name] = new FormControl('');
+      this.checkboxes[checkbox.identifier] = checkbox;
+      this.selectedCheckboxes[checkbox.identifier] = false;
+      this.controlsMapping[checkbox.identifier] = new FormControl('');
     });
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   addToForm(): void {
-    if (!this.form.get(this.checkboxGroupComponent.componentId)) {
+    if (this.edit() && !this.form.get(this.checkboxGroupComponent.componentId)) {
       this.checkboxArray = (this.checkboxArray) ? this.checkboxArray:new FormArray([]);
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxArray);
     }
@@ -140,7 +147,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       }
 
       const control = this.controlsMapping[checkbox];
-      control.setValue(true, {emitEvent: false});
+      control.setValue(checkbox, {emitEvent: false});
       this.checkboxArray.push(control);
 
       // execute the checked branch if it exists or else the default branch
@@ -152,6 +159,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxArray.controls.forEach(control => {
         if (control.value == event.target.value) {
           delete this.controlsMapping[checkbox];
+          control.setValue('', {emitEvent: false});
           this.checkboxArray.removeAt(i);
           return;
         }
@@ -160,7 +168,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       });
     }
 
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+    this._emit();
+  }
+
+  private _emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
   castComponent() {
@@ -188,32 +200,32 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     }
   }
 
-  value(): ValueType {
-    const value = {}
-
-    Object.keys(this.controlsMapping).forEach(key => {
-      value[key] = this.controlsMapping[key].value;
-    })
-
-    return new ObjectValueType(value);
+  edit(): boolean {
+    return QuestionViewUtils.edit(this);
   }
 
-  setValue(componentId: string, value: ValueType): boolean {
-    if (this.component.componentId == componentId) {
-      if (value.type != ValueTypes.OBJECT) {
-        console.warn('Invalid type for a checkbox group component, not setting value');
-      } else {
-        const storedValue = value.getValue();
+  display(): boolean {
+    return QuestionViewUtils.display(this);
+  }
 
-        for (let key of Object.keys(this.controlsMapping)) {
-          if (key in storedValue) {
-            this.controlsMapping[key].setValue(storedValue[key], {emitEvent: false});
-            return true;
-          }
-        }
-      }
+  setFromAnswer(answer: Answer): void {
+    if (answer.valueType != ValueType.OPTIONS) {
+      throw new Error('Invalid answer type for the chekcbox group component');
     }
 
-    return false;
+    answer.value.split(',').forEach(option => {
+      const checkbox = (option.includes('=')) ? option.split('=')[0]:option;
+      this.selectedCheckboxes[checkbox] = true;
+      this.controlsMapping[checkbox].setValue(true.valueOf, {emitEvent: false});
+    });
+
+    this._emit();
+  }
+
+  value(): Answer {
+    const options = Object.keys(this.selectedCheckboxes)
+      .filter(key => this.selectedCheckboxes[key]).join(',');
+
+    return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS);
   }
 }

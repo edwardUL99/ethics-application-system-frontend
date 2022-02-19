@@ -1,18 +1,35 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, ValidationErrors, Validators } from '@angular/forms';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { ArrayValueType, StringValueType, ValueType, ValueTypes } from '../valuetype';
 import { Application } from '../../../models/applications/application';
+import { Answer, ValueType } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 /**
  * A type that holds the selected options
  */
 export type SelectedOptions = {
   [key: string]: boolean
+}
+
+/**
+ * This function returns a validator that validates the value chosen by select
+ * @returns the validator function
+ */
+export function SelectValidator(): ValidatorFn {
+  return (c: FormControl): ValidationErrors | null => {
+    const value = c.value;
+
+    if (value.length == 1 && value == '') {
+      return {required: true};
+    }
+
+    return null;
+  }
 }
 
 @Component({
@@ -26,6 +43,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * The component being rendered by the view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
   /**
    * The form passed to this component
    */
@@ -51,11 +72,12 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
 
-  constructor() { }
+  constructor() {}
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
 
@@ -68,14 +90,18 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   addToForm(): void {
-    if (!this.form.get(this.questionComponent.name)) {
+    if (this.edit() && !this.form.get(this.questionComponent.name)) {
       this.control = (this.control) ? this.control:new FormControl('');
 
-      if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
+      const validator = SelectValidator();
+      if (this.questionComponent.required && !this.control.hasValidator(Validators.required) 
+        && !this.control.hasValidator(validator)) {
         this.control.addValidators(Validators.required);
+        this.control.addValidators(validator);
       }
 
       this.questionComponent.options.forEach(option => this.selected[option.value] = false);
@@ -89,14 +115,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
 
   castComponent() {
     return this.component as SelectQuestionComponent;
-  }
-
-  value(): ValueType {
-    if (this.questionComponent.multiple) {
-      return new ArrayValueType(this.control?.value);
-    } else {
-      return new StringValueType(this.control?.value);
-    }
   }
 
   /**
@@ -119,30 +137,11 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.unselectOthers(option);
     }
 
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
+    this._emit();
   }
 
-  setValue(componentId: string, value: ValueType): boolean {
-    if (componentId == this.component.componentId) {
-      if (value.type == ValueTypes.STRING || value.type == ValueTypes.ARRAY) {
-        let val = value.getValue();
-        val = (value.type == ValueTypes.STRING) ? [val] : val;
-
-        for (let val1 of val) {
-          if (val1 in this.selected) {
-            this.selected[val1] = true;
-          }
-        }
-
-        this.control.setValue(val, {emitEvent: false});
-      } else {
-        console.warn('Invalid ValueType for a SelectQuestion, not setting value');
-      }
-
-      return true;
-    }
-
-    return false;
+  private _emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
   autofill(): void {
@@ -150,9 +149,33 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     if (this.questionComponent.autofill) {
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        this.setValue(this.component.componentId, (Array.isArray(value)) ? new ArrayValueType(value) : new StringValueType(value));
-        this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value())); // propagate the autofill
+        this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
+        this._emit(); // propagate the autofill
       });
     }
+  }
+
+  setFromAnswer(answer: Answer): void {
+    if (answer.valueType != ValueType.OPTIONS) {
+      throw new Error('Invalid answer type for a select question');
+    }
+
+    const options = answer.value.split(',');
+    options.forEach(option => this.selected[option] = true);
+    this.control.setValue(options, {emitEvent: false});
+    this._emit();
+  }
+
+  display(): boolean {
+    return QuestionViewUtils.display(this);
+  }
+
+  edit(): boolean {
+    return QuestionViewUtils.edit(this);
+  }
+
+  value(): Answer {
+    const value = this.value();
+    return new Answer(undefined, this.component.componentId, (this.control.value as Array<string>).join(','), ValueType.OPTIONS);
   }
 }

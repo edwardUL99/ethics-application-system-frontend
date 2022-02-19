@@ -1,4 +1,3 @@
-import { mergeSpaces } from "../../../utils";
 import { ComponentType } from "./applicationcomponent";
 import { Branch } from "./branch";
 import { SimpleComponent } from "./simplecomponent";
@@ -63,9 +62,9 @@ export class Checkbox {
      */
     branch: Branch;
     /**
-     * The name of the checkbox (it is constructed from the title made lowercase, punctuation stripped and spaces replaced with _)
+     * A unique UUID identifier to identify this checkbox
      */
-    name: string;
+    identifier: string;
     /**
      * An optional value
      */
@@ -75,14 +74,15 @@ export class Checkbox {
      * Create a Checkbox
      * @param id the database ID
      * @param title the title of the checkbox
+     * @param identifier the unique identifier identifying this checkbox
      * @param branch the branch to override the default branch with
-     * @param an optional value
+     * @param value an optional value
      */
-    constructor(id: number, title: string, branch?: Branch, value?: string) {
+    constructor(id: number, title: string, identifier: string, branch?: Branch, value?: string) {
         this.id = id;
         this.title = title;
         this.branch = (branch == undefined) ? null:branch;
-        this.name = mergeSpaces(this.title);
+        this.identifier = identifier;
         this.value = (value == undefined) ? null:value;
     }
 }

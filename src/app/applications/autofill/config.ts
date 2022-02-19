@@ -1,17 +1,18 @@
 import { InjectorService } from "../../injector.service"
 import { UserContext } from '../../users/usercontext';
 import { AutofillConfig } from "./types";
+import { ApplicationContext } from '../applicationcontext';
 
 /**
  * The configuration for the AutofillResolver
  */
 export const Config: AutofillConfig = {
-  /* TODO when such context is generated, do this 'application': {
-    'value': () => ApplicationContext.getCurrentApplication(),
+  application: {
+    'value': () => InjectorService.getInstance().inject(ApplicationContext).getApplication(),
     'proxies': {
       'id': 'applicationId'
     }
-  }*/
+  },
   user: {
     value: () => InjectorService.getInstance().inject(UserContext).getUser()
   }

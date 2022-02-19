@@ -6,17 +6,11 @@ import { QuestionTableComponent } from '../../../models/components/questiontable
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import {  MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
-import { ObjectValueType, ValueType, ValueTypes } from '../valuetype';
 import { ViewComponentRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
-
-/**
- * Mapping of question values
- */
-type QuestionValues = {
-  [key: string]: ValueType
-}
+import { Answer } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 /**
  * A mapping of question component IDs to the question components
@@ -34,7 +28,7 @@ class TableRow {
 
 // static call to have a reference to 'this' in a callback
 function onInputStatic(component: QuestionTableViewComponent, event: QuestionChangeEvent, question: string) {
-  component.onInput(event, question);
+  component.onInput();
 }
 
 @Component({
@@ -48,6 +42,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
   /**
    * The question table component cast from the passed in component
    */
@@ -77,10 +75,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    */
   private questionsMapping: QuestionsMapping = {};
   /**
-   * The sub question values
-   */
-  private values: QuestionValues = {};
-  /**
    * The list of column names
    */
   columnNames: string[] = [];
@@ -105,6 +99,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
 
@@ -169,7 +164,8 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
           throw new Error(`The component type ${type} is not a supported question type in a QuestionTable`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, key);
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.application, this.group, questionChangeCallback).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.application, 
+            this.group, questionChangeCallback, this).instance as QuestionViewComponent;
         }
       }
     }
@@ -205,38 +201,51 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     return this.component as QuestionTableComponent;
   }
 
-  value(): ValueType {
-    const copiedValues = {};
-
-    Object.keys(this.values).forEach(id => {
-      const question = this.questionsMapping[id].componentId;
-      const value = this.matchedComponents[question].value();
-
-      copiedValues[question] = value;
-    });
-
-    return new ObjectValueType(copiedValues);
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
+    // TODO no-op for now, may be needed
   }
 
-  setValue(componentId: string, value: ValueType): boolean {
-    if (componentId in this.matchedComponents) {
-      this.onInput(new QuestionChangeEvent(componentId, value), componentId, false);
-      return this.matchedComponents[componentId].setValue(componentId, value);
+  onInput(emitEvent: boolean = true) {    
+    if (emitEvent) {
+      this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this));
+    }
+  }
+
+  display(): boolean {
+    for (let key of Object.keys(this.matchedComponents)) {
+      const component = this.matchedComponents[key];
+
+      if (QuestionViewUtils.display(component, false)) {
+        return true;
+      }
     }
 
     return false;
   }
 
-  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
-    // TODO no-op for now, may be needed
+  edit(): boolean {
+    for (let key of Object.keys(this.matchedComponents)) {
+      const component = this.matchedComponents[key];
+
+      if (QuestionViewUtils.edit(component, false)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  onInput(event: QuestionChangeEvent, question: string, emitEvent: boolean = true) {
-    const value = event.value;
-    this.values[question] = value;
-    
-    if (emitEvent) {
-      this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this.value()));
-    }
+  setFromAnswer(answer: Answer): void {
+   if (answer.componentId in this.matchedComponents) {
+     this.matchedComponents[answer.componentId].setFromAnswer(answer);
+   }
+  }
+
+  value(): Answer[] {
+    const answers: Answer[] = [];
+
+    Object.keys(this.matchedComponents).forEach(key => answers.push(this.matchedComponents[key].value() as Answer));
+
+    return answers;
   }
 }

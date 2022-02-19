@@ -65,6 +65,8 @@ export class DynamicComponentLoader {
 
       if (refs.length == 0) {
         delete this.mapping[hostId];
+        this.hosts[hostId].viewContainerRef.clear();
+        delete this.hosts[hostId];
       }
     }
   }
@@ -120,7 +122,6 @@ export class DynamicComponentLoader {
    */
   loadComponent(componentHost: string, componentType: ComponentType): ComponentRef<ApplicationViewComponent> {
     const host = this.getComponentHost(componentHost);
-    host.viewContainerRef.clear();
     const componentRef = host.viewContainerRef.createComponent<ApplicationViewComponent>(registeredComponents.getComponent(componentType));
     this.register(componentHost, componentRef);
 

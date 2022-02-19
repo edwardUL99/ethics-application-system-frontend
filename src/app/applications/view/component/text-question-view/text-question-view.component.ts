@@ -6,7 +6,8 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
 import { ViewComponentRegistration } from '../registered.components';
-import { StringValueType, ValueType, ValueTypes } from '../valuetype';
+import { Answer, ValueType } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 @Component({
   selector: 'app-text-question-view',
@@ -19,6 +20,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
   /**
    * The cast component
    */
@@ -45,6 +50,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
 
@@ -59,22 +65,26 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     if (this.form && !this.form.get(this.questionComponent.name)) {
       this._addToForm();
       this.autofill();
+      QuestionViewUtils.setExistingAnswer(this);
     }
   }
 
   private _addToForm(): void {
-    this.control = (this.control) ? this.control:new FormControl('');
+    if (this.edit()) {
+      // only add to form if it is to be edited
+      this.control = (this.control) ? this.control:new FormControl('');
 
-    if (this.questionComponent.questionType == 'email' && !this.control.hasValidator(Validators.email)) {
-      this.control.setValidators(Validators.email);
-    } 
+      if (this.questionComponent.questionType == 'email' && !this.control.hasValidator(Validators.email)) {
+        this.control.setValidators(Validators.email);
+      } 
 
-    if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
-      this.control.addValidators(Validators.required);
+      if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
+        this.control.addValidators(Validators.required);
+      }
+
+      this.form.addControl(this.questionComponent.name, this.control);
+      this.control.updateValueAndValidity();
     }
-
-    this.form.addControl(this.questionComponent.name, this.control);
-    this.control.updateValueAndValidity();
   }
 
   addToForm(): void {
@@ -91,35 +101,40 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     return this.component as TextQuestionComponent;
   }
 
-  value(): ValueType  {
-    return new StringValueType(this.control?.value);    
-  }
-
   onChange() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this.value()));
-  }
-
-  setValue(componentId: string, value: ValueType): boolean {
-    if (componentId == this.component.componentId) {
-      if (value.type == ValueTypes.STRING) {
-        this.control.setValue(value.getValue(), {emitEvent: false});
-      } else {
-        console.warn('Invalid ValueType for a TextQuestion, not setting value');
-      }
-
-      return true;
-    }
-
-    return false;
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
   autofill(): void {
     if (this.questionComponent.autofill) {
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        this.setValue(this.component.componentId, new StringValueType(value));
+        this.control.setValue(this.value, {emitEvent: false});
         this.onChange(); // propagate the answer
       });
     }
+  }
+
+  display(): boolean {
+    return QuestionViewUtils.display(this);
+  }
+
+  edit(): boolean {
+    return QuestionViewUtils.edit(this);
+  }
+  
+  setFromAnswer(answer: Answer): void {
+    if (this.questionComponent.questionType == 'text' && answer.valueType != ValueType.TEXT) {
+      throw new Error('Invalid answer type for text question');
+    } else if (this.questionComponent.questionType == 'number' && answer.valueType != ValueType.NUMBER) {
+      throw new Error('Invalid answer type for number question');
+    }
+
+    this.control.setValue(answer.value);
+  }
+
+  value(): Answer {
+    return new Answer(undefined, this.component.componentId, this.control.value, 
+      (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT);
   }
 }

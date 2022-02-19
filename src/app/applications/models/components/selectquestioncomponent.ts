@@ -1,4 +1,3 @@
-import { mergeSpaces } from "../../../utils";
 import { ComponentType } from "./applicationcomponent";
 import { QuestionComponent } from "./questioncomponent";
 
@@ -29,14 +28,12 @@ export class SelectQuestionComponent extends QuestionComponent {
      * @param required true if required, false if not
      * @param multiple determines if multiple options can be selected,
      * @param options the list of options for this question component
-     * @param addOther true if an 'Other' input field should be displayed
      */
     constructor(databaseId: number, title: string, componentId: string, description: string, name: string, required: boolean,
-        multiple: boolean, options: Option[], addOther: boolean) {
+        multiple: boolean, options: Option[]) {
         super(databaseId, ComponentType.SELECT_QUESTION, title, componentId, description, name, required);
         this.multiple = multiple;
         this.options = options;
-        this.addOther = addOther;
     }
 }
 
@@ -57,20 +54,21 @@ export class Option {
      */
     value: string;
     /**
-     * The name constructed from the option label
+     * A UUID to uniquely identify the option
      */
-    name: string;
+    identifier: string;
 
     /**
      * Create an Option
      * @param id the database ID of the option
      * @param label the option label
      * @param value the option value
+     * @param identifier the UUID for the option
      */
-    constructor(id: number, label: string, value: string) {
+    constructor(id: number, label: string, value: string, identifier: string) {
         this.id = id;
         this.label = label;
         this.value = value;
-        this.name = mergeSpaces(this.label);
+        this.identifier = identifier;
     }
 }

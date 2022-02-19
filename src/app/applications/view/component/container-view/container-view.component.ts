@@ -7,7 +7,6 @@ import { ViewComponentRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
-import { ValueType } from '../valuetype';
 import { Application } from '../../../models/applications/application';
 
 @Component({
@@ -95,15 +94,5 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   detectChanges(): void {
     this.cd.detectChanges();
-  }
-
-  setValue(componentId: string, value: ValueType): boolean {
-    for (let component of this.loader.getLoadedComponents(this.component.componentId)) {
-      if (component.setValue(componentId, value)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 }

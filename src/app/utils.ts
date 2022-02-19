@@ -41,21 +41,6 @@ export function extractMappedError(error: HttpErrorResponse) {
 }
 
 /**
- * Replace spaces in the string with _, remove punctuation and make all letters
- * lowercase
- */
-export function mergeSpaces(str: string) {
-    str = str.replace('/[^\w\s]|_/g', "")
-        .replace('/\s+/g', " ");
-    
-    for (let value of str.split(' ')) {
-        this.name += value.toLowerCase() + '_';
-    }
-
-    return str.substring(0, this.name.length - 1);
-}
-
-/**
  * Takes a list of observable or simple types and executes them in parallel returning the result as a list of the resolved observables which is
  * passed to the subscriber function that waits for the returned array
  * 

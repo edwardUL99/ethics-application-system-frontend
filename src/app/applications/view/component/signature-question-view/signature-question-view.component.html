@@ -1,14 +1,20 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()">
-    <label>{{questionComponent?.title}}</label>
-    <div class="form-text">
-        {{questionComponent?.description}}
-    </div>
-    <div #signatureContainer class="row">
-        <div class="col-2">
-            <label>{{questionComponent?.label}}</label>
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
+    <div *ngIf="edit(); else notEdit">
+        <label>{{questionComponent?.title}}</label>
+        <div class="form-text">
+            {{questionComponent?.description}}
         </div>
-        <div class="col-10">
-            <signature-field #signature [formControlName]="questionComponent?.name" (signatureEntered)="signatureEntered($event)"></signature-field>
+        <div #signatureContainer class="row">
+            <div class="col-2">
+                <label>{{questionComponent?.label}}</label>
+            </div>
+            <div class="col-10">
+                <signature-field #signature [formControlName]="questionComponent?.name" (signatureEntered)="signatureEntered($event)"></signature-field>
+            </div>
         </div>
     </div>
+    <ng-template #notEdit>
+        <app-answer-view *ngIf="questionComponent?.componentId in application?.answers"
+            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    </ng-template>
 </div>

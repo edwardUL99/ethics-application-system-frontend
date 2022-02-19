@@ -1,12 +1,23 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form">
-    <label>{{questionComponent?.title}}</label>
-    <div class="form-text">{{questionComponent?.description}}</div>
-    <div [id]="questionComponent?.componentId + '-radios'">
-        <div *ngFor="let radio of getRadios()" class="form-check">
-            <label class="form-check-label">{{radio?.title}}</label>
-            <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event, radio?.name)" 
-            [name]="component?.name" [checked]="radioControls[radio]?.value == selectedRadioValue" [disabled]="!questionComponent?.editable">
+<div [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+    <div *ngIf="edit(); else notEdit">
+        <label>{{questionComponent?.title}}</label>
+        <div class="form-text">{{questionComponent?.description}}</div>
+        <div [id]="questionComponent?.componentId + '-radios'" class="row">
+            <div [ngClass]="(questionComponent?.inline) ? '':'col-2'">
+                <div *ngFor="let radio of getRadios()" [ngClass]="radioClass">
+                    <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event)" 
+                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue" [disabled]="!questionComponent?.editable">
+                    <label class="form-check-label">{{radio?.title}}</label>
+                </div>
+            </div>
+            <div [ngClass]="(questionComponent?.inline) ? 'col-10' + 'w-25 my-auto' : 'w-25 my-auto'">
+                <button type="button" class="btn btn-link" (click)="resetSelection()" [appTooltip]="'Clears the selected option'">Reset</button>
+            </div>
         </div>
+        <app-field-error [condition]="radioArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
-    <app-field-error [condition]="radioArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
+    <ng-template #notEdit>
+        <app-answer-view *ngIf="questionComponent?.componentId in application?.answers"
+            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    </ng-template>
 </div>

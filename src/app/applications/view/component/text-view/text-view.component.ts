@@ -3,7 +3,6 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { TextComponent } from '../../../models/components/textcomponent';
 import { ApplicationViewComponent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { ValueType } from '../valuetype';
 
 @Component({
   selector: 'app-text-view',
@@ -28,9 +27,5 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
 
   castComponent() {
     return this.component as TextComponent;
-  }
-
-  setValue(componentId: string, value: ValueType): boolean {
-    return false; // no-op
   }
 }

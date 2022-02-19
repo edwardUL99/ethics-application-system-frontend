@@ -5,8 +5,9 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ViewComponentRegistration } from '../registered.components';
-import { StringValueType, ValueType, ValueTypes } from '../valuetype';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
+import { Answer, ValueType } from '../../../models/applications/answer';
+import { QuestionViewUtils } from '../questionviewutils';
 
 @Component({
   selector: 'app-signature-question-view',
@@ -19,6 +20,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The component being rendered by this view
    */
   @Input() component: ApplicationComponent;
+  /**
+   * The parent component if it exists
+   */
+  @Input() parent: QuestionViewComponent;
   /**
    * The cast component
    */
@@ -50,11 +55,12 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    */
   signature: string;
 
-  constructor() { }
+  constructor() {}
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
+    this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
 
@@ -69,6 +75,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     if (this.form && !this.form.get(this.questionComponent.name)) {
       this._addToForm();
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   private _addToForm() {
@@ -95,30 +103,38 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.signatureFieldComponent.signaturePad.set('canvasHeight', this.signatureContainer.nativeElement.clientHeight);
   }
 
-  value(): ValueType {
-    return new StringValueType(this.signature);
-  }
-
   castComponent() {
     return this.component as SignatureQuestionComponent;
   }
 
-  signatureEntered(signature: string) {
-    console.log(signature);
-    this.signature = signature;
+  private _emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
-  setValue(componentId: string, value: ValueType): boolean {
-    if (componentId == this.component.componentId) {
-      if (value.type == ValueTypes.STRING) {
-        this.signatureFieldComponent.signaturePad.fromDataURL(value.getValue());
-      } else {
-        console.warn('Invalid ValueType for a SignatureQuestion, not setting value');
-      }
+  signatureEntered(signature: string) {
+    this.signature = signature;
+    this._emit();
+  }
 
-      return true;
+  display(): boolean {
+    return QuestionViewUtils.display(this);
+  }
+
+  edit(): boolean {
+    return QuestionViewUtils.edit(this);
+  }
+
+  setFromAnswer(answer: Answer): void {
+    if (answer.valueType != ValueType.IMAGE) {
+      throw new Error('Invalid answer type for signature question');
     }
 
-    return false;
+    this.signatureFieldComponent.signaturePad.fromDataURL(answer.value);
+
+    this._emit();
+  }
+
+  value(): Answer {
+    return new Answer(undefined, this.component.componentId, this.signature, ValueType.IMAGE);
   }
 }
