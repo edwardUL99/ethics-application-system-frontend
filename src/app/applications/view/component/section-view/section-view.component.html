@@ -3,4 +3,8 @@
     <h5>{{component?.title}}</h5>
     <p>{{castComponent()?.description}}</p>
     <ng-template componentHost [hostId]="component?.componentId"></ng-template>
+    <div class="mt-2">
+        <app-alert #autoSaveAlert [alertType]="'alert-success'" [message]="'Section automatically saved'"
+        [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
+    </div>
 </div>

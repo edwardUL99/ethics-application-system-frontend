@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { Injector, NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
@@ -49,6 +49,12 @@ import { ApplicationContext } from './applications/applicationcontext';
 import { AnswerViewComponent } from './applications/view/answer-view/answer-view.component';
 import { CacheManager } from './caching/cachemanager';
 import { CachingInterceptor } from './caching/interceptor';
+import { ApplicationDisplayComponent } from './applications/view/application-display/application-display.component';
+import { FakeInterceptor } from './testing/fakeinterceptor';
+import { PendingChangesGuard } from './pending-changes/pendingchangesguard';
+import { LoadingComponent } from './loading/loading.component';
+import { ApplicationListComponent } from './applications/view/application-list/application-list.component';
+import { AuthorizationService } from './users/authorization.service';
 
 @NgModule({
   declarations: [
@@ -82,7 +88,10 @@ import { CachingInterceptor } from './caching/interceptor';
     SignatureFieldComponent,
     QuestionTableViewComponent,
     ApplicationTemplateDisplayComponent,
-    AnswerViewComponent
+    AnswerViewComponent,
+    ApplicationDisplayComponent,
+    LoadingComponent,
+    ApplicationListComponent
   ],
   imports: [
     BrowserModule,
@@ -93,13 +102,17 @@ import { CachingInterceptor } from './caching/interceptor';
     AngularSignaturePadModule
   ],
   providers: [
-    InjectorService,
     AuthService,
     UserService,
     JWTStore,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: FakeInterceptor,
       multi: true
     },
     {
@@ -112,8 +125,14 @@ import { CachingInterceptor } from './caching/interceptor';
     DynamicComponentLoader,
     ApplicationService,
     ApplicationContext,
-    CacheManager
+    CacheManager,
+    PendingChangesGuard,
+    AuthorizationService
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private injector: Injector) {
+    InjectorService.initialise(this.injector);
+  }
+}

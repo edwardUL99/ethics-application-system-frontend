@@ -1,6 +1,6 @@
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
 import { ComponentHostDirective } from './component-host.directive'
-import { ApplicationViewComponent, QuestionChangeCallback, QuestionViewComponent } from './application-view.component';
+import { ApplicationViewComponent, QuestionChangeCallback, QuestionViewComponent, ViewComponentShape } from './application-view.component';
 import { FormGroup } from '@angular/forms';
 import { ComponentRef } from '@angular/core';
 import { SectionViewComponentShape } from './section-view/section-view.component';
@@ -12,21 +12,13 @@ import { Application } from '../../models/applications/application';
  */
 export class AbstractComponentHost {
   /**
-   * Load the individual sub-component. If multiple components need to be loaded, this can be called iteratively
-   * @param loader the loader injected into the subclass
-   * @param componentHost the ID of the host directive to load the component into
-   * @param component the component to load
-   * @param application the application to pass into the element
-   * @param form the form to pass in if it is required
-   * @param questionChangeCallback An optional callback function to respond to QuestionChangeEvents that may be emitted by the loaded component
-   * @param parent an option question parent if it exists
+   * Load the individual sub-component
+   * @param loader the loader to load the components with
+   * @param componentHost the component host to load the components into
+   * @param data the data to initialise the component with
    */
-  protected loadComponent(loader: DynamicComponentLoader, componentHost: string, component: ApplicationComponent, application: Application,
-    form: FormGroup, questionChangeCallback?: QuestionChangeCallback, parent?: QuestionViewComponent): ComponentRef<ApplicationViewComponent>  {
-    
-    const componentRef = loader.loadComponent(componentHost, component.getType());
-    const data = (component.isFormElement() || component.isComposite) ? {component: component, application: application, form: form, questionChangeCallback: questionChangeCallback, parent: parent}
-      : {component: component, application: application};
+  protected loadComponent(loader: DynamicComponentLoader, componentHost: string, data: ViewComponentShape) {
+    const componentRef = loader.loadComponent(componentHost, data.component.getType());
 
     componentRef.instance.initialise(data);
     componentRef.changeDetectorRef.detectChanges();

@@ -123,6 +123,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   ngOnDestroy(): void {
+    this.questionChange.destroy();
     Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
   }
 
@@ -164,8 +165,14 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
           throw new Error(`The component type ${type} is not a supported question type in a QuestionTable`)
         } else {
           const questionChangeCallback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, key);
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, questionComponent, this.application, 
-            this.group, questionChangeCallback, this).instance as QuestionViewComponent;
+          const data: QuestionViewComponentShape = {
+            component: questionComponent,
+            application: this.application,
+            form: this.group,
+            parent: this,
+            questionChangeCallback: questionChangeCallback
+          };
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, data).instance as QuestionViewComponent;
         }
       }
     }

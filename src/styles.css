@@ -30,5 +30,5 @@ A class that pads on x and y axis a box with fields in it to make them appear mo
 Add this class to render \n as line breaks
 */
 .render-new-lines {
-	white-space: pre;
+	white-space: pre-line;
 }

@@ -6,8 +6,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Observable } from 'rxjs';
 import { NeedsConfirmationComponent } from '../email-confirmation/needs-confirmation.component';
-import { Permission } from '../../users/permission';
-import { Role } from '../../users/role';
 import { User } from '../../users/user';
 import { UserService } from '../../users/user.service';
 import { Account } from '../account';
@@ -15,7 +13,7 @@ import { AuthService } from '../auth.service';
 import { AuthenticationResponse } from '../authenticationresponse';
 import { JWTStore } from '../jwtstore';
 import { environment } from '../../../environments/environment';
-import { USERNAME, EMAIL, AUTH_RESPONSE } from '../../testing/fakes';
+import { USERNAME, EMAIL, AUTH_RESPONSE, ROLE } from '../../testing/fakes';
 
 import { LoginComponent } from './login.component';
 import { UserContext } from '../../users/usercontext';
@@ -244,7 +242,7 @@ describe('LoginComponent', () => {
     jwtSpyUsername.and.returnValue(USERNAME);
     userServiceSpy.and.returnValue(new Observable(observer => {
       const user: User = new User(USERNAME, "name", new Account(USERNAME, EMAIL, null, true), "department",
-      new Role(1, 'User', 'default role', [new Permission(2, 'Permission', 'default permission')], false));
+      ROLE);
 
       observer.next(user);
     }));

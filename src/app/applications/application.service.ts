@@ -4,7 +4,7 @@ import { catchError, Observable, retry, throwError } from 'rxjs';
 import { BaseResponse } from '../baseresponse';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
-import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest } from './models/requests/draftapplicationrequests';
+import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
 import { GenerateIDResponse } from './models/requests/generateidresponse';
 import { SubmitApplicationRequest } from './models/requests/submitapplicationrequest';
 import { AcceptResubmittedRequest } from './models/requests/acceptresubmittedrequest';
@@ -99,8 +99,8 @@ export class ApplicationService {
    * Request that the draft application is cupdated
    * @param request the request object to send to the server
    */
-  updateDraftApplication(request: UpdateDraftApplicationRequest): Observable<BaseResponse> {
-    return this.http.put<BaseResponse>('/api/applications/draft/', request)
+  updateDraftApplication(request: UpdateDraftApplicationRequest): Observable<UpdateDraftApplicationResponse> {
+    return this.http.put<UpdateDraftApplicationResponse>('/api/applications/draft/', request)
       .pipe(
         retry(3),
         catchError(this.handleError)

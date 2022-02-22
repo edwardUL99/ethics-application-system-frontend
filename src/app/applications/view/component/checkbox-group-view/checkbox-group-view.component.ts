@@ -10,6 +10,7 @@ import { ApplicationTemplateContext } from '../../../applicationtemplatecontext'
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { ViewComponentRegistration } from '../registered.components';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -37,6 +38,7 @@ export type ControlsMapping = {
   templateUrl: './checkbox-group-view.component.html',
   styleUrls: ['./checkbox-group-view.component.css']
 })
+@ViewComponentRegistration(ComponentType.CHECKBOX_GROUP)
 export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
@@ -102,6 +104,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     });
 
     QuestionViewUtils.setExistingAnswer(this);
+  }
+
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
   }
 
   addToForm(): void {
@@ -218,6 +224,8 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.selectedCheckboxes[checkbox] = true;
       this.controlsMapping[checkbox].setValue(true.valueOf, {emitEvent: false});
     });
+
+    this.checkboxArray.markAsTouched();
 
     this._emit();
   }

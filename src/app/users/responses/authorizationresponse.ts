@@ -16,4 +16,8 @@ export interface AuthorizationResponse extends BaseResponse {
      * The description of the authorization
      */
     description: string;
+    /**
+     * The tag given to the authorization
+     */
+    tag: string;
 }

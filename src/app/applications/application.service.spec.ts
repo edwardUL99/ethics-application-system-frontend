@@ -11,8 +11,7 @@ import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationRespo
 import { ErrorMappings, MessageMappings } from '../mappings';
 import { ApplicationStatus } from './models/applications/applicationstatus';
 import { SubmitApplicationRequest } from './models/requests/submitapplicationrequest';
-import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest } from './models/requests/draftapplicationrequests';
-import { BaseResponse } from '../baseresponse';
+import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
 import { AcceptResubmittedRequest } from './models/requests/acceptresubmittedrequest';
 import { ReviewApplicationRequest, ReviewSubmittedApplicationRequest } from './models/requests/reviewapplicationrequest';
 import { ApproveApplicationRequest } from './models/requests/approveapplicationrequest';
@@ -27,7 +26,6 @@ import { Application } from './models/applications/application';
 @MapApplicationResponse(ResponseMapperKeys.SUBMITTED)
 class TestResponseMapper implements ApplicationResponseMapper {
   map(response: ApplicationResponse): Observable<Application> {
-    console.log(response);
     return new Observable<Application>(observable => {
       observable.next(createSubmittedApplication(ApplicationStatus.SUBMITTED));
     });
@@ -252,11 +250,12 @@ describe('ApplicationService', () => {
 
   it('#updateDraftApplication should update application successfully', (done) => {
     const request = updateDraftRequest();
-    const response: BaseResponse = {
-      message: MessageMappings.application_updated
+    const response: UpdateDraftApplicationResponse = {
+      message: MessageMappings.application_updated,
+      lastUpdated: new Date().toISOString()
     };
 
-    httpPutSpy.and.returnValue(new Observable<BaseResponse>(observable => {
+    httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
       observable.next(response);
     }));
 

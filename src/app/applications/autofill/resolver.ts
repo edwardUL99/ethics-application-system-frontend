@@ -79,10 +79,14 @@ export class AutofillResolver {
   private createNestedObservable(value: Observable<any>, queryArray: string[]): ResolvedProperty {
     return new ResolvedProperty(observer => {
       value.subscribe({
-        next: value => observer.next((queryArray.length == 1) ? value : this.resolveRecursive(queryArray, value, 1)),
+        next: value => {
+          observer.next((queryArray.length == 1) ? value : this.resolveRecursive(queryArray, value, 1));
+          observer.complete();
+        },
         error: e => {
           console.error(e);
           observer.next(undefined);
+          observer.complete();
         }
       });
     });
@@ -132,6 +136,17 @@ export class AutofillResolver {
   }
 
   /**
+   * Create a ResolvedProperty contaning the given value
+   * @param value the value to create the resolved property from
+   */
+  private createProperty(value: any): ResolvedProperty {
+    return new ResolvedProperty(observer => {
+      observer.next(value);
+      observer.complete();
+    });
+  }
+
+  /**
    * Resolve the retrieved value from the resolvables map
    * @param queryParams the split parameters of the query
    * @param value the value retrieved from resolvables
@@ -144,9 +159,9 @@ export class AutofillResolver {
       return this.createNestedObservable(value, queryParams);
     } else {
       if (queryParams.length > 1) {
-        return new ResolvedProperty(observer => observer.next(this.resolveRecursive(queryParams, value, 1)));
+        return this.createProperty(this.resolveRecursive(queryParams, value, 1));
       } else {
-        return new ResolvedProperty(observer => observer.next(value));
+        return this.createProperty(value);
       }
     }
   }
@@ -167,7 +182,7 @@ export class AutofillResolver {
       }
     }
 
-    return new ResolvedProperty(observer => observer.next(undefined));
+    return this.createProperty(undefined);
   }
 
   /**

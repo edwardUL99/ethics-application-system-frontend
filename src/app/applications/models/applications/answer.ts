@@ -31,6 +31,10 @@ interface AnswerMatcher {
    * @param value the value of the answer
    */
   match(provided: string, value: string): boolean;
+  /**
+   * Determine if the value is "empty"
+   */
+  empty(provided: string): boolean;
 }
 
 /**
@@ -40,6 +44,10 @@ class StringMatcher implements AnswerMatcher {
   match(provided: string, value: string): boolean {
     return provided == value;
   }
+
+  empty(provided: string): boolean {
+    return provided == undefined || provided == '';
+  }
 }
 
 /**
@@ -47,10 +55,18 @@ class StringMatcher implements AnswerMatcher {
  * If options are mapped like value=label, the value is matched`
  */
 class OptionsMatcher implements AnswerMatcher {
+  private getOptions(value: string) {
+    return value.split(',').map(s => (s.includes('=')) ? s.split('=')[0] : s);
+  }
+
   match(provided: string, value: string): boolean {
-    const options = value.split(',').map(s => (s.includes('=')) ? s.split('=')[0] : s);
+    const options = this.getOptions(value);
 
     return options.indexOf(provided) != -1;
+  }
+
+  empty(provided: string): boolean {
+    return !provided || this.getOptions(provided).length == 0;
   }
 }
 
@@ -92,5 +108,12 @@ export class Answer {
    */
   matches(value: string): boolean {
     return _matchers[this.valueType].match(value, this.value);
+  }
+
+  /**
+   * Determine if the answer is considered empty based on the value type
+   */
+  empty(): boolean {
+    return _matchers[this.valueType].empty(this.value);
   }
 }

@@ -104,11 +104,6 @@ export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): 
 }
 
 /**
- * The instance of the injector service to inject dependencies
- */
-const injector: InjectorService = InjectorService.getInstance();
-
-/**
  * A class representing a resolved user and template
  */
 class ResolvedUserTemplate {
@@ -122,6 +117,7 @@ class ResolvedUserTemplate {
  * @param subscriber the subscriber function to call when the template and user is loaded
  */
 function loadUserAndTemplate(observer: Observer<Application>, response: ApplicationResponse, subscriber: (r: ResolvedUserTemplate) => void) {
+  const injector: InjectorService = InjectorService.getInstance();
   const userService: UserService = injector.inject(UserService);
   const templateService: ApplicationTemplateService = injector.inject(ApplicationTemplateService);
 
@@ -132,7 +128,9 @@ function loadUserAndTemplate(observer: Observer<Application>, response: Applicat
       const template = resolved[1] as ApplicationTemplate;
       subscriber(new ResolvedUserTemplate(user, template));
     },
-    error: e => observer.error(e)
+    error: e => {
+      observer.error(e)
+    }
   })
 }
 
@@ -202,8 +200,11 @@ function mapComment(comment: CommentShape): Comment {
 class DraftApplicationResponseMapper implements ApplicationResponseMapper {
   private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFilesMapping) {
     loadUserAndTemplate(observer, response,
-      value => observer.next(Application.create(new DraftApplicationInitialiser(response.dbId, response.id, value.user, 
-        value.template, answers, attachedFiles, new Date(response.lastUpdated)))));
+      value => {
+        observer.next(Application.create(new DraftApplicationInitialiser(response.dbId, response.id, value.user, 
+        value.template, answers, attachedFiles, new Date(response.lastUpdated))));
+        observer.complete();
+      });
   }
 
   map(response: DraftApplicationResponse): Observable<Application> {
@@ -230,6 +231,7 @@ function mapUsersArray(array: UserResponse[]): User[] {
 @MapApplicationResponse([ResponseMapperKeys.SUBMITTED, ResponseMapperKeys.RESUBMITTED])
 export class SubmittedApplicationResponseMapper implements ApplicationResponseMapper {
   map(response: SubmittedApplicationResponse): Observable<Application> {
+    const injector: InjectorService = InjectorService.getInstance();
     const userService: UserService = injector.inject(UserService);
 
     return new Observable<Application>(observer => {
@@ -249,8 +251,11 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
-            value => observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime)))));
+            value => {
+              observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))))
+              observer.complete();
+            });
         },
         error: e => observer.next(e)
       })
@@ -264,6 +269,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
 @MapApplicationResponse(ResponseMapperKeys.REFERRED)
 export class ReferredApplicationResponseMapper implements ApplicationResponseMapper {
   map(response: ReferredApplicationResponse): Observable<Application> {
+    const injector: InjectorService = InjectorService.getInstance();
     const userService: UserService = injector.inject(UserService);
 
     return new Observable<Application>(observer => {
@@ -285,9 +291,12 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
-            value => observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+            value => {
+              observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
                 new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
-                response.editableFields, userResponseMapper(usersArray[1])))));
+                response.editableFields, userResponseMapper(usersArray[1]))));
+              observer.complete();
+            });
         },
         error: e => observer.next(e)
       })

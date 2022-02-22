@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject ,  throwError } from 'rxjs';
+import { Observable, Subscriber, throwError } from 'rxjs';
 
 import { UserResponseShortened } from './responses/userresponseshortened';
 import { UserResponse } from './responses/userresponse';
@@ -14,9 +14,10 @@ import { AuthService } from '../authentication/auth.service';
 import { Role } from './role';
 import { Permission } from './permission';
 import { AccountResponse } from '../authentication/accountresponse';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { getErrorMessage } from '../utils';
 import { Account } from '../authentication/account';
+import { mapRole } from './authorizations';
 
 /**
  * This service gives the ability to create and load user profiles
@@ -101,15 +102,8 @@ export class UserService {
    * @param subject the subject to send the user to
    * @param response the user response
    */
-  private populateUserAccount(subject: Subject<User>, response: UserResponse) {
-    let role: Role = null;
-    let permissions: Permission[] = [];
-      
-    for (let permissionResponse of response.role.permissions) {
-      permissions.push(new Permission(permissionResponse.id, permissionResponse.name, permissionResponse.description));
-    }
-
-    role = new Role(response.role.id, response.role.name, response.role.description, permissions, response.role.singleUser);
+  private populateUserAccount(subject: Subscriber<User>, response: UserResponse) {
+    let role: Role = mapRole(response.role);
 
     this.authService.getAccount(response.username, false)
       .pipe(
@@ -122,6 +116,7 @@ export class UserService {
           subject.next(new User(response.username, response.name, 
             new Account(accountResponse.username, accountResponse.email, null, accountResponse.confirmed),
             response.department, role));
+          subject.complete();
         },
         error: e => subject.error(e)
       });
@@ -142,25 +137,23 @@ export class UserService {
    * @param email true if the username is an email, false if username
    */
   loadUser(username: string, email: boolean = false): Observable<User> {
-    let subject: Subject<User> = new Subject<User>();
-
-    this.http.get<UserResponse>('/api/users/user', {
-      params: {
-        username: username,
-        email: '' + email
-      }
+    return new Observable<User>(observable => {
+      this.http.get<UserResponse>('/api/users/user', {
+        params: {
+          username: username,
+          email: '' + email
+        }
+      })
+      .pipe(
+        catchError(e => this.handleError(e, true))
+      )
+      .subscribe({
+        next: user => {
+          const response: UserResponse = user;
+          this.populateUserAccount(observable, response);
+        },
+        error: e => observable.error(e)
+      });
     })
-    .pipe(
-      catchError(e => this.handleError(e, true))
-    )
-    .subscribe({
-      next: user => {
-        const response: UserResponse = user;
-        this.populateUserAccount(subject, response);
-      },
-      error: e => subject.error(e)
-    });
-
-    return subject.asObservable();
   }
 }

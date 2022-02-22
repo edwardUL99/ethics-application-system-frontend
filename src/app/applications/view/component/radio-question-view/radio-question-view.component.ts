@@ -89,6 +89,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     QuestionViewUtils.setExistingAnswer(this);
   }
 
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
+  }
+
   getRadios() {
     const radioList = [];
     Object.keys(this.radios).forEach(key => radioList.push(this.radios[key]));
@@ -202,6 +206,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       const value = (option.includes('=')) ? option.split('=')[0]:option;
       this.select(value);
     });
+
+    this.radioArray.markAsTouched();
 
     this._emit();
   }

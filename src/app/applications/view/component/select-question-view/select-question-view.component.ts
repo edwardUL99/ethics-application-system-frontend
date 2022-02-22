@@ -93,6 +93,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     QuestionViewUtils.setExistingAnswer(this);
   }
 
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
+  }
+
   addToForm(): void {
     if (this.edit() && !this.form.get(this.questionComponent.name)) {
       this.control = (this.control) ? this.control:new FormControl('');
@@ -149,8 +153,13 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     if (this.questionComponent.autofill) {
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
-        this._emit(); // propagate the autofill
+        if (value) {
+          this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
+          this._emit(); // propagate the autofill
+        } else {
+          // autofill failed, so if the component was not editable, make it editable to allow the user to fill it in
+          this.questionComponent.editable = true;
+        }
       });
     }
   }
@@ -163,6 +172,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     const options = answer.value.split(',');
     options.forEach(option => this.selected[option] = true);
     this.control.setValue(options, {emitEvent: false});
+    this.control.markAsTouched();
     this._emit();
   }
 
@@ -175,7 +185,15 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   value(): Answer {
-    const value = this.value();
-    return new Answer(undefined, this.component.componentId, (this.control.value as Array<string>).join(','), ValueType.OPTIONS);
+    const valueRaw = this.control.value;
+    let value: string;
+
+    if (Array.isArray(valueRaw)) {
+      value = valueRaw.join(',');
+    } else {
+      value = valueRaw;
+    }
+
+    return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS);
   }
 }

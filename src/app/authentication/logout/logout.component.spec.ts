@@ -2,10 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Observable } from 'rxjs';
-import { UserContext } from 'src/app/users/usercontext';
+import { UserService } from '../../users/user.service';
+import { CacheManager } from '../../caching/cachemanager';
+import { UserContext } from '../../users/usercontext';
+import { AuthService } from '../auth.service';
 import { JWTStore } from '../jwtstore';
 
 import { LogoutComponent } from './logout.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('LogoutComponent', () => {
   let component: LogoutComponent;
@@ -20,10 +24,13 @@ describe('LogoutComponent', () => {
       declarations: [ LogoutComponent ],
       providers: [
         JWTStore,
-        UserContext
+        {provide: UserService, useClass: jasmine.createSpy('UserService')},
+        UserContext,
+        CacheManager
       ],
       imports: [
-        RouterTestingModule
+        RouterTestingModule,
+        HttpClientTestingModule
       ]
     })
     .compileComponents();

@@ -1,6 +1,6 @@
 <div>
-  <div *ngIf="application" class="container my-5">
-    <div class="card text-center my-2">
+  <div *ngIf="application" class="">
+    <div class="card shadow text-center my-2 p-2">
       <div class="mb-2">
         <h3>{{template?.name}}</h3>
       </div>
@@ -15,11 +15,6 @@
       <form [formGroup]="form">
         <!-- The parent component host that will hold all components -->
         <ng-template componentHost></ng-template>
-        <div class="card px-3 py-2">
-          <div class="text-right">
-            <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="onSubmit()">Submit</button>
-          </div>
-        </div>
       </form>
     </div>
   </div>

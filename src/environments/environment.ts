@@ -6,4 +6,6 @@
 export const environment = {
   production: false,
   requireULEmail: false,
+  testing: false,
+  default_template_id: 'expedited'
 };

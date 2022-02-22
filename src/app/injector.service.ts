@@ -1,11 +1,8 @@
-import { Injectable, Injector, Type } from '@angular/core';
+import { Injector, Type } from '@angular/core';
 
 /**
- * This class holds an injector reference to manually inject properties. It bootstraps itself to
- * a singleton instance on creation by angular, so it does not have to be injected itself, just accessed
- * with InjectorService.getInstance()
+ * This class holds an injector reference to manually inject properties. It should be initialised in the app module
  */
-@Injectable()
 export class InjectorService {
   /**
    * The InjectorService singleton instance
@@ -16,8 +13,16 @@ export class InjectorService {
    * Construct and boostrap the singleton instance
    * @param injector the injector to use for injecting
    */
-  constructor(private injector: Injector) {
+  private constructor(private injector: Injector) {
     InjectorService.instance = this;
+  }
+
+  /**
+   * Initialise the instance with the given injector
+   * @param injector the inkector to initialise the instance with
+   */
+  static initialise(injector: Injector) {
+    this.instance = new InjectorService(injector);
   }
 
   /**

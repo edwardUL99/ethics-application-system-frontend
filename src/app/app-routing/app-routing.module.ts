@@ -9,6 +9,9 @@ import { NeedsConfirmationComponent } from '../authentication/email-confirmation
 import { LogoutComponent } from '../authentication/logout/logout.component';
 import { UserRedirectComponent } from '../users/user-redirect/user-redirect.component';
 import { CreateUserComponent } from '../users/create-user/create-user.component';
+import { ApplicationDisplayComponent } from '../applications/view/application-display/application-display.component';
+import { PendingChangesGuard } from '../pending-changes/pendingchangesguard';
+import { ApplicationListComponent } from '../applications/view/application-list/application-list.component';
 
 const routes: Routes = [
 { path: 'login', component: LoginComponent },
@@ -18,6 +21,8 @@ const routes: Routes = [
 { path: 'needs-confirm', component: NeedsConfirmationComponent },
 { path: 'confirm-account', component: EmailConfirmationComponent },
 { path: 'create-user', component: CreateUserComponent },
+{ path: 'application', component: ApplicationDisplayComponent, canDeactivate: [PendingChangesGuard] },
+{ path: 'applications', component: ApplicationListComponent },
 { path: '', component: AppComponent },
 { path: '**', component: NotFoundComponent }
 ];

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -8,6 +8,8 @@ import { ViewComponentRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { AlertComponent } from '../../../../alert/alert.component';
 
 export interface SectionViewComponentShape extends QuestionViewComponentShape {
   /**
@@ -24,9 +26,13 @@ export interface SectionViewComponentShape extends QuestionViewComponentShape {
 @ViewComponentRegistration(ComponentType.SECTION)
 export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
   /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
+  /**
    * The component to be displayed
    */
-  @Input() component: ApplicationComponent; // TODO need to have an event for if auto save is true
+  @Input() component: ApplicationComponent;
   /**
    * The optional form parameter if the child components require it
    */
@@ -48,6 +54,11 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    */
   sectionClass: string;
   /**
+   * The alert to display that the component was autosaved
+   */
+  @ViewChild('autoSaveAlert')
+  autoSaveAlert: AlertComponent
+  /**
    * The flag to track if the view is initialised
    */
   private _viewInitialised: boolean = false;
@@ -59,11 +70,12 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as SectionViewComponentShape;
+    this.template = data.template;
     this.component = questionData.component;
     this.application = data.application;
     this.form = questionData.form;
     this.subSection = questionData.subSection;
-    this.sectionClass = (!this.subSection) ? 'card my-4 pl-2 pr-2':'m';
+    this.sectionClass = (!this.subSection) ? 'card shadow my-3 p-3':'my-3 p-3';
   
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -78,6 +90,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   }
 
   ngOnDestroy(): void {
+    this.questionChange.destroy();
     this.loader.destroyComponents(this.component.componentId);
   }
 
@@ -100,7 +113,15 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
           this.loadComponentSubSection(this.loader, this.component.componentId,
             {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
         } else {
-          this.loadComponent(this.loader, this.component.componentId, component, this.application, this.form, callback);
+          const data: QuestionViewComponentShape = {
+            application: this.application,
+            component: component,
+            form: this.form,
+            questionChangeCallback: callback,
+            template: this.template
+          };
+
+          this.loadComponent(this.loader, this.component.componentId, data);
         }
       });
     }
@@ -119,7 +140,4 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
     questionChange.emit(e);
   }
-
-  // TODO implement the other component views (think it's only QuestionTable left). Implement the view for viewing an application template also which has an element marked as componentHost and load components like this
-  // TODO Also implement application models like the application class and request/response classes. Then have an ApplicationContext class that holds the application being worked on. This context class can be made an attribute of the ApplicationViewComponent interface since to render (and perform actions) on the rendered components (such as save sections, answers etc.) you need the application context which may also hold the application service reference etc.
 }

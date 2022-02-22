@@ -4,10 +4,10 @@ import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent } from '../component/application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
 import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
-import { SectionViewComponentShape } from '../component/section-view/section-view.component';
+import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
 import { Application } from '../../models/applications/application';
 
@@ -43,9 +43,9 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
   /**
-   * Event for when the submit button is clicked
+   * Event for when a section is autosaved to tell the parent to autosave
    */
-  @Output() submitEvent: EventEmitter<any> = new EventEmitter();
+  @Output() autoSave: EventEmitter<SectionViewComponent> = new EventEmitter<SectionViewComponent>();
   /**
    * A variable to indicate if the view is initialised or not
    */ 
@@ -72,6 +72,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   }
 
   ngOnDestroy(): void {
+    this.questionChange.destroy();
     this.loader.destroyComponents();
     setResolver(undefined); // clean up and remove the set autofill resolver
   }
@@ -82,7 +83,11 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
     questionChange.emit(e);
-    console.log('Question change from child component ' + e.id + ' detected');
+  }
+
+  autoSaveSection(section: SectionViewComponent) {
+    // TODO section can call this passing an instance of this when Section implements Autosave
+    this.autoSave.emit(section);
   }
 
   loadComponents(): void {
@@ -96,12 +101,21 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
             application: this.application,
             form: this.form,
             subSection: false,
-            questionChangeCallback: callback
+            questionChangeCallback: callback,
+            template: this
           };
 
           this.loadComponentSubSection(this.loader, '', data);
         } else {
-          this.loadComponent(this.loader, '', component, this.application, this.form, callback);
+          const data: QuestionViewComponentShape = {
+            application: this.application,
+            form: this.form,
+            questionChangeCallback: callback,
+            component: component,
+            template: this
+          };
+
+          this.loadComponent(this.loader, '', data);
         }
       }
     }
@@ -111,11 +125,5 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   detectChanges(): void {
     this.cd.detectChanges();
-  }
-
-  onSubmit() {
-    // TODO emit proper event here and determine the type of what is emitted
-    console.log('Emitting submit event');
-    this.submitEvent.emit();
   }
 }

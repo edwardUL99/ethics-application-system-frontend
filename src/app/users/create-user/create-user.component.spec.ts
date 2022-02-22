@@ -10,7 +10,7 @@ import { JWTStore } from '../../authentication/jwtstore';
 import { CreateUpdateUserRequest } from '../createupdateuserrequest';
 import { UserResponse } from '../responses/userresponse';
 import { UserService } from '../user.service';
-import { USERNAME, NAME, DEPARTMENT } from '../../testing/fakes';
+import { USERNAME, NAME, DEPARTMENT, createUserResponse } from '../../testing/fakes';
 
 import { ErrorMappings } from '../../mappings';
 
@@ -73,28 +73,6 @@ describe('CreateUserComponent', () => {
   const setValues = (name: string, department: string) => {
     component.name.setValue(name);
     component.department.setValue(department);
-  }
-
-  const createUserResponse = (): UserResponse => {
-    return {
-      username: USERNAME,
-      name: NAME,
-      department: DEPARTMENT,
-      email: 'username@email.com',
-      role: {
-        id: 1,
-        name: 'User',
-        description: 'default role',
-        singleUser: false,
-        permissions: [
-          {
-            id: 2,
-            name: 'Permission',
-            description: 'default permission'
-          }
-        ]
-      }
-    };
   }
 
   it('should create', () => {

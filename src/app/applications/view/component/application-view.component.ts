@@ -1,8 +1,10 @@
-import { EventEmitter } from '@angular/core';
+import { EventEmitter, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
+import { ApplicationTemplateDisplayComponent } from '../application-template-display/application-template-display.component';
 
 /**
  * This type represents a callback for when a question change event is fired
@@ -13,8 +15,14 @@ export type QuestionChangeCallback = Function;
  * This is a specialised EventEmitter class for registering QuestionChangeCallbacks
  */
 export class QuestionChange extends EventEmitter<QuestionChangeEvent> {
+  /**
+   * List of question change subscriptions
+   */
+  private subscriptions: Subscription[];
+  
   constructor() {
     super();
+    this.subscriptions = [];
   }
 
   /**
@@ -22,7 +30,15 @@ export class QuestionChange extends EventEmitter<QuestionChangeEvent> {
    * @param callback the callback to register
    */
   register(callback: QuestionChangeCallback) {
-    this.subscribe(callback);
+    this.subscriptions.push(this.subscribe(callback));
+  }
+
+  /**
+   * Destroy all subscriptions to this question change
+   */
+  destroy() {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this.subscriptions.splice(0);
   }
 }
 
@@ -38,6 +54,12 @@ export interface ViewComponentShape {
    * The application object representing the current application
    */
   application?: Application;
+  /**
+   * The display component the view component is being rendered inside. An optional parameter, as a
+   * component does not have to consume it. However, sections and containers should take it and pass it
+   * to its children
+   */
+  template?: ApplicationTemplateDisplayComponent;
 }
 
 /**
@@ -62,9 +84,16 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
 
 /**
  * This interface is the base interface for all components that are designed to render the component
- * that they compose
+ * that they compose.
+ * 
+ * The ngOnDestroy should clean up after the component
  */
-export interface ApplicationViewComponent {
+export interface ApplicationViewComponent extends OnDestroy {
+  /**
+   * The display component the view component is being rendered inside
+   */
+  template?: ApplicationTemplateDisplayComponent;
+
   /**
    * The component being rendered by this view
    */
@@ -131,17 +160,6 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   parent: QuestionViewComponent;
 
   /**
-   * There may be instances where the value of a component may need to be set from an answer for that component. For example,
-   * if an application is referred and a field is editable, the field(s) should be set from the previous answers. If the component contains multiple other questions,
-   * for example multipart question, it should set each part of the individual answer and react to the value change events (ie. multipart will need to display other
-   * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
-   * component should be made editable automatically and set the answers
-   * 
-   * @param answer the answer to set the value from
-   */
-  setFromAnswer(answer: Answer): void;
-
-  /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
    * If it is already a part of the form, it should be a no-op. If edit() returns false, that component should not be added to the form
    * 
@@ -179,4 +197,15 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * the answers can be returned as an array of answers
    */
   value(): Answer | Answer[];
+
+  /**
+   * There may be instances where the value of a component may need to be set from an answer for that component. For example,
+   * if an application is referred and a field is editable, the field(s) should be set from the previous answers. If the component contains multiple other questions,
+   * for example multipart question, it should set each part of the individual answer and react to the value change events (ie. multipart will need to display other
+   * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
+   * component should be made editable automatically and set the answers
+   * 
+   * @param answer the answer to set the value from
+   */
+  setFromAnswer(answer: Answer): void;
 }

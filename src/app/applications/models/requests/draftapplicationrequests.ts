@@ -75,3 +75,13 @@ export interface CreateDraftApplicationResponse extends BaseResponse {
    */
   createdAt: string;
 }
+
+/**
+ * A response to the draft application being updated
+ */
+export interface UpdateDraftApplicationResponse extends BaseResponse {
+  /**
+   * The timestamp of when the application was last updated
+   */
+  lastUpdated: string;
+}

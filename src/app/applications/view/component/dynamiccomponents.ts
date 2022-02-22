@@ -4,7 +4,7 @@
 
 import { ComponentRef, Injectable } from '@angular/core';
 import { ComponentType } from '../../models/components/applicationcomponent';
-import { ApplicationViewComponent } from './application-view.component';
+import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { ComponentHostDirective } from './component-host.directive';
 import { registeredComponents } from './registered.components';
 
@@ -29,9 +29,9 @@ type HostsMapping = {
 @Injectable()
 export class DynamicComponentLoader {
   /**
-   * The mapping of the loader
+   * The mapping of the IDs of the hosts to loaded component Refs
    */
-  private mapping: HostsIDMapping = {}
+  private mappedRefs: HostsIDMapping = {}
   /**
    * Mapping of host ID to component host directive
    */
@@ -43,11 +43,11 @@ export class DynamicComponentLoader {
    * @param componentRef the created component reference
    */
   private register(hostId: string, componentRef: ComponentRef<ApplicationViewComponent>) {
-    if (!(hostId in this.mapping)) {
-      this.mapping[hostId] = [];
+    if (!(hostId in this.mappedRefs)) {
+      this.mappedRefs[hostId] = [];
     }
 
-    this.mapping[hostId].push(componentRef);
+    this.mappedRefs[hostId].push(componentRef);
   }
 
   /**
@@ -56,15 +56,16 @@ export class DynamicComponentLoader {
    * @param componentRef the reference of the component to remove
    */
   private unregister(hostId: string, componentRef: ComponentRef<ApplicationViewComponent>) {
-    if (hostId in this.mapping) {
-      const refs = this.mapping[hostId];
+    if (hostId in this.mappedRefs) {
+      const refs = this.mappedRefs[hostId];
       const index = refs.indexOf(componentRef, 0);
+      
       if (index > -1) {
         refs.splice(index, 1);
       }
 
       if (refs.length == 0) {
-        delete this.mapping[hostId];
+        delete this.mappedRefs[hostId];
         this.hosts[hostId].viewContainerRef.clear();
         delete this.hosts[hostId];
       }
@@ -92,8 +93,8 @@ export class DynamicComponentLoader {
   getLoadedComponents(hostId: string): ApplicationViewComponent[] {
     const components = [];
 
-    if (hostId in this.mapping) {
-      this.mapping[hostId].forEach(ref => components.push(ref.instance));
+    if (hostId in this.mappedRefs) {
+      this.mappedRefs[hostId].forEach(ref => components.push(ref.instance));
     }
 
     return components;
@@ -144,11 +145,17 @@ export class DynamicComponentLoader {
    * @param hostId the ID of the host. If not present, all components are removed
    */
   destroyComponents(hostId?: string): void {
-    if (hostId) {
-      if (hostId in this.mapping) {
+    if (hostId != undefined) {
+      if (hostId in this.mappedRefs) {
         const toRemove: ComponentRef<ApplicationViewComponent>[] = [];
         
-        for (let ref of this.mapping[hostId]) {
+        for (let ref of this.mappedRefs[hostId]) {
+          const instanceQuestionChange = (ref.instance as QuestionViewComponent).questionChange;
+
+          if (instanceQuestionChange && instanceQuestionChange instanceof QuestionChange) {
+            (instanceQuestionChange as QuestionChange).destroy();
+          }
+
           ref.destroy();
           toRemove.push(ref);
         }
@@ -156,7 +163,7 @@ export class DynamicComponentLoader {
         toRemove.forEach(ref => this.unregister(hostId, ref));
       }
     } else {
-      Object.keys(this.mapping).forEach(this.destroyComponents);
+      Object.keys(this.mappedRefs).forEach(key => this.destroyComponents(key));
     }
   }
 }

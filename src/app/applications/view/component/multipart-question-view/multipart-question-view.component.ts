@@ -108,6 +108,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   ngOnDestroy(): void {
+    this.questionChange.destroy();
     Object.keys(this.multipartQuestion.parts).forEach(part => this.loader.destroyComponents(this.multipartQuestion.parts[part].question.componentId));
   }
 
@@ -140,8 +141,14 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           throw new Error(`The component type ${type} is not a supported question type in a MultipartQuestion`)
         } else {
           const callback = (e: QuestionChangeEvent) => onInputStatic(thisInstance, e, part.partName);
-          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, part.question, 
-            this.application, this.group, callback, this.parent).instance as QuestionViewComponent;
+          const data: QuestionViewComponentShape = {
+            application: this.application,
+            component: part.question,
+            form: this.group,
+            parent: this,
+            questionChangeCallback: callback
+          };
+          this.matchedComponents[part.partName] = this.loadComponent(this.loader, part.question.componentId, data).instance as QuestionViewComponent;
         }
       }
     }

@@ -1,8 +1,9 @@
 import { HttpHandler, HttpInterceptor, HttpRequest, HttpEvent, HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, share, tap } from 'rxjs';
 import { CacheManager } from "./cachemanager";
 import { CachingStrategy, DefaultStrategy } from "./config";
+import { RESET_CACHE } from './headers';
 
 @Injectable()
 export class CachingInterceptor implements HttpInterceptor {
@@ -14,8 +15,18 @@ export class CachingInterceptor implements HttpInterceptor {
   constructor(private cache: CacheManager) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const clear = this.strategy.clearCache(req);
+
+    if (clear) {
+      this.cache.clearCache(clear);
+    }
+    
     if (!this.strategy.canCache(req)) {
       return next.handle(req);
+    }
+
+    if (req.headers.get(RESET_CACHE)) {
+      this.cache.removeResponse(req);
     }
 
     const cached = this.cache.getResponse(req);
@@ -28,7 +39,8 @@ export class CachingInterceptor implements HttpInterceptor {
           if (event instanceof HttpResponse) {
             this.cache.putResponse(req, event);
           }
-        })
+        }),
+        share()
       );
     }
   }

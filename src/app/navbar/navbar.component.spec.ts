@@ -5,18 +5,27 @@ import { NavbarComponent } from './navbar.component';
 import { UserService } from '../users/user.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AuthService } from '../authentication/auth.service';
+import { Observable } from 'rxjs';
+import { User } from '../users/user';
+import { createUser } from '../testing/fakes';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
   let fixture: ComponentFixture<NavbarComponent>;
 
   beforeEach(() => {
+    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser']);
+    userContextSpy.getUser.and.returnValue(new Observable<User>(observer => {
+      observer.next(createUser());
+      observer.complete();
+    }));
+
     TestBed.configureTestingModule({
       declarations: [ NavbarComponent ],
       providers: [
         AuthService,
         UserService,
-        UserContext,
+        {provide: UserContext, useValue: userContextSpy},
         NgbModal
       ],
       imports: [

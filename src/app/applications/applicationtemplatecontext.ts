@@ -135,7 +135,9 @@ export class ApplicationTemplateContext {
      * @param application the application template to add
      */
     addTemplate(application: ApplicationTemplate) {
-        this._applications[application.id] = application;
+        if (!(application.id in this._applications)) {
+            this._applications[application.id] = application;
+        }
     }
 
     /**

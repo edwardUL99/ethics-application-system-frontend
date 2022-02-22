@@ -92,6 +92,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     QuestionViewUtils.setExistingAnswer(this);
   }
 
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
+  }
+
   getCheckboxes() {
     const checkboxList = [];
     Object.keys(this.checkboxes).forEach(key => checkboxList.push(this.checkboxes[key]));
@@ -177,6 +181,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       const value = (option.includes('=')) ? option.split('=')[0]:option;
       this.select(value);
     });
+
+    this.checkboxArray.markAsTouched();
 
     this._emit();
   }

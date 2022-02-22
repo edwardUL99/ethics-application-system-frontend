@@ -8,6 +8,7 @@ import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 @Component({
   selector: 'app-container-view',
@@ -16,6 +17,10 @@ import { Application } from '../../../models/applications/application';
 })
 @ViewComponentRegistration(ComponentType.CONTAINER)
 export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
   /**
    * The component to be displayed
    */
@@ -44,6 +49,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
+    this.template = data.template;
     this.component = questionData.component;
     this.application = data.application;
     this.form = questionData.form;
@@ -61,6 +67,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
   }
 
   ngOnDestroy(): void {
+    this.questionChange.destroy();
     this.loader.destroyComponents(this.component.componentId);
   }
 
@@ -77,8 +84,17 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
     if (this.component && this.viewInitialised()) {
       const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
       const castedComponent = this.castComponent();
-      castedComponent.components.forEach(component => 
-        this.loadComponent(this.loader, this.component.componentId, component, this.application, this.form, callback));
+      castedComponent.components.forEach(component => {
+        const data: QuestionViewComponentShape = {
+          application: this.application,
+          component: component,
+          form: this.form,
+          questionChangeCallback: callback,
+          template: this.template
+        };
+
+        this.loadComponent(this.loader, this.component.componentId, data)
+      });
     }
 
     this.detectChanges();

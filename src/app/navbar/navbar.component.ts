@@ -1,8 +1,9 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { User } from '../users/user';
 import { UserContext } from '../users/usercontext';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
+import { Subscription } from 'rxjs';
 
 /**
  * This component represents a navbar used throughout the application
@@ -12,7 +13,7 @@ import { ModalComponent } from '../modal/modal.component';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   /**
    * This should be set to true if you want to hide the nav links
    */
@@ -33,18 +34,28 @@ export class NavbarComponent implements OnInit {
    * An error message
    */
   error: string;
+  /**
+   * The subscription for retrieving a user
+   */
+  private userSubscription: Subscription;
 
   constructor(private userContext: UserContext, private modalService: NgbModal) { }
 
   ngOnInit() {
     if (!this.hideLinks) {
-      this.userContext.getUser().subscribe({
+      this.userSubscription = this.userContext.getUser().subscribe({
         next: user => this.user = user,
         error: e => {
           this.error = e;
           this.openError();
         }
       });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
     }
   }
 

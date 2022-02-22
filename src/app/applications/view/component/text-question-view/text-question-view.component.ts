@@ -69,6 +69,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     }
   }
 
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
+  }
+
   private _addToForm(): void {
     if (this.edit()) {
       // only add to form if it is to be edited
@@ -109,8 +113,13 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     if (this.questionComponent.autofill) {
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        this.control.setValue(this.value, {emitEvent: false});
-        this.onChange(); // propagate the answer
+        if (value) {
+          this.control.setValue(value, {emitEvent: false});
+          this.onChange(); // propagate the autofilled answer
+        } else {
+          // autofill failed, so if the component was not editable, make it editable to allow the user to fill it in
+          this.questionComponent.editable = true;
+        }
       });
     }
   }
@@ -131,6 +140,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     }
 
     this.control.setValue(answer.value);
+    this.control.markAsTouched();
   }
 
   value(): Answer {

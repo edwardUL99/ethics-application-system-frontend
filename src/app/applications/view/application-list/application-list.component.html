@@ -1,0 +1,42 @@
+<div>
+  <app-navbar></app-navbar>
+  <div *ngIf="!error; else displayError">
+    <div class="container">
+      <div *ngIf="canCreateApplication">
+        <div class="row mt-2">
+          <div class="text-end">
+            <button type="button" class="btn btn-primary" (click)="toggleNewApp()">Create Application</button>
+          </div>
+        </div>
+        <div class="card shadow mt-2 p-2" *ngIf="displayNewApp">
+          <div class="text-end">
+            <button type="button" class="btn-close" (click)="closeNewApp()"></button>
+          </div>
+          <form [formGroup]="newAppForm">
+            <div class="form-group">
+              <label>Application:</label>
+              <select class="form-select" formControlName="template" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
+                <option></option>
+                <option *ngFor="let option of templateOptions" [value]="option.value">{{option.label}}</option>
+              </select>
+              <div class="form-text">
+                Choose the application to create
+              </div>
+            </div>
+            <div class="text-end">
+              <button type="button" class="btn btn-primary" (click)="createNewApplication()">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card shadow my-2 p-2 text-center">
+        Search and applications listing will go here
+      </div>
+    </div>
+  </div>
+  <ng-template #displayError>
+    <div class="container">
+      <app-alert [alertType]="'alert-danger'" [message]="error"></app-alert>
+    </div>
+  </ng-template>
+</div>

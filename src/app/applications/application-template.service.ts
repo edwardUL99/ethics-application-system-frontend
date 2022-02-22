@@ -22,6 +22,7 @@ export class ApplicationTemplateService {
   parseTemplate(application: ApplicationTemplateShape): Observable<ApplicationTemplate> {
     return new Observable<ApplicationTemplate>(observer => {
       observer.next(ApplicationTemplateParser.parseApplication(application));
+      observer.complete();
     });
   }
 
@@ -31,6 +32,7 @@ export class ApplicationTemplateService {
   parseComponent(component: ComponentObject): Observable<ApplicationComponent> {
     return new Observable<ApplicationComponent>(observer => {
       observer.next(Converters.get(component.type).convert(component));
+      observer.complete();
     });
   }
 
@@ -67,7 +69,10 @@ export class ApplicationTemplateService {
           catchError(this.handleError)
         )
         .subscribe({
-          next: response => observer.next(mapTemplateResponse(response)),
+          next: response => {
+            observer.next(mapTemplateResponse(response));
+            observer.complete();
+          },
           error: e => observer.error(e)
         });
     });
@@ -80,13 +85,16 @@ export class ApplicationTemplateService {
    */
   getTemplate(id: number): Observable<ApplicationTemplate> {
     return new Observable<ApplicationTemplate>(observer => {
-      this.http.get<ApplicationTemplateShape>(`/api/applications/templates?id=${id}`)
+      this.http.get<ApplicationTemplateShape>(`/api/applications/template?id=${id}`)
       .pipe(
         retry(3),
         catchError(this.handleError)
       )
       .subscribe({
-        next: response => observer.next(ApplicationTemplateParser.parseApplication(response)),
+        next: response => {
+          observer.next(ApplicationTemplateParser.parseApplication(response));
+          observer.complete();
+        },
         error: e => observer.error(e)
       });
     });

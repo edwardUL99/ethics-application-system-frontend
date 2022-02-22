@@ -54,6 +54,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The entered signature
    */
   signature: string;
+  /**
+   * The form control for this component
+   */
+  control: FormControl;
 
   constructor() {}
 
@@ -79,9 +83,13 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     QuestionViewUtils.setExistingAnswer(this);
   }
 
+  ngOnDestroy(): void {
+    this.questionChange.destroy();
+  }
+
   private _addToForm() {
-    const control = new FormControl('', Validators.required);
-    this.form.addControl(this.questionComponent.name, control);
+    this.control = new FormControl('', Validators.required);
+    this.form.addControl(this.questionComponent.name, this.control);
   }
 
   addToForm(): void {
@@ -130,6 +138,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     }
 
     this.signatureFieldComponent.signaturePad.fromDataURL(answer.value);
+    this.control.setValue(answer.value, {emitEvent: false});
+    this.control.markAsTouched();
 
     this._emit();
   }

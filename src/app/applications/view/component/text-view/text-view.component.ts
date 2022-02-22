@@ -28,4 +28,6 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
   castComponent() {
     return this.component as TextComponent;
   }
+
+  ngOnDestroy(): void {}
 }
