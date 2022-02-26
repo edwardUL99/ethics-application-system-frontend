@@ -86,7 +86,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
     this.component = questionData.component;
-    this.application = this.application;
+    this.application = questionData.application;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {
@@ -97,10 +97,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   ngOnInit(): void {
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
+    const edit = this.edit();
     this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
       this.checkboxes[checkbox.identifier] = checkbox;
       this.selectedCheckboxes[checkbox.identifier] = false;
-      this.controlsMapping[checkbox.identifier] = new FormControl('');
+      this.controlsMapping[checkbox.identifier] = new FormControl({value: '', disabled: !edit});
     });
 
     QuestionViewUtils.setExistingAnswer(this);
@@ -126,10 +127,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * @param checkbox the checkbox to except from unchecking
    */
   private uncheckAllExcept(checkbox: string) {
-    Object.keys(this.selectedCheckboxes).forEach(title => {
-      if (title != checkbox) {
-        this.selectedCheckboxes[title] = false;
-        delete this.controlsMapping[checkbox];
+    Object.keys(this.selectedCheckboxes).forEach(identifier => {
+      if (identifier != checkbox) {
+        this.selectedCheckboxes[identifier] = false;
       }
     })
   }
@@ -164,7 +164,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.selectedCheckboxes[checkbox] = false;
       this.checkboxArray.controls.forEach(control => {
         if (control.value == event.target.value) {
-          delete this.controlsMapping[checkbox];
           control.setValue('', {emitEvent: false});
           this.checkboxArray.removeAt(i);
           return;

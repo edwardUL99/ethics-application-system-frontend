@@ -1,12 +1,11 @@
 <div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
-        <div class="form-text">
-            {{questionComponent?.description}}
-        </div>
+        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
         <div *ngIf="questionComponent?.singleLine">
             <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" (change)="onChange()" class="form-control"
-            [formControlName]="questionComponent?.name" [readonly]="!questionComponent.editable">
+            [formControlName]="questionComponent?.name">
         </div>
         <div *ngIf="!questionComponent?.singleLine">
             <textarea [name]="questionComponent?.name" class="form-control" (change)="onChange()" [formControlName]="questionComponent?.name"></textarea>
@@ -18,4 +17,5 @@
         <app-answer-view *ngIf="questionComponent?.componentId in application?.answers"
             [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     </ng-template>
+    <app-comment-display [application]="application" [component]="this"></app-comment-display>
 </div>

@@ -19,6 +19,6 @@ export type AttachedFilesMapping = {
 /**
  * This type represents a mapping of component ID to a comment
  */
- export type CommentsMapping = {
+export type CommentsMapping = {
   [key: string]: Comment;
 }

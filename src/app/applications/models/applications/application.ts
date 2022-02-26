@@ -5,6 +5,7 @@ import { AttachedFile } from './attachedfile';
 import { Comment } from './comment';
 import { ApplicationInitialiser } from './applicationinit';
 import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
+import { AssignedCommitteeMember } from './assignedcommitteemember';
 
 /**
  * This class represents an Application in the system.
@@ -50,7 +51,7 @@ export class Application {
   /**
    * Committee members that have been assigned to the application
    */
-  assignedCommitteeMembers: User[] = undefined;
+  assignedCommitteeMembers: AssignedCommitteeMember[] = undefined;
   /**
    * The last comment left on the application
    */
@@ -101,7 +102,7 @@ export class Application {
    * @param user the user to assign
    */
    assignCommitteeMember(user: User) {
-    this.assignedCommitteeMembers.push(user);
+    this.assignedCommitteeMembers.push(new AssignedCommitteeMember(undefined, user, false));
   }
 
   /**

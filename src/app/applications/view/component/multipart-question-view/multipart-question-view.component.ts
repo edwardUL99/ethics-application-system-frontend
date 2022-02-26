@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit, Output, OnChanges, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy } from '@angular/core';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { MultipartQuestionComponent } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -29,7 +29,7 @@ function onInputStatic(component: MultipartQuestionViewComponent, event: Questio
   styleUrls: ['./multipart-question-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.MULTIPART_QUESTION)
-export class MultipartQuestionViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnChanges, OnDestroy {
+export class MultipartQuestionViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnDestroy {
   /**
    * The component being rendered by this view
    */
@@ -158,6 +158,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   ngAfterViewInit(): void {
     this._viewInitialised = true;
+    this.loadComponents();
   }
 
   /**
@@ -189,12 +190,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   removeFromForm(): void {
     this.form.removeControl(this.multipartQuestion.componentId);
-  }
-
-  ngOnChanges(): void {
-    if (this._viewInitialised) {
-      this.loadComponents();
-    }
   }
 
   castComponent() {

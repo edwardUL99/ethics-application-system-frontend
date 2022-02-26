@@ -8,20 +8,24 @@ import { AuthService } from '../../../authentication/auth.service';
 import { UserService } from '../../../users/user.service';
 import { UserContext } from '../../../users/usercontext';
 import { AuthorizationService } from '../../../users/authorization.service';
+import { ApplicationService } from '../../application.service';
 
 describe('ApplicationListComponent', () => {
   let component: ApplicationListComponent;
   let fixture: ComponentFixture<ApplicationListComponent>;
 
   beforeEach(() => {
+    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser']);
+
     TestBed.configureTestingModule({
       declarations: [ ApplicationListComponent ],
       providers: [
         ApplicationTemplateService,
         AuthService,
         UserService,
-        UserContext,
-        AuthorizationService
+        {provide: UserContext, useValue: userContextSpy},
+        AuthorizationService,
+        ApplicationService
       ],
       imports: [
         FormsModule,

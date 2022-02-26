@@ -55,6 +55,9 @@ import { PendingChangesGuard } from './pending-changes/pendingchangesguard';
 import { LoadingComponent } from './loading/loading.component';
 import { ApplicationListComponent } from './applications/view/application-list/application-list.component';
 import { AuthorizationService } from './users/authorization.service';
+import { ReferMarkerComponent } from './applications/view/refer-marker/refer-marker.component';
+import { CommentDisplayComponent } from './applications/view/comment-display/comment-display.component';
+import { AuthGuard } from './authentication/authguard';
 
 @NgModule({
   declarations: [
@@ -91,7 +94,9 @@ import { AuthorizationService } from './users/authorization.service';
     AnswerViewComponent,
     ApplicationDisplayComponent,
     LoadingComponent,
-    ApplicationListComponent
+    ApplicationListComponent,
+    ReferMarkerComponent,
+    CommentDisplayComponent
   ],
   imports: [
     BrowserModule,
@@ -127,7 +132,8 @@ import { AuthorizationService } from './users/authorization.service';
     ApplicationContext,
     CacheManager,
     PendingChangesGuard,
-    AuthorizationService
+    AuthorizationService,
+    AuthGuard
   ],
   bootstrap: [AppComponent]
 })

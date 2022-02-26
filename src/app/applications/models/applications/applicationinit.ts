@@ -4,6 +4,7 @@ import { ApplicationTemplate } from '../applicationtemplate';
 import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
 import { Application } from './application';
 import { Comment } from './comment';
+import { AssignedCommitteeMember } from './assignedcommitteemember';
 
 /*
  * It is easier to work with Application instances in templates as a single class structure,
@@ -138,7 +139,7 @@ export class SubmittedApplicationInitialiser extends ApplicationInitialiser {
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
     answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
-    public comments: CommentsMapping, public assignedCommitteeMembers: User[], public finalComment: Comment,
+    public comments: CommentsMapping, public assignedCommitteeMembers: AssignedCommitteeMember[], public finalComment: Comment,
     public previousCommitteeMembers: User[], public approvalTime: Date) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated);
   }
@@ -185,7 +186,7 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
     answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
-    comments: CommentsMapping, assignedCommitteeMembers: User[], finalComment: Comment,
+    comments: CommentsMapping, assignedCommitteeMembers: AssignedCommitteeMember[], finalComment: Comment,
     previousCommitteeMembers: User[], approvalTime: Date,
     public editableFields: string[], public referredBy: User) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated,

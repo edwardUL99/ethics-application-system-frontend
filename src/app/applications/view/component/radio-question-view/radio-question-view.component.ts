@@ -83,7 +83,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.questionComponent.options.forEach(option => {
       const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
       this.radios[option.value] = checkbox;
-      this.radioControls[checkbox.value] = new FormControl('');
+      this.radioControls[checkbox.value] = new FormControl({vaue: '', disabled: !this.questionComponent.editable});
     });
 
     QuestionViewUtils.setExistingAnswer(this);

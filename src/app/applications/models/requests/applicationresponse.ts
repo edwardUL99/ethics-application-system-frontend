@@ -1,6 +1,6 @@
 import { BaseResponse } from '../../../baseresponse';
 import { ApplicationStatus } from '../applications/applicationstatus';
-import { AnswerShape, AttachedFileShape, CommentShape } from './shapes';
+import { AnswerShape, AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from './shapes';
 
 /**
  * The mapping of componentID to the answer shape
@@ -77,7 +77,7 @@ export interface SubmittedApplicationResponse extends ApplicationResponse {
   /**
    * The list of assigned committee members usernames
    */
-  assignedCommitteeMembers: string[];
+  assignedCommitteeMembers: AssignedCommitteeMemberResponse[];
   /**
    * The final comment left on the application
    */

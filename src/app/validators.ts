@@ -12,7 +12,19 @@ import { environment } from '../environments/environment';
  */
  export function EmailValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const allowed = !environment.requireULEmail || control.value.includes('ul.ie');
+      const value = control.value;
+      let allowed: boolean = true;
+
+      if (environment.requireULEmail) {
+        const split = value.split('@');
+
+        if (split.length < 2) {
+          return {email: true};
+        } else {
+          allowed = split[1].includes('ul.ie');
+        }
+      }
+
       return allowed ? null : {invalidEmail: control.value};
     }
   }

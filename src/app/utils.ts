@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpResponseBase } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, Observable } from 'rxjs';
 import { ErrorMappings } from './mappings';
 
@@ -69,4 +69,16 @@ export function joinAndWait<T>(sources: Observable<T>[] | T[], sourcesMapper?: (
     }
 
     return forkJoin(sources as Observable<T>[]);
+}
+
+/**
+ * Replace all \n characters in str with <br>
+ * @param str the string to replace \n
+ */
+export function replaceNewLines(str: string): string {
+    if (str && str != null) {
+        return str.replace(/\\n/g, '<br>');
+    } else {
+        return str;
+    }
 }

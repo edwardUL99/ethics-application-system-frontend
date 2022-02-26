@@ -50,6 +50,10 @@ export interface CommentShape {
    * The list of sub comments
    */
   subComments: CommentShape[];
+  /**
+   * The timestamp of when the comment was created
+   */
+  createdAt: string;
 }
 
 /**
@@ -72,4 +76,23 @@ export interface AttachedFileShape {
    * The componentID the file is attached to
    */
   componentId: string;
+}
+
+/**
+ * This class represents the shape of the assigned committee member response
+ * received from the server
+ */
+export interface AssignedCommitteeMemberResponse {
+  /**
+   * The database ID of the object
+   */
+  id: number;
+  /**
+   * The username of the assigned committee member
+   */
+  username: string;
+  /**
+   * True if the committee member has finished their review
+   */
+  finishReview: boolean;
 }

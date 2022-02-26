@@ -5,7 +5,7 @@ import { ApplicationService } from './application.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GenerateIDResponse } from './models/requests/generateidresponse';
-import { APPLICATION_ID, createApplicationTemplate, createDraftApplicationResponse, createReferredApplicationResponse, createSubmittedApplication, createSubmittedApplicationResponse, USERNAME } from '../testing/fakes';
+import { APPLICATION_ID, createApplicationTemplate, createAssignMembersResponse, createDraftApplicationResponse, createReferredApplicationResponse, createSubmittedApplication, createSubmittedApplicationResponse, USERNAME } from '../testing/fakes';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { ErrorMappings, MessageMappings } from '../mappings';
@@ -19,6 +19,12 @@ import { ReferApplicationRequest } from './models/requests/referapplicationreque
 import { Comment } from './models/applications/comment';
 import { MapApplicationResponse, ResponseMapperKeys, ApplicationResponseMapper } from './models/requests/mapping/applicationmapper';
 import { Application } from './models/applications/application';
+import { FinishReviewRequest } from './models/requests/finishreviewrequest';
+import { AssignedCommitteeMember } from './models/applications/assignedcommitteemember';
+import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
+import { AssignMembersResponse } from './models/requests/assignmembersresponse';
+import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
+import { Role } from '../users/role';
 
 /**
  * A test mapper to return fake values
@@ -165,7 +171,7 @@ describe('ApplicationService', () => {
 
   it('#getUserApplications should get all the users asisgned applications', (done) => {
     const response = createSubmittedApplicationResponse(ApplicationStatus.SUBMITTED);
-    response.assignedCommitteeMembers.push(USERNAME);
+    response.assignedCommitteeMembers.push({id: 0, username: USERNAME, finishReview: false});
     const expectedResponse: ApplicationResponse[] = [response];
 
     httpGetSpy.and.returnValue(new Observable<ApplicationResponse[]>(observable => {
@@ -364,6 +370,47 @@ describe('ApplicationService', () => {
     });
   });
 
+  it('#assignCommitteeMembers should assign committee member to application', (done) => {
+    const application = createSubmittedApplication(ApplicationStatus.SUBMITTED);
+    const user = application.user;
+    const assigned = new AssignedCommitteeMember(1, user, false);
+    user.role = new Role(undefined, user.role.name, undefined, undefined, [], undefined);
+
+    const response = createAssignMembersResponse();
+
+    httpPostSpy.and.returnValue(new Observable<AssignMembersResponse>(observer => {
+      observer.next(response);
+    }));
+
+    service.assignCommitteeMembers(application, [user.username]).subscribe(value => {
+      expect(value).toBeTruthy();
+      expect(value).toEqual(response);
+      expect(application.assignedCommitteeMembers).toContain(assigned);
+      expect(httpPostSpy).toHaveBeenCalledWith('/api/applications/assign/', new AssignReviewerRequest(application.applicationId, [USERNAME]));
+      done();
+    });
+  });
+
+  it('#assignCommitteeMembers should handle error', (done) => {
+    const application = createSubmittedApplication(ApplicationStatus.SUBMITTED);
+
+    const error = new HttpErrorResponse({
+      error: {error: 'insufficient_permissions'}, status: 400
+    });
+
+    httpPostSpy.and.returnValue(new Observable<AssignMembersResponse>(observer => {
+      observer.error(error);
+    }));
+
+    service.assignCommitteeMembers(application, [application.user.username]).subscribe({
+      error: e => {
+        expect(e).toEqual(ErrorMappings.insufficient_permissions);
+        expect(httpPostSpy).toHaveBeenCalledWith('/api/applications/assign/', new AssignReviewerRequest(application.applicationId, [USERNAME]));
+        done();
+      }
+    });
+  });
+
   const createReviewRequest = (submitted: boolean) => {
     if (submitted) {
       return new ReviewSubmittedApplicationRequest(APPLICATION_ID, []);
@@ -407,6 +454,55 @@ describe('ApplicationService', () => {
     });
   });
 
+  it('#finishMemberReview should mark user as finished', (done) => {
+    const application = createSubmittedApplication(ApplicationStatus.REVIEW);
+    application.assignCommitteeMember(application.user);
+    const response = createSubmittedApplicationResponse(ApplicationStatus.REVIEW);
+    response.assignedCommitteeMembers.push({id: 1, username: USERNAME, finishReview: true});
+    response.lastUpdated = new Date().toISOString();
+
+    expect(application.assignedCommitteeMembers[0].finishReview).toBeFalsy();
+
+    httpPostSpy.and.returnValue(new Observable<SubmittedApplicationResponse>(observer => {
+      observer.next(response);
+    }));
+
+    service.finishMemberReview(application, USERNAME).subscribe(value => {
+      expect(value).toBeTruthy();
+      expect(value).toEqual(response);
+      expect(value.lastUpdated).toEqual(application.lastUpdated.toISOString());
+      expect(application.assignedCommitteeMembers[0].finishReview).toBeTruthy();
+      expect(httpPostSpy).toHaveBeenCalledWith('/api/applications/review/finish/', new FinishReviewRequest(application.applicationId, USERNAME));
+      done();
+    });
+  });
+
+  it('#finishMemberReview should handle error', (done) => {
+    const application = createSubmittedApplication(ApplicationStatus.REVIEW);
+    application.assignCommitteeMember(application.user);
+    const response = createSubmittedApplicationResponse(ApplicationStatus.REVIEW);
+    response.assignedCommitteeMembers.push({id: 1, username: USERNAME, finishReview: true});
+    response.lastUpdated = new Date().toISOString();
+
+    expect(application.assignedCommitteeMembers[0].finishReview).toBeFalsy();
+
+    const error: HttpErrorResponse = new HttpErrorResponse({
+      error: {error: 'insufficient_permissions'}, status: 400
+    });
+
+    httpPostSpy.and.returnValue(new Observable<SubmittedApplicationResponse>(observer => {
+      observer.error(error);
+    }));
+
+    service.finishMemberReview(application, USERNAME).subscribe({
+      error: e => {
+        expect(e).toEqual(ErrorMappings.insufficient_permissions);
+        expect(httpPostSpy).toHaveBeenCalledWith('/api/applications/review/finish/', new FinishReviewRequest(application.applicationId, USERNAME));
+        done();
+      }
+    });
+  });
+
   it('#updateReview should update the current application being reviewed', (done) => {
     const request: ReviewSubmittedApplicationRequest = createReviewRequest(true) as ReviewSubmittedApplicationRequest;
     const response: SubmittedApplicationResponse = createSubmittedApplicationResponse(ApplicationStatus.REVIEW);
@@ -443,7 +539,7 @@ describe('ApplicationService', () => {
   });
 
   const createApproveRequest = () => {
-    const finalComment = new Comment(2, USERNAME, 'test-comment', 'test-component-id', []);
+    const finalComment = new Comment(2, USERNAME, 'test-comment', 'test-component-id', [], new Date());
     return new ApproveApplicationRequest(APPLICATION_ID, true, finalComment);
   }
 

@@ -8,6 +8,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { ViewComponentRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 @Component({
   selector: 'app-text-question-view',
@@ -28,6 +29,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * The cast component
    */
   questionComponent: TextQuestionComponent;
+  /**
+   * The template display component
+   */
+  template?: ApplicationTemplateDisplayComponent;
   /**
    * The current application object
    */
@@ -52,6 +57,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.component = questionData.component;
     this.parent = questionData.parent;
     this.application = data.application;
+    this.template = data.template;
     this.form = questionData.form;
 
     if (questionData.questionChangeCallback) {
@@ -76,7 +82,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   private _addToForm(): void {
     if (this.edit()) {
       // only add to form if it is to be edited
-      this.control = (this.control) ? this.control:new FormControl('');
+      this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
       if (this.questionComponent.questionType == 'email' && !this.control.hasValidator(Validators.email)) {
         this.control.setValidators(Validators.email);
@@ -116,9 +122,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
         if (value) {
           this.control.setValue(value, {emitEvent: false});
           this.onChange(); // propagate the autofilled answer
-        } else {
-          // autofill failed, so if the component was not editable, make it editable to allow the user to fill it in
-          this.questionComponent.editable = true;
         }
       });
     }

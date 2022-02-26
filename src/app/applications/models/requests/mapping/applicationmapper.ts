@@ -2,22 +2,24 @@ import { Application } from "../../applications/application";
 import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from "../../applications/types";
 import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from "../../applications/applicationinit";
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from "../applicationresponse";
-import { Observable, Observer } from 'rxjs';
+import { catchError, Observable, Observer, throwError } from 'rxjs';
 import { Answer } from "../../applications/answer";
 import { AttachedFile } from "../../applications/attachedfile";
 import { UserService } from '../../../../users/user.service';
 import { InjectorService } from '../../../../injector.service';
 import { ApplicationTemplateService } from '../../../application-template.service';
-import { joinAndWait } from "../../../../utils";
+import { getErrorMessage, joinAndWait } from "../../../../utils";
 import { User } from "../../../../users/user";
 import { ApplicationTemplate } from "../../applicationtemplate";
 import { Comment } from "../../applications/comment";
-import { CommentShape } from "../shapes";
+import { AssignedCommitteeMemberResponse, CommentShape } from "../shapes";
 import { AnswersMapping as ResponseAnswersMapping } from "../applicationresponse";
 import { AttachedFilesMapping as ResponseAttachedFilesMapping } from "../applicationresponse";
 import { CommentsMapping as ResponseCommentsMapping } from "../applicationresponse";
 import { ApplicationStatus } from "../../applications/applicationstatus";
 import { UserResponse, userResponseMapper } from "../../../../users/responses/userresponse";
+import { AssignedCommitteeMember } from '../../applications/assignedcommitteemember';
+import { HttpErrorResponse } from "@angular/common/http";
 
 /**
  * This interface represents a mapper for mapping an application response to an application
@@ -110,6 +112,10 @@ class ResolvedUserTemplate {
   constructor(public user: User, public template: ApplicationTemplate) {}
 }
 
+function handleError(e: HttpErrorResponse) {
+  return throwError(() => getErrorMessage(e));
+}
+
 /**
  * Load the user and template in parallel
  * @param observer the observer being used to pass the application to
@@ -121,7 +127,7 @@ function loadUserAndTemplate(observer: Observer<Application>, response: Applicat
   const userService: UserService = injector.inject(UserService);
   const templateService: ApplicationTemplateService = injector.inject(ApplicationTemplateService);
 
-  const observables: Observable<any>[] = [userService.getUser(response.username), templateService.getTemplate(response.templateId)];
+  const observables: Observable<any>[] = [userService.getUser(response.username).pipe(catchError(handleError)), templateService.getTemplate(response.templateId)];
   joinAndWait(observables).subscribe({
     next: resolved => {
       const user = userResponseMapper(resolved[0]);
@@ -168,7 +174,7 @@ function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): Attached
  * Map response comments to comment instances
  * @param comments the comments to map
  */
-function mapComments(comments: ResponseCommentsMapping): CommentsMapping {
+export function mapComments(comments: ResponseCommentsMapping): CommentsMapping {
   const mappedComments: CommentsMapping = {};
 
   Object.keys(comments).forEach(key => {
@@ -183,8 +189,8 @@ function mapComments(comments: ResponseCommentsMapping): CommentsMapping {
  * Recursively map the comment and all subComments
  * @param comment the main comment to map
  */
-function mapComment(comment: CommentShape): Comment {
-  const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, []);
+export function mapComment(comment: CommentShape): Comment {
+  const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt));
 
   for (let sub of comment.subComments) {
     newComment.subComments.push(mapComment(sub));
@@ -226,6 +232,29 @@ function mapUsersArray(array: UserResponse[]): User[] {
 }
 
 /**
+ * Map the AssignedCommitteeMemberResponse to an observable of a loaded AssignedCommitteeMember
+ * @param v the assigned committee member response
+ * @param userService the user service instance retrieved from DI
+ * @returns the observable instance
+ */
+function assignedMemberObservableMapper(v: AssignedCommitteeMemberResponse, userService: UserService): Observable<AssignedCommitteeMember> {
+  return new Observable<AssignedCommitteeMember>(observer => {
+    userService.getUser(v.username).pipe(catchError(handleError))
+      .subscribe({
+        next: user => {
+          const mapped = userResponseMapper(user);
+          observer.next(new AssignedCommitteeMember(v.id, mapped, v.finishReview));
+          observer.complete();
+        },
+        error: e => {
+          observer.error(e);
+          observer.complete();
+        }
+      })
+  });
+}
+
+/**
  * This class is used for mapping submitted application responses
  */
 @MapApplicationResponse([ResponseMapperKeys.SUBMITTED, ResponseMapperKeys.RESUBMITTED])
@@ -242,7 +271,8 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
       const finalComment = mapComment(response.finalComment);
 
       const observables: Observable<any>[] = [
-        joinAndWait(response.assignedCommitteeMembers, (v: string[]) => v.map(v => userService.getUser(v)))];
+        joinAndWait(response.assignedCommitteeMembers, (v: AssignedCommitteeMemberResponse[]) => v.map(v => assignedMemberObservableMapper(v, userService)))
+      ];
 
       if (response.previousCommitteeMembers) {
         observables.push(joinAndWait(response.previousCommitteeMembers, (v: string[]) => v.map(v => userService.getUser(v))));
@@ -253,7 +283,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))))
+              new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))))
               observer.complete();
             });
         },
@@ -280,7 +310,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
       const finalComment = mapComment(response.finalComment);
 
       const observables: Observable<any>[] = [
-        joinAndWait(response.assignedCommitteeMembers, (v: string[]) => v.map(v => userService.getUser(v))),
+        joinAndWait(response.assignedCommitteeMembers, (v: AssignedCommitteeMemberResponse[]) => v.map(v => assignedMemberObservableMapper(v, userService))),
         userService.getUser(response.referredBy)
       ];
 
@@ -293,7 +323,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
-                new Date(response.lastUpdated), comments, mapUsersArray(usersArray[0]), finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
+                new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
                 response.editableFields, userResponseMapper(usersArray[1]))));
               observer.complete();
             });

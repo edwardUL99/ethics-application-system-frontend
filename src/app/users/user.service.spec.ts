@@ -67,6 +67,29 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
+  it('#getAllUsers should return list of responses with specified permission', () => {
+    const response: UserResponseShortened[] = [] 
+    response.push({
+      username: USERNAME,
+      email: EMAIL,
+      name: NAME,
+      department: DEPARTMENT,
+      role: ROLE.name
+    });
+
+    const expectedResponse: UserResponseShortened[] = response;
+
+    service.getAllUsers('CREATE_APPLICATION').subscribe(data => {
+      expect(data.length).toBe(1);
+      expect(data).toBe(response);
+    });
+
+    const req = httpTestingController.expectOne('/api/users?permission=CREATE_APPLICATION');
+    expect(req.request.method).toEqual('GET');
+    
+    req.flush(expectedResponse);
+  });
+
   it('#getUser should return user by username', () => {
     const expectedResponse: UserResponse = createUserResponse();
 

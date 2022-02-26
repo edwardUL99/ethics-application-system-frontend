@@ -2,10 +2,13 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
-import { permissionsFrom, Authorizer } from '../../../users/authorizations';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ApplicationTemplateService } from '../../application-template.service';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
+import { ApplicationService } from '../../application.service';
+import { Authorizer } from '../../../users/authorizations';
+import { catchError, Observable, of } from 'rxjs';
+import { ApplicationResponse } from '../../models/requests/applicationresponse';
 
 /**
  * A template choice
@@ -20,6 +23,24 @@ interface TemplateOption {
    * The template name
    */
   label: string;
+}
+
+/**
+ * An interface representing the different permissions the user viewing the applications page
+ */
+interface UserPermissions {
+  /**
+   * Determines if the user can create an application
+   */
+  createApplication: boolean;
+  /**
+   * Determines if the user can review an application
+   */
+  reviewApplication: boolean;
+  /**
+   * Determines if the user has an admin permission
+   */
+  admin: boolean;
 }
 
 /**
@@ -57,26 +78,45 @@ export class ApplicationListComponent implements OnInit {
   error: string;
 
   /**
-   * Determines if the user can create an application or not
+   * The permissions of the viewing user
    */
-  canCreateApplication: boolean = false;
+  userPermissions: UserPermissions;
+
+  /**
+   * The applications subscription
+   */
+  applications: Observable<ApplicationResponse[]>;
 
   constructor(private fb: FormBuilder, 
     private templateService: ApplicationTemplateService,
     private authorizationService: AuthorizationService,
     private userContext: UserContext,
-    private router: Router) {
+    private router: Router,
+    private applicationService: ApplicationService) {
     this.newAppForm = this.fb.group({
       template: this.fb.control('')
     });
   }
 
-  private checkCreateApplicationPermission() {
-    this.authorizationService.authorizeUserPermissions(this.userContext.getUser(), ['CREATE_APPLICATION'], true)
-      .subscribe({
-        next: r => this.canCreateApplication = r,
-        error: e => this.error = e
-      });
+  private loadUserPermissions() {
+    this.authorizationService.getPermissions().subscribe({
+      next: permissions => {
+        this.userContext.getUser().subscribe({
+          next: user => {
+            const userPermissions = user.role.permissions;
+            this.userPermissions = {
+              createApplication: Authorizer.hasPermission(userPermissions, permissions.CREATE_APPLICATION),
+              reviewApplication: Authorizer.hasPermission(userPermissions, permissions.REVIEW_APPLICATIONS),
+              admin: Authorizer.hasPermission(userPermissions, permissions.ADMIN)
+            };
+
+            this.applications = this.getApplications();
+          },
+          error: e => this.error = e
+        });
+      },
+      error: e => this.error = e
+    });
   }
 
   ngOnInit(): void {
@@ -96,7 +136,7 @@ export class ApplicationListComponent implements OnInit {
       error: e => this.error = e
     });
 
-    this.checkCreateApplicationPermission();
+    this.loadUserPermissions();
   }
 
   toggleNewApp() {
@@ -122,5 +162,26 @@ export class ApplicationListComponent implements OnInit {
         new: template
       }
     });
+  }
+
+  getApplications(): Observable<ApplicationResponse[]> {
+    let viewable: boolean;
+
+    if (this.userPermissions) {
+      if (this.userPermissions.admin) {
+        viewable = true;
+      } else if (this.userPermissions.reviewApplication) {
+        viewable = false;
+      } else {
+        viewable = true;
+      }
+
+      return this.applicationService.getUserApplications(viewable).pipe(
+        catchError(e => {
+          this.error = e;
+          return of();
+        })
+      );
+    }
   }
 }

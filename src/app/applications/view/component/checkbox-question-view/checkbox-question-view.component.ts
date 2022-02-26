@@ -86,7 +86,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxes[option.identifier] = checkbox;
 
       this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxControls[checkbox.identifier] = new FormControl('');
+      this.checkboxControls[checkbox.identifier] = new FormControl({value: '', disabled: !this.questionComponent.editable});
     });
 
     QuestionViewUtils.setExistingAnswer(this);

@@ -16,6 +16,10 @@ export class Permission extends Authorization {
     }
 
     equals(other: Authorization): boolean {
-        return this.name == other.name && this.description == other.description && this.tag == other.tag;
+        if (!(other instanceof Permission)) {
+            return false;
+        } else {
+            return this.name == other.name && this.description == other.description && this.tag == other.tag;
+        }
     }
 }

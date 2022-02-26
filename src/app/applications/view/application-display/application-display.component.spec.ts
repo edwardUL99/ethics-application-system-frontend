@@ -12,6 +12,8 @@ import { AuthService } from '../../../authentication/auth.service';
 import { createUser } from '../../../testing/fakes';
 import { Observable } from 'rxjs';
 import { User } from '../../../users/user';
+import { AuthorizationService } from '../../../users/authorization.service';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationDisplayComponent', () => {
   let component: ApplicationDisplayComponent;
@@ -32,11 +34,13 @@ describe('ApplicationDisplayComponent', () => {
         UserService,
         AuthService,
         ApplicationContext,
-        {provide: UserContext, useValue: userContextSpy}
+        {provide: UserContext, useValue: userContextSpy},
+        AuthorizationService
       ],
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule
+        RouterTestingModule,
+        ReactiveFormsModule
       ]
     })
     .compileComponents();

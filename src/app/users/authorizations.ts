@@ -91,18 +91,34 @@ export class Authorizer {
   }
 
   /**
+   * Checks if the permission isn't undefined
+   * @param role the permission to check
+   */
+  private static checkPermission(permission: Permission) {
+    const defined = permission != undefined;
+
+    if (!defined) {
+      console.warn('Undefined Permission, this should not happen');
+    }
+
+    return defined;
+  }
+
+  /**
    * Check if the permission is in the set of permissions
    * @param permissions the permissions to search
    * @param permission the permission to check if it is in permissions
    */
   static hasPermission(permissions: Set<Permission>, permission: Permission): boolean {
-    const iterator = permissions.values();
+    if (this.checkPermission(permission)) {
+      const iterator = permissions.values();
 
-    let next: IteratorResult<Permission, any>;
-    
-    while (!(next = iterator.next()).done) {
-      if (permission.equals(next.value as Permission)) {
-        return true;
+      let next: IteratorResult<Permission, any>;
+      
+      while (!(next = iterator.next()).done) {
+        if (permission.equals(next.value as Permission)) {
+          return true;
+        }
       }
     }
 
@@ -120,12 +136,14 @@ export class Authorizer {
       let matched: boolean = true;
       
       for (let permission of permissions) {
-        if (permission == undefined) {
-          console.warn('Undefined Permission, this should not happen');
+        if (!this.checkPermission(permission)) {
+          matched = false;
           continue;
         }
 
-        matched = matched && this.hasPermission(role.permissions, permission);
+        const hasPermission = this.hasPermission(role.permissions, permission);
+        
+        matched = (requireAll) ? matched && hasPermission : matched || hasPermission;
 
         if (requireAll && !matched) {
           return false;

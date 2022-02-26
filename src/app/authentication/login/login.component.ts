@@ -69,6 +69,10 @@ export class LoginComponent implements OnInit {
    * A tooltip for the username field on login
    */
   loginTooltip: string = 'You can enter just your username (student ID or first.lastname) or your full e-mail';
+  /**
+   * A return URL to redirect to after login
+   */
+  returnUrl: string;
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
@@ -85,6 +89,8 @@ export class LoginComponent implements OnInit {
     }
 
   ngOnInit() {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'];
+
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
@@ -123,7 +129,12 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: response => {
           this.userContext.setUser(response);
-          this.router.navigate(['home']);
+          
+          if (this.returnUrl) {
+            this.router.navigateByUrl(this.returnUrl);
+          } else {
+            this.router.navigate(['home']);
+          }
         },
         error: e => {
           if (e == '404-User') {
@@ -146,7 +157,14 @@ export class LoginComponent implements OnInit {
     .subscribe({
       next: x => {
         this.jwtStore.storeToken(x.username, x.token, x.expiry);
-        this.router.navigate(['user-redirect']);
+        
+        if (this.returnUrl) {
+          this.router.navigate(['user-redirect'], {
+            queryParams: {returnUrl: this.returnUrl}
+          });
+        } else {
+          this.router.navigate(['user-redirect']);
+        }
       },
       error: e => {
         if (e == ErrorMappings.account_not_confirmed) {

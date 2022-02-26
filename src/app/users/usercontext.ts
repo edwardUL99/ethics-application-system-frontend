@@ -70,15 +70,19 @@ export class UserContext {
           .subscribe({
             next: user => {
               this._user = user;
-              observable.next(user);
+              observable.next(this._user);
               observable.complete();
             },
-            error: e => observable.error(e)
+            error: e => {
+              observable.error(e);
+              observable.complete();
+            }
           });
       });
     } else {
       return new Observable<User>(observable => {
         observable.next(this._user);
+        observable.complete();
       });
     }
   }

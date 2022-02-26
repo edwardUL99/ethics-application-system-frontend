@@ -1,6 +1,6 @@
 import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor }  from '@angular/forms';
-import { SignaturePadComponent } from '@almothafar/angular-signature-pad';
+import { NgSignaturePadOptions, SignaturePadComponent } from '@almothafar/angular-signature-pad';
 
 @Component({
     selector: 'signature-field',
@@ -26,11 +26,15 @@ export class SignatureFieldComponent implements ControlValueAccessor, AfterViewI
     /**
      * The input options
      */
-    @Input() options: Object = {};
+    @Input() options = {};
     /**
      * An event emitted when the signature is entered
      */
     @Output() signatureEntered: EventEmitter<string> = new EventEmitter<string>();
+    /**
+     * An event for when the signature drawing started
+     */
+    @Output() drawStarted: EventEmitter<any> = new EventEmitter<any>();
     /**
      * The function to register changes
      */
@@ -64,9 +68,12 @@ export class SignatureFieldComponent implements ControlValueAccessor, AfterViewI
         //this.signaturePad.clear();
     }
 
+    drawStart(event) {
+        this.drawStarted.emit(event);
+    }
+
     drawComplete() {
-        console.log('complete')
-        this.signature = this.signaturePad.toDataURL('image/jpeg', 0.5);
+        this.signature = this.signaturePad.toDataURL('image/png', 1);
         this.signatureEntered.emit(this.signature);
     }
 

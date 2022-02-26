@@ -30,9 +30,18 @@ export class UserService {
 
   /**
    * Create the request needed to get all users from the system
+   * @param permission if present, this is the tag of a permission that all returned users should have
    */
-  getAllUsers(): Observable<UserResponseShortened[]> {
-    return this.http.get<UserResponseShortened[]>("/api/users/");
+  getAllUsers(permission?: string): Observable<UserResponseShortened[]> {
+    if (permission) {
+      return this.http.get<UserResponseShortened[]>('/api/users', {
+        params: {
+          permission: permission
+        }
+      });
+    } else {
+      return this.http.get<UserResponseShortened[]>('/api/users/');
+    }
   }
 
   /**
@@ -114,7 +123,7 @@ export class UserService {
           let accountResponse: AccountResponse = account;
 
           subject.next(new User(response.username, response.name, 
-            new Account(accountResponse.username, accountResponse.email, null, accountResponse.confirmed),
+            new Account(accountResponse.username, accountResponse.email, undefined, accountResponse.confirmed),
             response.department, role));
           subject.complete();
         },

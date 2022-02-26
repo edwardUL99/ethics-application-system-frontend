@@ -2,6 +2,7 @@ import { ApplicationComponent, ComponentType } from "../components/applicationco
 import { TextComponent } from "../components/textcomponent";
 import { ComponentConverter, ComponentObject, validateKeys } from "./converters";
 import { Converter } from './converter';
+import { replaceNewLines } from '../../../utils';
 
 /**
  * This converter converts the object to a TextComponent
@@ -19,7 +20,7 @@ export class TextConverter implements ComponentConverter {
             throw new Error(error);
         } else {
             const componentMap = component as any;
-            return new TextComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, componentMap.content);
+            return new TextComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, replaceNewLines(componentMap.content), componentMap.nested);
         }
     }
 }

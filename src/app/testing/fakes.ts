@@ -15,11 +15,12 @@ import { ContainerComponent } from '../applications/models/components/containerc
 import { Application } from '../applications/models/applications/application';
 import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from '../applications/models/applications/applicationinit';
 import { ApplicationStatus } from '../applications/models/applications/applicationstatus';
-import { DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from '../applications/models/requests/applicationresponse';
+import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from '../applications/models/requests/applicationresponse';
 import { AccountResponse } from '../authentication/accountresponse';
 import { GetAuthorizationResponse } from '../users/responses/getauthorizationresponse';
 import { PermissionResponse } from '../users/responses/permissionresponse';
 import { RoleResponse } from '../users/responses/roleresponse';
+import { AssignMembersResponse } from '../applications/models/requests/assignmembersresponse';
 
 
 export const USERNAME = "username";
@@ -76,7 +77,7 @@ export function createUserResponse(): UserResponse {
     };
 }
 
-export const ACCOUNT = new Account(USERNAME, EMAIL, null, true);
+export const ACCOUNT = new Account(USERNAME, EMAIL, undefined, true);
 
 export function createUser(): User {
     return new User(USERNAME, NAME, ACCOUNT, DEPARTMENT, ROLE);
@@ -282,4 +283,32 @@ export function createRolesResponse(): GetAuthorizationResponse<RoleResponse> {
             }
         ]
     };
+}
+
+export function createAssignMembersResponse(): AssignMembersResponse {
+    return {
+        id: APPLICATION_ID,
+        members: [
+            {
+                id: 1,
+                member: {
+                    username: USERNAME,
+                    email: EMAIL,
+                    department: DEPARTMENT,
+                    name: NAME,
+                    role: ROLE.name
+                },
+                finishReview: false
+            }
+        ],
+        lastUpdated: new Date().toISOString()
+    };
+}
+
+export function createListApplicationsResponse(): ApplicationResponse[] {
+    let response1 = createDraftApplicationResponse();
+    let response2 = createDraftApplicationResponse();
+    response2.id = APPLICATION_ID + '-2';
+
+    return [response1, response2];
 }

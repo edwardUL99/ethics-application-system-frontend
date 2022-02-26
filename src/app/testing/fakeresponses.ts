@@ -1,5 +1,5 @@
 import { HttpRequest } from '@angular/common/http';
-import { AUTH_RESPONSE, createAccountResponse, createApplicationTemplate, createDraftApplicationResponse, createPermissionsResponse, createRolesResponse, createUserResponse } from './fakes';
+import { AUTH_RESPONSE, createAccountResponse, createApplicationTemplate, createDraftApplicationResponse, createListApplicationsResponse, createPermissionsResponse, createRolesResponse, createUserResponse } from './fakes';
 
 /**
  * A request to mock a response for
@@ -135,7 +135,8 @@ const config = {
     ['/api/applications/templates/', {applications: {test: createApplicationTemplate()}}],
     ['/api/applications/template', createApplicationTemplate()],
     ['/api/users/permissions/', createPermissionsResponse()],
-    ['/api/users/roles/', createRolesResponse()]
+    ['/api/users/roles/', createRolesResponse()],
+    ['/api/applications/user', createListApplicationsResponse()]
   ]
 }
 

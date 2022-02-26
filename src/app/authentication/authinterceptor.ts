@@ -9,8 +9,8 @@ import { Router } from '@angular/router';
  * URLs that don't need authentication
  */
 export const AllowedURLS = [
-    '/api/auth/register',
-    '/api/auth/login',
+    '/api/auth/register/',
+    '/api/auth/login/',
     '/api/auth/account/confirmed',
     '/api/auth/account/confirm/',
     '/api/auth/account/confirm/resend'

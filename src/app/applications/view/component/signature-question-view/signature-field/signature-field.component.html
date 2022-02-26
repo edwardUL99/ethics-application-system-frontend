@@ -1,1 +1,1 @@
-<signature-pad [options]="options" (onEndEvent)="drawComplete()"></signature-pad>
+<signature-pad #pad [options]="options" (drawStart)="drawStart($event)" (drawEnd)="drawComplete()"></signature-pad>

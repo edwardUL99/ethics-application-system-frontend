@@ -33,6 +33,7 @@ export class RequestComment {
    * @param comment the comment text
    * @param componentId the componentID the comment is attached to
    * @param subComments the comments left on this comment
+   * @param createdAt the timestamp in ISO format of when the comment was created
    */
-  constructor(public id: number, public username: string, public comment: string, public componentId: string, public subComments: RequestComment[]) {}
+  constructor(public id: number, public username: string, public comment: string, public componentId: string, public subComments: RequestComment[], public createdAt: string) {}
 }

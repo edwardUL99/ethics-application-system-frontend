@@ -10,6 +10,8 @@ import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
 import { Application } from '../../models/applications/application';
+import { Observable } from 'rxjs';
+import { ApplicationContext, ViewingUser } from '../../applicationcontext';
 
 /*
 TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
@@ -46,6 +48,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * Event for when a section is autosaved to tell the parent to autosave
    */
   @Output() autoSave: EventEmitter<SectionViewComponent> = new EventEmitter<SectionViewComponent>();
+  /**
+   * The user viewing the application
+   */
+  @Input() viewingUser: ViewingUser;
   /**
    * A variable to indicate if the view is initialised or not
    */ 

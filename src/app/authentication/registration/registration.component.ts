@@ -148,7 +148,7 @@ export class RegistrationComponent implements OnInit {
             }
           }, 
           error: e => this.error = e
-      });
+        });
       } else {
         this.error = 'The passwords must match';
       }

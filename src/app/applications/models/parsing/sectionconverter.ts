@@ -2,6 +2,7 @@ import { ApplicationComponent, ComponentType } from "../components/applicationco
 import { SectionComponent } from "../components/sectioncomponent";
 import { ComponentConverter, ComponentObject, Converters, validateKeys } from "./converters";
 import { Converter } from './converter';
+import { replaceNewLines } from '../../../utils';
 
 /**
  * This class represents a converter for converting sections
@@ -45,7 +46,7 @@ import { Converter } from './converter';
             }
 
             return new SectionComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, 
-                componentMap.description, subComponents, componentMap.autoSave);
+               replaceNewLines(componentMap.description), subComponents, componentMap.autoSave);
         }
     }
  }

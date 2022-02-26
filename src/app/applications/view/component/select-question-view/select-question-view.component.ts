@@ -99,7 +99,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
 
   addToForm(): void {
     if (this.edit() && !this.form.get(this.questionComponent.name)) {
-      this.control = (this.control) ? this.control:new FormControl('');
+      this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
       const validator = SelectValidator();
       if (this.questionComponent.required && !this.control.hasValidator(Validators.required) 
@@ -156,9 +156,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
         if (value) {
           this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
           this._emit(); // propagate the autofill
-        } else {
-          // autofill failed, so if the component was not editable, make it editable to allow the user to fill it in
-          this.questionComponent.editable = true;
         }
       });
     }

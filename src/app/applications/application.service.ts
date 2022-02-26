@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, retry, throwError } from 'rxjs';
-import { BaseResponse } from '../baseresponse';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
@@ -13,6 +12,12 @@ import { ApproveApplicationRequest } from './models/requests/approveapplicationr
 import { ReferApplicationRequest } from './models/requests/referapplicationrequest';
 import { getResponseMapper } from './models/requests/mapping/applicationmapper';
 import { Application } from './models/applications/application';
+import { FinishReviewRequest } from './models/requests/finishreviewrequest';
+import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
+import { AssignedCommitteeMember } from './models/applications/assignedcommitteemember';
+import { AssignMembersResponse } from './models/requests/assignmembersresponse';
+import { User } from '../users/user';
+import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
 
 /**
  * This interface represents options for getting an application
@@ -132,6 +137,64 @@ export class ApplicationService {
   }
 
   /**
+   * Check if the partial assigned member from the response is in the list of assigned committee members already
+   * @param assigned the list of already assigned committee members
+   * @param partial the partial (containing a partial user) assigned member to check
+   */
+  private containsAssignedMember(assigned: AssignedCommitteeMember[], partial: AssignedCommitteeMember): boolean {
+    const partialUserEquals = (u: User, u1: User): boolean => {
+      return u.username == u1.username;
+    }
+    
+    for (let member of assigned) {
+      if (member.id == partial.id && partialUserEquals(member.user, partial.user) && member.finishReview == partial.finishReview) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Assign the committee members to the application
+   * @param application the application to assign the committee members to
+   * @param members the committee members to assign to the application
+   */
+  assignCommitteeMembers(application: Application, members: string[]): Observable<AssignMembersResponse> {
+    return new Observable<AssignMembersResponse>(observer => {
+      const request = new AssignReviewerRequest(application.applicationId, members);
+
+      this.http.post<AssignMembersResponse>('/api/applications/assign/', request)
+        .pipe(
+          retry(3),
+          catchError(this.handleError)
+        )
+        .subscribe({
+          next: response => {
+            const applicationAssigned = application.assignedCommitteeMembers;
+            
+            response.members.forEach(assigned => {
+              const assignedMember = new AssignedCommitteeMember(assigned.id, shortResponseToUserMapper(assigned.member), assigned.finishReview);
+
+              if (!this.containsAssignedMember(applicationAssigned, assignedMember)) {
+                applicationAssigned.push(assignedMember);
+              }
+            });
+
+            application.lastUpdated = new Date(response.lastUpdated);
+
+            observer.next(response);
+            observer.complete();
+          },
+          error: e => {
+            observer.error(e);
+            observer.complete();
+          }
+        })
+    })
+  }
+
+  /**
    * Mark the application as in review/reviewed
    * @param request the request to send to the server
    */
@@ -141,6 +204,43 @@ export class ApplicationService {
         retry(3),
         catchError(this.handleError)
       );
+  }
+
+  /**
+   * Mark the given committee member as finished their review
+   * @param application the application being updated
+   * @param member the username of the committee member
+   */
+  finishMemberReview(application: Application, member: string): Observable<SubmittedApplicationResponse> {
+    return new Observable<SubmittedApplicationResponse>(observer => {
+      this.http.post<SubmittedApplicationResponse>('/api/applications/review/finish/', new FinishReviewRequest(application.applicationId, member))
+        .pipe(
+          retry(3),
+          catchError(this.handleError)
+        )
+        .subscribe({
+          next: response => {
+            const assigned = response.assignedCommitteeMembers.filter(e => e.username == member)[0];
+
+            if (assigned) {
+              application.assignedCommitteeMembers.forEach(a => {
+                if (a.user.username == member) {
+                  a.finishReview = assigned.finishReview;
+                }
+              });
+            }
+
+            application.lastUpdated = new Date(response.lastUpdated);
+
+            observer.next(response);
+            observer.complete();
+          },
+          error: e => {
+            observer.error(e);
+            observer.complete();
+          }
+        })
+    });
   }
 
   /**
@@ -167,6 +267,11 @@ export class ApplicationService {
       );
   }
 
+  /**
+   * Refer the application back to the applicant
+   * @param request the request to send to the server
+   * @returns the observable containing the response
+   */
   referApplication(request: ReferApplicationRequest): Observable<ReferredApplicationResponse> {
     return this.http.post<ReferredApplicationResponse>('/api/applications/refer/', request)
       .pipe(

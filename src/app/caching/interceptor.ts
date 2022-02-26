@@ -1,4 +1,4 @@
-import { HttpHandler, HttpInterceptor, HttpRequest, HttpEvent, HttpResponse } from "@angular/common/http";
+import { HttpHandler, HttpInterceptor, HttpRequest, HttpEvent, HttpResponse, HttpHeaderResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, of, share, tap } from 'rxjs';
 import { CacheManager } from "./cachemanager";
@@ -37,7 +37,7 @@ export class CachingInterceptor implements HttpInterceptor {
       return next.handle(req).pipe(
         tap(event => {
           if (event instanceof HttpResponse) {
-            this.cache.putResponse(req, event);
+            this.cache.putResponse(req, event as HttpResponse<any>);
           }
         }),
         share()

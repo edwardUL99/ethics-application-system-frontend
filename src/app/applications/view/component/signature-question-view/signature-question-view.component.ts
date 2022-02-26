@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -9,13 +9,18 @@ import { SignatureFieldComponent } from './signature-field/signature-field.compo
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 
+/**
+ * The copied signature
+ */
+let copiedSignature: string = undefined;
+
 @Component({
   selector: 'app-signature-question-view',
   templateUrl: './signature-question-view.component.html',
   styleUrls: ['./signature-question-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.SIGNATURE)
-export class SignatureQuestionViewComponent implements OnInit, QuestionViewComponent {
+export class SignatureQuestionViewComponent implements OnInit, QuestionViewComponent, AfterViewInit {
   /**
    * The component being rendered by this view
    */
@@ -83,12 +88,16 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     QuestionViewUtils.setExistingAnswer(this);
   }
 
+  ngAfterViewInit(): void {
+    this.resizeSignature();
+  }
+
   ngOnDestroy(): void {
     this.questionChange.destroy();
   }
 
   private _addToForm() {
-    this.control = new FormControl('', Validators.required);
+    this.control = new FormControl({value: '', disabled: !this.questionComponent.editable}, Validators.required);
     this.form.addControl(this.questionComponent.name, this.control);
   }
 
@@ -108,7 +117,19 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   private resizeSignature() {
     this.signatureFieldComponent.signaturePad.set('canvasWidth', this.signatureContainer.nativeElement.clientWidth);
-    this.signatureFieldComponent.signaturePad.set('canvasHeight', this.signatureContainer.nativeElement.clientHeight);
+    this.signatureFieldComponent.signaturePad.set('canvasHeight', 100);
+    //this.signatureFieldComponent.signaturePad.set('backgroundColor', 'rgb(255, 255, 255)');
+    this.signatureFieldComponent.signaturePad.clear();
+    
+    if (this.signature) {
+      this.signatureFieldComponent.signaturePad.redrawCanvas();
+      this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
+    }
+  }
+
+  clear() {
+    this.signatureFieldComponent.clear();
+    this.signatureEntered('');
   }
 
   castComponent() {
@@ -117,6 +138,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   private _emit() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  }
+
+  drawStarted() {
+    this.control.markAsTouched();
   }
 
   signatureEntered(signature: string) {
@@ -137,7 +162,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
       throw new Error('Invalid answer type for signature question');
     }
 
-    this.signatureFieldComponent.signaturePad.fromDataURL(answer.value);
+    this.signatureFieldComponent.signaturePad.redrawCanvas();
+    this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
     this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
 
@@ -146,5 +172,18 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   value(): Answer {
     return new Answer(undefined, this.component.componentId, this.signature, ValueType.IMAGE);
+  }
+
+  copy() {
+    copiedSignature = this.signature;
+  }
+
+  paste() {
+    if (copiedSignature) {
+      this.resizeSignature();
+      this.signatureFieldComponent.signaturePad.fromDataURL(copiedSignature);
+      this.signature = copiedSignature;
+      delete this.control.errors['required'];
+    }
   }
 }

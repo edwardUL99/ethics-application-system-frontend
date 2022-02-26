@@ -12,7 +12,7 @@
             <app-field-error [condition]="email.errors?.['required'] && email.touched" [error]="'E-mail address is required'"></app-field-error>
             <app-field-error [condition]="email.errors?.['email'] && email.touched" [error]="'Invalid E-mail address'"></app-field-error>
             <app-field-error [condition]="email.errors?.['invalidEmail'] && email.touched" [error]="'The e-mail address needs to be a UL e-mail address'"></app-field-error>
-            <div class="form-text">
+            <div class="form-text render-new-lines">
               Enter your e-mail address (12345678@studentmail.ul.ie for students, john.doe@ul.ie for staff)
             </div>
           </div>

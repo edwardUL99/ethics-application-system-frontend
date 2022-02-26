@@ -1,9 +1,7 @@
 <div class="row">
   <div class="col-4 text-center my-auto">
     <h5>{{question?.title}}</h5>
-    <div class="form-text">
-      {{question?.description}}
-    </div>
+    <div class="form-text" [innerHTML]="question?.description"></div>
   </div>
   <div class="col-8">
     <div class="border px-3 py-3 d-flex h-100" style="font-size: 18px;">

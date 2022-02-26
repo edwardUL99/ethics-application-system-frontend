@@ -1,6 +1,7 @@
 import { ApplicationComponent } from '../components/applicationcomponent';
 import { ComponentConverter, ComponentObject } from './converters';
 import { QuestionComponent } from '../components/questioncomponent';
+import { replaceNewLines } from '../../../utils';
 
 /**
  * This class represents an abstract base for all question components to make the parsing of common properties easier
@@ -29,6 +30,10 @@ export abstract class QuestionConverter implements ComponentConverter {
         if (field in map) {
           parsed[field] = map[field];
         }
+      }
+
+      if (parsed.description && parsed.description != null) {
+        parsed.description = replaceNewLines(parsed.description);
       }
 
       return parsed;

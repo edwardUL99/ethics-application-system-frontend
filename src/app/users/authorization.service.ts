@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
-import { catchError, Observable, retry, Subscriber, throwError } from "rxjs";
+import { catchError, Observable, retry, share, Subscriber, throwError } from "rxjs";
 import { User } from "./user";
 import { UserService } from "./user.service";
-import { Authorizer, Permissions, permissionsFrom } from "./authorizations";
+import { Authorizer, Permissions, permissionsFrom, Roles, rolesFrom } from "./authorizations";
 import { Permission } from "./permission";
 import { HttpErrorResponse } from "@angular/common/http";
 import { getErrorMessage } from "../utils";
@@ -12,7 +12,16 @@ import { getErrorMessage } from "../utils";
  */
 @Injectable()
 export class AuthorizationService {
-  constructor(private userService: UserService) {}
+  /**
+   * Cached permissions
+   */
+  private permissions: Permissions;
+  /**
+   * Cached roles
+   */
+  private roles: Roles;
+
+  constructor(public readonly userService: UserService) {}
 
   private handleError(e: HttpErrorResponse) {
     return throwError(() => getErrorMessage(e));   
@@ -46,15 +55,8 @@ export class AuthorizationService {
     };
 
     return new Observable<boolean>(observer => {
-      this.userService.getPermissions()
-      .pipe(
-        retry(3),
-        catchError(this.handleError)
-      )  
-      .subscribe({
-        next: response => {
-          const resolvedPermissions = permissionsFrom(response.authorizations);
-
+      this.getPermissions().subscribe({
+        next: resolvedPermissions => {
           if (user instanceof Observable) {
             user.subscribe({
               next: user => userResolveCallback(user, resolvedPermissions, observer),
@@ -71,7 +73,69 @@ export class AuthorizationService {
           observer.error(e);
           observer.complete();
         }
-      })
-    })
+      });
+    });
   }
+
+  /**
+   * Get the roles of the system
+   */
+  getRoles(): Observable<Roles> {
+    return new Observable<Roles>(observable => {
+      if (!this.roles) {
+        this.userService.getRoles()
+          .pipe(
+            retry(3),
+            catchError(this.handleError),
+            share()
+          )
+          .subscribe({
+            next: response => {
+              const roles = rolesFrom(response.authorizations);
+              this.roles = roles;
+              observable.next(this.roles);
+              observable.complete();
+            },
+            error: e => {
+              observable.error(e);
+              observable.complete();
+            }
+          });
+      } else {
+        observable.next(this.roles);
+        observable.complete();
+      }
+    });
+  };
+
+  /**
+   * Get the permissions of the system
+   */
+   getPermissions(): Observable<Permissions> {
+    return new Observable<Permissions>(observable => {
+      if (!this.permissions) {
+        this.userService.getPermissions()
+          .pipe(
+            retry(3),
+            catchError(this.handleError),
+            share()
+          )
+          .subscribe({
+            next: response => {
+              const permissions = permissionsFrom(response.authorizations);
+              this.permissions = permissions;
+              observable.next(this.permissions);
+              observable.complete();
+            },
+            error: e => {
+              observable.error(e);
+              observable.complete();
+            }
+          });
+      } else {
+        observable.next(this.permissions);
+        observable.complete();
+      }
+    });
+  };
 }

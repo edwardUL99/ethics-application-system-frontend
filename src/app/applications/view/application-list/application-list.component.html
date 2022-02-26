@@ -2,7 +2,7 @@
   <app-navbar></app-navbar>
   <div *ngIf="!error; else displayError">
     <div class="container">
-      <div *ngIf="canCreateApplication">
+      <div *ngIf="userPermissions?.createApplication">
         <div class="row mt-2">
           <div class="text-end">
             <button type="button" class="btn btn-primary" (click)="toggleNewApp()">Create Application</button>
@@ -30,7 +30,31 @@
         </div>
       </div>
       <div class="card shadow my-2 p-2 text-center">
-        Search and applications listing will go here
+        Search will go here
+      </div>
+      <div class="card shadow p-2" *ngIf="applications | async as list">
+        <div *ngIf="list.length > 0; else noApplications">
+          <div *ngFor="let application of list">
+            <div class="row">
+              <div class="col">
+                <h4>{{application.id}}</h4>
+              </div>
+              <div class="col text-center my-auto">
+                <h6>Status</h6>
+                <p class="form-text">{{application.status}}</p>
+              </div>
+              <div class="col">
+                <a class="btn btn-link" [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+              </div>
+            </div>
+            <hr>
+          </div>
+        </div>
+        <ng-template #noApplications>
+          <div class="text-center">
+            There are no applications available to view
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

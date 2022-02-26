@@ -1,16 +1,19 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
+<div [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
-        <div class="form-text">
-            {{questionComponent?.description}}
-        </div>
-        <div #signatureContainer class="row">
-            <div class="col-2">
-                <label>{{questionComponent?.label}}</label>
+        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
+        <div #signatureContainer>
+            <label>{{questionComponent?.label}}</label>
+            <div class="text-end w-100">
+                <button class="btn btn-sm btn-outline-primary" style="margin-right: 1%" type="button" (click)="paste()">Paste</button>
+                <button class="btn btn-sm btn-outline-primary" type="button" (click)="copy()">Copy</button>
             </div>
-            <div class="col-10">
-                <signature-field #signature [formControlName]="questionComponent?.name" (signatureEntered)="signatureEntered($event)"></signature-field>
+            <signature-field #signature [formControlName]="questionComponent?.name" (drawStarted)="drawStarted()" (signatureEntered)="signatureEntered($event)"></signature-field>
+            <div class="text-end">
+                <button type="button" class="btn btn-link" (click)="clear()">Clear</button>
             </div>
+            <app-field-error [condition]="control?.errors?.['required'] && control.touched" [error]="'This field is required'"></app-field-error>
         </div>
     </div>
     <ng-template #notEdit>

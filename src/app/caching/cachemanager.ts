@@ -45,16 +45,18 @@ export class CacheManager {
    * @param res the response to cache
    */
   putResponse(req: HttpRequest<any>, res: HttpResponse<any>) {
-    let expiry: any = req.headers.get(CACHE_EXPIRY);
+    if (res) {
+      let expiry: any = req.headers.get(CACHE_EXPIRY);
 
-    if (expiry) {
-      expiry = parseInt(expiry);
-    } else {
-      expiry = MAX_CACHE_AGE;
+      if (expiry) {
+        expiry = parseInt(expiry);
+      } else {
+        expiry = MAX_CACHE_AGE;
+      }
+
+      this.cacheMap[req.urlWithParams] = new CacheEntry(req.urlWithParams, res, Date.now(), expiry);
+      this.clearExpired();
     }
-
-    this.cacheMap[req.urlWithParams] = new CacheEntry(req.urlWithParams, res, Date.now(), expiry);
-    this.clearExpired();
   }
 
   /**

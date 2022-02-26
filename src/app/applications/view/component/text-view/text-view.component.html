@@ -1,5 +1,5 @@
 <div [id]="component?.componentId">
-    <p class="render-new-lines">
+    <p [ngClass]="(castComponent().nested) ? 'render-new-lines nested-text' : 'render-new-lines white-text'">
         {{castComponent()?.content}}
     </p>
 </div>
