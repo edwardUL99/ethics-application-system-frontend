@@ -51,25 +51,6 @@ export class CreateUserComponent implements OnInit {
           }
         });
       }
-
-      this.userService.getUser(this.username)
-        .pipe(
-          catchError(e => {
-            if (e.status != 404) {
-              return throwError(() => 'Unknown Error Occurred')
-            } else {
-              return throwError(() => 'OK');
-            }
-          })
-        )
-        .subscribe({
-          next: () => this.router.navigate(['user-redirect']),
-          error:e => {
-            if (e != 'OK') {
-              this.error = e;
-            }
-          }
-      });
     } else {
       this.router.navigate(['user-redirect']);
     }

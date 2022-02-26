@@ -7,6 +7,11 @@ import { Observable, share} from "rxjs";
  * The local storage username key
  */
 const USERNAME = '_username';
+/**
+ * The key for storing the user's name
+ */
+const NAME = '_name';
+
 
 // TODO this may not be working right. Make two subsequent calls to getUser and make sure second call is the stored version
 
@@ -35,7 +40,7 @@ export class UserContext {
   /**
    * Get the context username
    */
-  private getUsername() {
+  private _getUsername() {
     const username = (this._username) ? this._username : localStorage.getItem(USERNAME);
     
     if (!username) {
@@ -43,6 +48,14 @@ export class UserContext {
     }
 
     return username;
+  }
+
+  getName(): string {
+    return localStorage.getItem(NAME);
+  }
+
+  getUsername(): string {
+    return localStorage.getItem(USERNAME);
   }
 
   /**
@@ -58,7 +71,7 @@ export class UserContext {
    * Retrieve the user held in the contect
    */
   getUser(): Observable<User> {
-    this._username = this.getUsername();
+    this._username = this._getUsername();
 
     if ((this._user == undefined || this._user == null) || 
       (this._user.username != this._username)) {
@@ -69,7 +82,7 @@ export class UserContext {
           )
           .subscribe({
             next: user => {
-              this._user = user;
+              this.setUser(user);
               observable.next(this._user);
               observable.complete();
             },
@@ -94,5 +107,6 @@ export class UserContext {
     this._user = user;
     this._username = user.username;
     localStorage.setItem('_username', this._username);
+    localStorage.setItem('_name', user.name);
   }
 }

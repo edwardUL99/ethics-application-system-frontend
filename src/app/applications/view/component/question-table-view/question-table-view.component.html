@@ -9,7 +9,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let row of rows">
-          <td *ngFor="let component of row.components">
+          <td *ngFor="let component of row.components" class="my-auto align-middle">
             <ng-template componentHost [hostId]="component?.componentId"></ng-template>
           </td>
         </tr>

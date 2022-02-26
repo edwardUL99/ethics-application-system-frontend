@@ -116,7 +116,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   private resizeSignature() {
-    this.signatureFieldComponent.signaturePad.set('canvasWidth', this.signatureContainer.nativeElement.clientWidth);
+    // TODO this doesn't work that well in table questions. Fix
+    this.signatureFieldComponent.signaturePad.set('canvasWidth', this.signatureContainer.nativeElement.offsetWidth);
     this.signatureFieldComponent.signaturePad.set('canvasHeight', 100);
     //this.signatureFieldComponent.signaturePad.set('backgroundColor', 'rgb(255, 255, 255)');
     this.signatureFieldComponent.signaturePad.clear();

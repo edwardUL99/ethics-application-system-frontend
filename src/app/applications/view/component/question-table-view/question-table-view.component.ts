@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Output, ViewChildren } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import {  MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import {  ComponentHostDirective, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ViewComponentRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
@@ -37,7 +37,7 @@ function onInputStatic(component: QuestionTableViewComponent, event: QuestionCha
   styleUrls: ['./question-table-view.component.css']
 })
 @ViewComponentRegistration(ComponentType.QUESTION_TABLE)
-export class QuestionTableViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnChanges, OnDestroy {
+export class QuestionTableViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnDestroy {
   /**
    * The component being rendered by this view
    */
@@ -69,7 +69,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   /**
    * The mapping of question IDs to their component instances
    */
-  private matchedComponents: MatchedQuestionComponents;
+  private matchedComponents: MatchedQuestionComponents = {};
   /**
    * A mapping of questions component IDs to the question components
    */
@@ -186,12 +186,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   ngAfterViewInit(): void {
     this._viewInitialised = true;
-  }
-
-  ngOnChanges(): void {
-    if (this._viewInitialised) {
-      this.loadComponents();
-    }
+    this.loadComponents();
   }
 
   addToForm(): void {
@@ -219,15 +214,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   display(): boolean {
-    for (let key of Object.keys(this.matchedComponents)) {
-      const component = this.matchedComponents[key];
-
-      if (QuestionViewUtils.display(component, false)) {
-        return true;
-      }
-    }
-
-    return false;
+    return true; // no-op
   }
 
   edit(): boolean {
@@ -243,9 +230,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   setFromAnswer(answer: Answer): void {
-   if (answer.componentId in this.matchedComponents) {
-     this.matchedComponents[answer.componentId].setFromAnswer(answer);
-   }
+    if (answer.componentId in this.matchedComponents) {
+      this.matchedComponents[answer.componentId].setFromAnswer(answer);
+    }
   }
 
   value(): Answer[] {

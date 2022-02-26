@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
     if (this.jwt.getUsername() && this.jwt.isTokenValid()) {
       return true;
     } else {
-      this.router.navigate(['login'], {queryParams: { returnUrl: state.url}});
+      this.router.navigate(['logout'], {queryParams: { returnUrl: state.url}});
       return false;
     }
   }

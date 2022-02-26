@@ -25,17 +25,23 @@ export class LogoutComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const sessionTimeout = params.sessionTimeout;
 
-      const queryParams = (sessionTimeout) ? {
-        queryParams: {
-          sessionTimeout: true
-        }
-      } : {};
+      const queryParams = {}
+
+      if (params.sessionTimeout) {
+        queryParams['sessionTimeout'] = true;
+      }
+
+      if (params.returnUrl) {
+        queryParams['returnUrl'] = params.returnUrl;
+      }
 
       this.jwtStore.destroyToken();
       this.userContext.clearContext();
       this.cache.clearCache();
       ApplicationTemplateContext.getInstance().clear();
-      this.router.navigate(['login'], queryParams);
+      this.router.navigate(['login'], {
+        queryParams: queryParams
+      });
     });
   }
 }

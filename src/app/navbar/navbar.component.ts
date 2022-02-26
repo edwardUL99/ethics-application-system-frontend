@@ -20,6 +20,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   @Input() hideLinks = false;
   /**
+   * Use this to indicate if profile should be shown
+   */
+  @Input() displayProfile = false;
+  /**
    * The name of the url to be active
    */
   @Input() active = '';
@@ -28,9 +32,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   @Input() sticky = true;
   /**
-   * The user to display on the navbar
+   * The username of the user to display on the navbar
    */
-  user: User;
+  username: string;
+  /**
+   * The name of the user to display on the navbar
+   */
+  name: string;
   /**
    * An error message
    */
@@ -45,18 +53,29 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!this.hideLinks) {
-      try {
-        this.userSubscription = this.userContext.getUser().subscribe({
-          next: user => this.user = user,
-          error: e => {
-            this.error = e;
-            this.openError();
-          }
-        });
-      } catch (e) {
-        console.log(e);
+      this.username = this.userContext.getUsername();
+      this.name = this.userContext.getName();
+
+      if (!this.username || !this.name) {
+        try {
+          this.userSubscription = this.userContext.getUser().subscribe({
+            next: user => {
+              this.username = user.username;
+              this.name = user.name;
+              this.displayProfile = this.username != undefined && this.name != undefined;
+            },
+            error: e => {
+              this.error = e;
+              this.openError();
+            }
+          });
+        } catch (e) {
+          console.log(e);
+        }
       }
     }
+
+    this.displayProfile = this.username != undefined && this.name != undefined;
   }
 
   ngOnDestroy(): void {
