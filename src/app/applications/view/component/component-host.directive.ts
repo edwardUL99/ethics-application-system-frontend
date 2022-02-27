@@ -27,7 +27,6 @@ export class ComponentHostDirective implements AfterViewInit {
    * When the directive is fully loaded it registers itself with the component loader so that child components can be loaded into it
    */
   ngAfterViewInit(): void {
-    console.log(this.hostId);
     this.loader.registerComponentHost(this);
   }
 }

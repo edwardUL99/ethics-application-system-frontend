@@ -98,7 +98,7 @@ export function MapApplicationResponse(key: ResponseMapperKeys | ResponseMapperK
  * @param key the key for the response mapper or application status that will be mapped to a key
  */
 export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): ApplicationResponseMapper {
-  if (key in ResponseMapperKeys) {
+  if (ResponseMapperKeys[key]) {
     return _mappers[key];
   } else {
     return _mappers[_statusMapping[key]];

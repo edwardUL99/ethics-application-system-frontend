@@ -10,8 +10,7 @@ export class QuestionViewUtils {
    * referred and can be edited
    */
   public static setExistingAnswer(view: QuestionViewComponent) {
-    if (this.edit(view) && view?.application?.answers && view?.component?.componentId
-      in view?.application?.answers) {
+    if (this.edit(view) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
       view.setFromAnswer(view.application.answers[view.component.componentId]);
     }
   }

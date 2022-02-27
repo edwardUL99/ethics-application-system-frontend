@@ -208,4 +208,19 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * @param answer the answer to set the value from
    */
   setFromAnswer(answer: Answer): void;
+
+  /**
+   * An optional method to implement and return false if this component should not be counted towards autosave
+   */
+   disableAutosave?(): boolean;
+}
+
+/**
+ * This interface represents a specialisation of the application view component for sections to allow for autosave functionality.
+ */
+export interface SectionViewComponent extends ApplicationViewComponent {
+  /**
+   * Get the list of child question view components (should recursively retrieve them from sub sections and containers too)
+   */
+  getChildQuestionComponents(): QuestionViewComponent[];
 }

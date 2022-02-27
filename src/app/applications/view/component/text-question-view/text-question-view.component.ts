@@ -71,8 +71,9 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     if (this.form && !this.form.get(this.questionComponent.name)) {
       this._addToForm();
       this.autofill();
-      QuestionViewUtils.setExistingAnswer(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   ngOnDestroy(): void {
@@ -120,8 +121,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
-          this.control.setValue(value, {emitEvent: false});
-          this.onChange(); // propagate the autofilled answer
+          this.control.setValue(value);
         }
       });
     }

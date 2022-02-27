@@ -36,7 +36,7 @@
         <app-alert *ngIf="error" [alertType]="'alert-danger'" [dismissible]="true" [message]="error"></app-alert>
         <div class="text-end">
           <a routerLink="/register">Register</a> 
-          <button type="button" (click)="login()" class="btn btn-primary w-25" style="margin-left: 3%">Login</button>
+          <button type="button" (click)="login()" class="btn btn-primary w-25" style="margin-left: 3%" [disabled]="!form.valid">Login</button>
         </div>
       </form>
     </div>

@@ -1,10 +1,8 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { User } from '../users/user';
 import { UserContext } from '../users/usercontext';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
 import { Subscription } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
 
 /**
  * This component represents a navbar used throughout the application
@@ -48,8 +46,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private userSubscription: Subscription;
 
-  constructor(private userContext: UserContext, private modalService: NgbModal, 
-    private router: Router, private activatedRoute: ActivatedRoute) { }
+  constructor(private userContext: UserContext, private modalService: NgbModal) { }
 
   ngOnInit() {
     if (!this.hideLinks) {

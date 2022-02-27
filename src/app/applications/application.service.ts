@@ -18,6 +18,7 @@ import { AssignedCommitteeMember } from './models/applications/assignedcommittee
 import { AssignMembersResponse } from './models/requests/assignmembersresponse';
 import { User } from '../users/user';
 import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
+import { ApplicationStatus } from './models/applications/applicationstatus';
 
 /**
  * This interface represents options for getting an application
@@ -101,11 +102,23 @@ export class ApplicationService {
   }
 
   /**
-   * Request that the draft application is cupdated
+   * Request that the draft application is updated
    * @param request the request object to send to the server
    */
   updateDraftApplication(request: UpdateDraftApplicationRequest): Observable<UpdateDraftApplicationResponse> {
     return this.http.put<UpdateDraftApplicationResponse>('/api/applications/draft/', request)
+      .pipe(
+        retry(3),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Request that the referred application is updated
+   * @param request the request object to send to the server
+   */
+  updateReferredApplication(request: UpdateDraftApplicationRequest): Observable<UpdateDraftApplicationResponse> {
+    return this.http.put<UpdateDraftApplicationResponse>('/api/applications/referred/', request)
       .pipe(
         retry(3),
         catchError(this.handleError)
@@ -285,6 +298,6 @@ export class ApplicationService {
    * @param response the response to map
    */
   mapApplicationResponse(response: ApplicationResponse): Observable<Application> {
-    return getResponseMapper(response.status).map(response);
+    return getResponseMapper(ApplicationStatus[response.status]).map(response);
   }
 }

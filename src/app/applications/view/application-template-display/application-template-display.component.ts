@@ -92,7 +92,6 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   }
 
   autoSaveSection(section: SectionViewComponent) {
-    // TODO section can call this passing an instance of this when Section implements Autosave
     this.autoSave.emit(section);
   }
 

@@ -23,7 +23,6 @@ import { FinishReviewRequest } from './models/requests/finishreviewrequest';
 import { AssignedCommitteeMember } from './models/applications/assignedcommitteemember';
 import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
 import { AssignMembersResponse } from './models/requests/assignmembersresponse';
-import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
 import { Role } from '../users/role';
 
 /**
@@ -287,6 +286,44 @@ describe('ApplicationService', () => {
       error: e => {
         expect(e).toEqual(ErrorMappings.illegal_update);
         expect(httpPutSpy).toHaveBeenCalledWith('/api/applications/draft/', request);
+        done();
+      }
+    });
+  });
+
+  it('#updateReferredApplication should update application successfully', (done) => {
+    const request = updateDraftRequest();
+    const response: UpdateDraftApplicationResponse = {
+      message: MessageMappings.application_updated,
+      lastUpdated: new Date().toISOString()
+    };
+
+    httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
+      observable.next(response);
+    }));
+
+    service.updateReferredApplication(request).subscribe(value => {
+      expect(value).toBeTruthy();
+      expect(value).toEqual(response);
+      expect(httpPutSpy).toHaveBeenCalledWith('/api/applications/referred/', request);
+      done();
+    });
+  });
+
+  it('#updateReferredApplication should handle error successfully', (done) => {
+    const request = updateDraftRequest();
+    const error: HttpErrorResponse = new HttpErrorResponse({
+      error: {error: 'illegal_update'}, status: 400
+    });
+
+    httpPutSpy.and.returnValue(new Observable<CreateDraftApplicationResponse>(observable => {
+      observable.error(error);
+    }));
+
+    service.updateReferredApplication(request).subscribe({
+      error: e => {
+        expect(e).toEqual(ErrorMappings.illegal_update);
+        expect(httpPutSpy).toHaveBeenCalledWith('/api/applications/referred/', request);
         done();
       }
     });

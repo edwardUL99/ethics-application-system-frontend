@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -17,7 +17,7 @@ import { CanDeactivateComponent } from '../../../pending-changes/pendingchangesg
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { Answer } from '../../models/applications/answer';
 import { AlertComponent } from '../../../alert/alert.component';
-import { CreateDraftApplicationRequest, UpdateDraftApplicationRequest } from '../../models/requests/draftapplicationrequests';
+import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from '../../models/requests/draftapplicationrequests';
 import { MessageMappings } from '../../../mappings';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -74,6 +74,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   @ViewChild('actionAlert')
   actionAlert: AlertComponent;
   /**
+   * An alert to show a save error
+   */
+  @ViewChild('saveErrorAlert')
+  saveErrorAlert: AlertComponent;
+  /**
    * The user either creating the application or viewing the application
    */
   user: User;
@@ -125,7 +130,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private userContext: UserContext,
     private authorizationService: AuthorizationService,
     private router: Router,
-    private fb: FormBuilder) {
+    private fb: FormBuilder,
+    private element: ElementRef) {
     super();
 
     this.assignForm = this.fb.group({
@@ -136,9 +142,15 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       comment: fb.control('', [Validators.required]),
       approval: fb.control('')
     });
+
+    this.element.nativeElement.addEventListener('click', () => {
+      // allow autosave once the user interacts with the window
+      this.applicationContext.disableAutosave = false;
+    });
   }
 
   ngOnInit(): void {
+    this.applicationContext.disableAutosave = true;
     this.load();
   }
 
@@ -275,6 +287,18 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     // this.setApplication(createDraftApplication());
   }
 
+  private markNotNew() {
+    this.router.navigate([], {
+      queryParams: {
+        id: this.application.applicationId
+      },
+      replaceUrl: true,
+      relativeTo: this.activatedRoute
+    });
+
+    this.newApplication = false;
+  }
+
   private setAnswer(answer: Answer) {
     // set the answer on the application from a question change event
     const componentId = answer.componentId;
@@ -300,15 +324,42 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   autoSave(section: SectionViewComponent) {
-    // a section requested that it do be autosaved
-    this.saved = true; // when this is implemented, save after the server returns an ok response
-    console.log(section);
-    section.autoSaveAlert.show();
-    setTimeout(() => section.autoSaveAlert.hide(), ALERT_INTERVAL);
+    if (!this.applicationContext.disableAutosave) {
+      const saveMessage = 'Section saved automatically';
+
+      const updateCallback = (response?: UpdateDraftApplicationResponse, error?: any) => {
+        if (response) {
+          this.application.lastUpdated = new Date(response.lastUpdated);
+          section.onAutoSave(saveMessage);
+          this.saved = true;
+        } else {
+          section.onAutoSave(error, true);
+        }
+      }
+
+      // a section requested that it do be autosaved
+      if (this.application.status == ApplicationStatus.DRAFT) {
+        const createCallback = (response?: CreateDraftApplicationResponse, error?: any) => {
+          if (response) {
+            this._populateApplication(response);
+            section.onAutoSave(saveMessage);
+            this.saved = true;
+            this.markNotNew();
+          } else {
+            section.onAutoSave(error, true);
+          }
+        }
+
+        this.saveDraft(createCallback, updateCallback);
+      } else if (this.application.status == ApplicationStatus.REFERRED) {
+        this.saveReferred(updateCallback);
+      }
+    }
   }
 
   private displaySaveAlert() {
     this.saveAlert.show();
+    this.saveAlert.message = MessageMappings.application_updated;
     setTimeout(() => this.saveAlert.hide(), ALERT_INTERVAL);
   }
 
@@ -316,60 +367,94 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     return this.applicationService.generateId();
   }
 
-  private createDraft() {
+  private _populateApplication(response?: CreateDraftApplicationResponse) {
+    // populate application parameters from created application
+    this.application.lastUpdated = new Date(response.createdAt);
+    this.application.id = response.dbId;
+    this.application.applicationTemplate.databaseId = response.templateId;
+  }
+
+  private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any): void {
+    if (response) {
+      this._populateApplication(response);
+      this.saved = true;
+      this.displaySaveAlert();
+      this.markNotNew();
+    } else {
+      this.saveError = error;
+      this.saveErrorAlert.show();
+    }
+  }
+
+  private createDraft(createCallback: (response?: CreateDraftApplicationResponse, error?: any) => void) {
     this.applicationService.createDraftApplication(
       new CreateDraftApplicationRequest(this.user.username, this.application.applicationTemplate, this.application.applicationId, this.application.answers))
         .subscribe({
-          next: response => {
-            this.application.lastUpdated = new Date(response.createdAt);
-            this.application.id = response.dbId;
-            this.application.applicationTemplate.databaseId = response.templateId;
-            this.saved = true;
-            this.displaySaveAlert();
-          },
-          error: e => this.saveError = e
+          next: response => createCallback(response),
+          error: e => createCallback(undefined, e)
         });
   }
 
-  private updateDraft() {
+  private updateDraftCallback(response?: UpdateDraftApplicationResponse, error?: any): void {
+    if (response) {
+      if (response.error) {
+        this.saveError = response.error;
+      } else if (response.message == 'application_updated') {
+        this.application.lastUpdated = new Date(response.lastUpdated);
+        this.saved = true;
+        this.displaySaveAlert();
+      } else {
+        this.saveError = 'An unknown response from the server was received, try again';
+        this.saveErrorAlert.show();
+      }
+    } else if (error) {
+      this.saveError = error;
+      this.saveErrorAlert.show();
+    }
+  }
+
+  private updateDraft(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
     this.applicationService.updateDraftApplication(new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles))
       .subscribe({
         next: response => {
-          if (response.error) {
-            this.saveError = response.error;
-          } else if (response.message == MessageMappings.application_updated) {
-            this.application.lastUpdated = new Date(response.lastUpdated);
-            this.saved = true;
-            this.displaySaveAlert();
-          } else {
-            this.saveError = 'An unknown response from the server was received, try again';
-          }
+          callback(response);
         },
-        error: e => this.saveError = e
+        error: e => callback(undefined, e)
       });
   }
 
-  private saveDraft() {
-    this.generateId().subscribe({
-      next: response => {
-        this.application.applicationId = response.id;
-        
-        if (this.newApplication) {
-          this.createDraft();
-        } else {
-          this.updateDraft();
-        }
-      }
-    });
+  private saveDraft(createCallback: (response?: CreateDraftApplicationResponse, error?: any) => void,
+    updateCallback: (respponse?: UpdateDraftApplicationResponse, error?: any) => void) {
+    
+    if (this.newApplication) {
+      this.generateId().subscribe({
+        next: response => {
+          this.application.applicationId = response.id;
+          this.createDraft(createCallback);
+        },
+        error: e => createCallback(undefined, e)
+      });
+    } else {
+      this.updateDraft(updateCallback);
+    }
+  }
+
+  private saveReferred(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
+    const request = new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles);
+    this.applicationService.updateReferredApplication(request)
+      .subscribe({
+        next: response => callback(response),
+        error: e => callback(undefined, e)
+      });
   }
 
   save() {
-    this.saved = true; // when this is implemented, save after the server returns a successful result
-    this.displaySaveAlert();
-
-    // if (this.application.status == ApplicationStatus.DRAFT) {
-    //   this.saveDraft();
-    // }
+    if (this.application.status == ApplicationStatus.DRAFT) {
+      this.saveDraft((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
+        (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+    } else if (this.application.status == ApplicationStatus.REFERRED) {
+      this.saveReferred((r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+    }
   }
 
   submit() {

@@ -14,7 +14,7 @@ describe('NavbarComponent', () => {
   let fixture: ComponentFixture<NavbarComponent>;
 
   beforeEach(() => {
-    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser']);
+    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser', 'getUsername', 'getName']);
     userContextSpy.getUser.and.returnValue(new Observable<User>(observer => {
       observer.next(createUser());
       observer.complete();

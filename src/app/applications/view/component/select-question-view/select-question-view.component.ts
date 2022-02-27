@@ -154,8 +154,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
-          this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
-          this._emit(); // propagate the autofill
+          this.control.setValue((Array.isArray(value)) ? value : [value]);
         }
       });
     }

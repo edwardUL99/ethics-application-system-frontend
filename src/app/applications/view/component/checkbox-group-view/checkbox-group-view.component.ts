@@ -235,4 +235,8 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS);
   }
+
+  disableAutosave(): boolean {
+    return true; // TODO for now don't autosave. This may not work for file attachments but think about it
+  }
 }

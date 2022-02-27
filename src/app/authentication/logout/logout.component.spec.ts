@@ -65,7 +65,7 @@ describe('LogoutComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(jwtStoreSpy).toHaveBeenCalled();
-      expect(routerSpy).toHaveBeenCalledWith(['login'], {});
+      expect(routerSpy).toHaveBeenCalledWith(['login'], {queryParams: {}});
       expect(userContextSpy).toHaveBeenCalled();
       done();
     })

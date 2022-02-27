@@ -22,7 +22,7 @@
           </div>
           <app-alert *ngIf="confirmError" [alertType]="'alert-danger'" [message]="confirmError" [dismissible]="true"></app-alert>
           <div class="text-end mt-2">
-            <button type="button" (click)="confirm()" class="btn btn-primary w-25" style="margin-left: 3%">Confirm</button>
+            <button type="button" (click)="confirm()" class="btn btn-primary w-25" style="margin-left: 3%" [disabled]="!form.valid">Confirm</button>
           </div>
         </form>
       </div>
