@@ -341,6 +341,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       if (this.application.status == ApplicationStatus.DRAFT) {
         const createCallback = (response?: CreateDraftApplicationResponse, error?: any) => {
           if (response) {
+            this.application.applicationId = response.id;
             this._populateApplication(response);
             section.onAutoSave(saveMessage);
             this.saved = true;
@@ -363,10 +364,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     setTimeout(() => this.saveAlert.hide(), ALERT_INTERVAL);
   }
 
-  private generateId() {
-    return this.applicationService.generateId();
-  }
-
   private _populateApplication(response?: CreateDraftApplicationResponse) {
     // populate application parameters from created application
     this.application.lastUpdated = new Date(response.createdAt);
@@ -376,6 +373,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any): void {
     if (response) {
+      this.application.applicationId = response.id;
       this._populateApplication(response);
       this.saved = true;
       this.displaySaveAlert();
@@ -388,7 +386,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   private createDraft(createCallback: (response?: CreateDraftApplicationResponse, error?: any) => void) {
     this.applicationService.createDraftApplication(
-      new CreateDraftApplicationRequest(this.user.username, this.application.applicationTemplate, this.application.applicationId, this.application.answers))
+      new CreateDraftApplicationRequest(this.user.username, this.application.applicationTemplate, this.application.answers))
         .subscribe({
           next: response => createCallback(response),
           error: e => createCallback(undefined, e)
@@ -427,13 +425,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     updateCallback: (respponse?: UpdateDraftApplicationResponse, error?: any) => void) {
     
     if (this.newApplication) {
-      this.generateId().subscribe({
-        next: response => {
-          this.application.applicationId = response.id;
-          this.createDraft(createCallback);
-        },
-        error: e => createCallback(undefined, e)
-      });
+      this.createDraft(createCallback);
     } else {
       this.updateDraft(updateCallback);
     }

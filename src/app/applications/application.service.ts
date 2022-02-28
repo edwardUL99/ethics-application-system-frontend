@@ -4,7 +4,6 @@ import { catchError, Observable, retry, throwError } from 'rxjs';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
-import { GenerateIDResponse } from './models/requests/generateidresponse';
 import { SubmitApplicationRequest } from './models/requests/submitapplicationrequest';
 import { AcceptResubmittedRequest } from './models/requests/acceptresubmittedrequest';
 import { ReviewApplicationRequest, ReviewSubmittedApplicationRequest } from './models/requests/reviewapplicationrequest';
@@ -43,18 +42,6 @@ export class ApplicationService {
 
   private handleError(error: HttpErrorResponse) {
     return throwError(() => getErrorMessage(error));
-  }
-
-  /**
-   * Requests to the server to generate an Application ID and returns the observable that will resolve
-   * the request
-   */
-  generateId(): Observable<GenerateIDResponse> {
-    return this.http.get<GenerateIDResponse>('/api/applications/id/')
-      .pipe(
-        retry(3),
-        catchError(this.handleError)
-      );
   }
 
   /**

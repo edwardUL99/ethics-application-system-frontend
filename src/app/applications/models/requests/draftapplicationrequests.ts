@@ -26,11 +26,9 @@ export class CreateDraftApplicationRequest {
    * Create a request object with the provided properties
    * @param username the username of the user creating the application
    * @param applicationTemplate the template the application is based on
-   * @param id the ID for the application generated throught the /api/applications/id endpoint
    * @param values the initial values for the draft application
    */
-  constructor(public username: string, public applicationTemplate: ApplicationTemplate,
-    public id: string, public values: AnswersMapping) {}
+  constructor(public username: string, public applicationTemplate: ApplicationTemplate, public values: AnswersMapping) {}
 }
 
 /**

@@ -4,9 +4,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ApplicationService } from './application.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GenerateIDResponse } from './models/requests/generateidresponse';
 import { APPLICATION_ID, createApplicationTemplate, createAssignMembersResponse, createDraftApplicationResponse, createReferredApplicationResponse, createSubmittedApplication, createSubmittedApplicationResponse, USERNAME } from '../testing/fakes';
-import { getErrorMessage } from '../utils';
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { ErrorMappings, MessageMappings } from '../mappings';
 import { ApplicationStatus } from './models/applications/applicationstatus';
@@ -62,41 +60,6 @@ describe('ApplicationService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
-  });
-
-  it('#generateId should successfully generate application ID', (done) => {
-    const expectedResponse: GenerateIDResponse = {
-      id: APPLICATION_ID
-    };
-
-    httpGetSpy.and.returnValue(new Observable<GenerateIDResponse>(observable => {
-      observable.next(expectedResponse);
-    }));
-
-    service.generateId().subscribe(value => {
-      expect(value).toBeTruthy();
-      expect(value).toEqual(expectedResponse);
-      expect(httpGetSpy).toHaveBeenCalledWith('/api/applications/id/');
-      done();
-    });
-  });
-
-  it('#generateId should successfully handle error', (done) => {
-    const error: HttpErrorResponse = new HttpErrorResponse({
-      status: 401
-    });
-
-    httpGetSpy.and.returnValue(new Observable<GenerateIDResponse>(observable => {
-      observable.error(error);
-    }));
-
-    service.generateId().subscribe({
-      error: e => {
-        expect(e).toEqual(getErrorMessage(error));
-        expect(httpGetSpy).toHaveBeenCalledWith('/api/applications/id/');
-        done();
-      }
-    });
   });
 
   it('#getApplication should successfully retrieve application', (done) => {
@@ -204,7 +167,7 @@ describe('ApplicationService', () => {
   });
 
   const createDraftRequest = () => {
-    return new CreateDraftApplicationRequest(USERNAME, createApplicationTemplate(), APPLICATION_ID, {});
+    return new CreateDraftApplicationRequest(USERNAME, createApplicationTemplate(), {});
   }
 
   it('#createDraftApplication should create draft successfully', (done) => {
