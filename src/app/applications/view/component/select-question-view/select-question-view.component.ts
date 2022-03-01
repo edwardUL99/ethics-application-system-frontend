@@ -4,7 +4,7 @@ import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -37,7 +37,7 @@ export function SelectValidator(): ValidatorFn {
   templateUrl: './select-question-view.component.html',
   styleUrls: ['./select-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.SELECT_QUESTION)
+@ComponentViewRegistration(ComponentType.SELECT_QUESTION)
 export class SelectQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by the view
@@ -71,6 +71,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -109,12 +113,17 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       }
 
       this.questionComponent.options.forEach(option => this.selected[option.value] = false);
-      this.form.addControl(this.questionComponent.name, this.control);
+      
+      if (!this.form.get(this.questionComponent.name)) {
+        this.form.addControl(this.questionComponent.name, this.control);
+      }
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.name);
+    this.control.setValue('', {emitEvent: false});
+    this.control.clearValidators();
+    this.control.updateValueAndValidity({emitEvent: false});
   }
 
   castComponent() {
@@ -141,11 +150,17 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.unselectOthers(option);
     }
 
-    this._emit();
+    this.emit();
+  }
+
+  emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
   private _emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+    if (!this.parent) {
+      this.emit();
+    }
   }
 
   autofill(): void {
@@ -191,5 +206,17 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     }
 
     return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS);
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return this.questionComponent?.componentId in this.application?.answers;
   }
 }

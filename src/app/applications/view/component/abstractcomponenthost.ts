@@ -1,11 +1,6 @@
-import { ApplicationComponent } from '../../models/components/applicationcomponent';
-import { ComponentHostDirective } from './component-host.directive'
-import { ApplicationViewComponent, QuestionChangeCallback, QuestionViewComponent, ViewComponentShape } from './application-view.component';
-import { FormGroup } from '@angular/forms';
-import { ComponentRef } from '@angular/core';
+import {  ViewComponentShape } from './application-view.component';
 import { SectionViewComponentShape } from './section-view/section-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
-import { Application } from '../../models/applications/application';
 
 /**
  * This class represents the base class that all component hosts should extend from
@@ -21,6 +16,7 @@ export class AbstractComponentHost {
     const componentRef = loader.loadComponent(componentHost, data.component.getType());
 
     componentRef.instance.initialise(data);
+    componentRef.instance.setVisible(true);
     componentRef.changeDetectorRef.detectChanges();
 
     return componentRef;

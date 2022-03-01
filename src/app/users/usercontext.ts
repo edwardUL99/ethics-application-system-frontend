@@ -65,6 +65,7 @@ export class UserContext {
     this._user = undefined;
     this._username = undefined;
     localStorage.removeItem(USERNAME);
+    localStorage.removeItem(NAME);
   }
 
   /**

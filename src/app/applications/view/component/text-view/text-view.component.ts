@@ -2,19 +2,23 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextComponent } from '../../../models/components/textcomponent';
 import { ApplicationViewComponent, ViewComponentShape } from '../application-view.component';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 
 @Component({
   selector: 'app-text-view',
   templateUrl: './text-view.component.html',
   styleUrls: ['./text-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.TEXT)
+@ComponentViewRegistration(ComponentType.TEXT)
 export class TextViewComponent implements OnInit, ApplicationViewComponent {
   /**
    * The component this view is rendering
    */
   @Input() component: ApplicationComponent;
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() { }
 
@@ -30,4 +34,12 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
   }
 
   ngOnDestroy(): void {}
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
 }

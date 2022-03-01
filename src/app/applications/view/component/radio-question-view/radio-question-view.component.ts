@@ -5,7 +5,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -15,7 +15,7 @@ import { QuestionViewUtils } from '../questionviewutils';
   templateUrl: './radio-question-view.component.html',
   styleUrls: ['./radio-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.RADIO_QUESTION)
+@ComponentViewRegistration(ComponentType.RADIO_QUESTION)
 export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
@@ -61,6 +61,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * The css class for the radios
    */
   radioClass: string;
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -107,17 +111,24 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       this.radioArray.addValidators(Validators.required);
     }
 
-    this.form.addControl(this.questionComponent.componentId, this.radioArray);
+    if (!this.form.get(this.questionComponent.componentId)) {
+      this.form.addControl(this.questionComponent.componentId, this.radioArray);
+    }
   }
 
   addToForm(): void {
-    if (this.edit() && !this.form.get(this.questionComponent.componentId)) {
+    if (this.edit()) {
       this._addToForm();
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.componentId);
+    Object.keys(this.radioControls).forEach(key => {
+      this.radioControls[key].setValue('', {emitEvent: false})
+    });
+    this.radioArray.clear();
+    this.radioArray.clearValidators();
+    this.radioArray.updateValueAndValidity({emitEvent: false});
   }
 
   castComponent() {
@@ -129,11 +140,17 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       if (radio != key) {
         this.radioControls[key].setValue('', {emitEvent: false})
       }
-    })
+    });
+  }
+
+  emit() {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
   private _emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+    if (!this.parent) {
+      this.emit();
+    }
   }
 
   private select(checkbox: string) {
@@ -168,7 +185,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       this.radioArray.clear();
     }
 
-    this._emit();
+    this.emit();
   }
 
   resetSelection() {
@@ -187,6 +204,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     if (this.component.componentId in this.application.answers) {
       delete this.application.answers[this.component.componentId];
     }
+
+    this.emit();
   }
 
   display(): boolean {
@@ -198,21 +217,35 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   setFromAnswer(answer: Answer): void {
-    if (answer.valueType != ValueType.OPTIONS) {
-      throw new Error('Invalid answer type for a radio question component');
+    if (answer && answer.value) {
+      if (answer.valueType != ValueType.OPTIONS) {
+        throw new Error('Invalid answer type for a radio question component');
+      }
+
+      answer.value.split(',').forEach(option => {
+        const value = (option.includes('=')) ? option.split('=')[0]:option;
+        this.select(value);
+      });
+
+      this.radioArray.markAsTouched();
+
+      this._emit();
     }
-
-    answer.value.split(',').forEach(option => {
-      const value = (option.includes('=')) ? option.split('=')[0]:option;
-      this.select(value);
-    });
-
-    this.radioArray.markAsTouched();
-
-    this._emit();
   }
 
   value(): Answer {
     return new Answer(undefined, this.component.componentId, this.selectedRadioValue, ValueType.OPTIONS);
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return this.questionComponent?.componentId in this.application?.answers;
   }
 }

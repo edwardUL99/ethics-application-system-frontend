@@ -144,7 +144,7 @@ function loadUserAndTemplate(observer: Observer<Application>, response: Applicat
  * Map response answers to answer instances
  * @param answers the answers to map
  */
-function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
+export function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
   const mappedAnswers: AnswersMapping = {};
 
   Object.keys(answers).forEach(key => {
@@ -159,7 +159,7 @@ function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
  * Map response attached files to attached file instances
  * @param attachedFiles the files to map
  */
-function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFilesMapping {
+export function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFilesMapping {
   const mappedAttachedFiles: AttachedFilesMapping = {};
 
   Object.keys(attachedFiles).forEach(key => {
@@ -190,13 +190,17 @@ export function mapComments(comments: ResponseCommentsMapping): CommentsMapping 
  * @param comment the main comment to map
  */
 export function mapComment(comment: CommentShape): Comment {
-  const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt));
+  if (comment) {
+    const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt));
 
-  for (let sub of comment.subComments) {
-    newComment.subComments.push(mapComment(sub));
+    for (let sub of comment.subComments) {
+      newComment.subComments.push(mapComment(sub));
+    }
+
+    return newComment;
+  } else {
+    return undefined;
   }
-
-  return newComment;
 }
 
 /**
@@ -282,7 +286,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
         next: usersArray => {
           loadUserAndTemplate(observer, response,
             value => {
-              observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+              observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
               new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))))
               observer.complete();
             });
@@ -322,7 +326,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
         next: usersArray => {
           loadUserAndTemplate(observer, response,
             value => {
-              observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, response.status, value.template, answers, attachedFiles,
+              observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
                 new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
                 response.editableFields, userResponseMapper(usersArray[1]))));
               observer.complete();

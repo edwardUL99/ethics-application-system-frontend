@@ -5,7 +5,7 @@ import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
@@ -15,7 +15,7 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
   templateUrl: './text-question-view.component.html',
   styleUrls: ['./text-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.TEXT_QUESTION)
+@ComponentViewRegistration(ComponentType.TEXT_QUESTION)
 export class TextQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
@@ -49,6 +49,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * The value change that occurred
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -93,31 +97,44 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
         this.control.addValidators(Validators.required);
       }
 
-      this.form.addControl(this.questionComponent.name, this.control);
+      if (!this.form.get(this.questionComponent.name)) {
+        this.form.addControl(this.questionComponent.name, this.control);
+      }
+
       this.control.updateValueAndValidity();
     }
   }
 
   addToForm(): void {
-    if (!this.form.get(this.questionComponent.name)) {
-      this._addToForm();
-    }
+    this._addToForm();
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.name);
+    this.control.setValue('');
+    this.control.clearValidators();
+    this.control.updateValueAndValidity({emitEvent: false});
   }
 
   castComponent() {
     return this.component as TextQuestionComponent;
   }
 
-  onChange() {
+  emit(): void {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
+  onChange() {
+    this.emit();
+  }
+
+  private _emit() {
+    if (!this.parent) {
+      this.emit();
+    }
+  }
+
   autofill(): void {
-    if (this.questionComponent.autofill) {
+    if (this.questionComponent.autofill && this.edit()) {
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
@@ -142,12 +159,25 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       throw new Error('Invalid answer type for number question');
     }
 
-    this.control.setValue(answer.value);
+    this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
+    this._emit();
   }
 
   value(): Answer {
     return new Answer(undefined, this.component.componentId, this.control.value, 
       (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT);
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return this.questionComponent?.componentId in this.application?.answers;
   }
 }

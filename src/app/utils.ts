@@ -15,7 +15,9 @@ export function getErrorMessage(error: HttpErrorResponse) {
     if (error.status == 400) {
         return extractMappedError(error);
     } else if (error.status == 401) {
-        return 'You are no longer authorized, so you will have to login again'
+        return 'You are no longer authorized, so you will have to login again';
+    } else if (error.status == 404) {
+        return 'Not Found';
     } else if (error.status >= 300 && error.status < 500) {
         return 'An unknown error occurred, please try again later';
     } else {
@@ -68,7 +70,14 @@ export function joinAndWait<T>(sources: Observable<T>[] | T[], sourcesMapper?: (
         sources = sourcesMapper(sources);
     }
 
-    return forkJoin(sources as Observable<T>[]);
+    if (sources.length > 0) {
+        return forkJoin(sources as Observable<T>[]);
+    } else {
+        return new Observable<T[]>(observer => {
+            observer.next([]);
+            observer.complete();
+        });
+    }
 }
 
 /**

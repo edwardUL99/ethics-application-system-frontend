@@ -119,6 +119,18 @@ export interface ApplicationViewComponent extends OnDestroy {
    * @param data the data (Object in the shape of a view component) to initialise the component with
    */
   initialise(data: ViewComponentShape): void;
+
+  /**
+   * Determine if the component is visible or not. If this returns false, it does not necessarily mean that the component is not rendered in the browser,
+   * instead it means that setVisible was called with false. By default, when the component is loaded, setVisible will be called with true
+   */
+  isVisible(): boolean;
+
+  /**
+   * Set the value for visible on this component. If the component is hidden for any reason, this should be called with a value of false
+   * @param visible the new value for visible
+   */
+  setVisible(visible: boolean): void;
 }
 
 /**
@@ -168,7 +180,9 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   addToForm(): void;
 
   /**
-   * This method should be called to remove the component (and all sub-components if the question has multiple parts) from the form
+   * This method should be called to remove the component (and all sub-components if the question has multiple parts) from the form.
+   * The controls should not be physically removed as that can cause template issues. However any validation and any answers provided should 
+   * be cleared so that the form can be valid without them
    */
   removeFromForm(): void;
 
@@ -188,9 +202,19 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   display(): boolean;
 
   /**
+   * Determine if the answer should be displayed
+   */
+  displayAnswer(): boolean;
+
+  /**
    * Determine whether the question component can be edited or if it is to be just displayed as a question and answer if an answer if available
    */
   edit(): boolean;
+
+  /**
+   * Trigger the questionChange to emit
+   */
+  emit(): void;
 
   /**
    * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,
@@ -203,7 +227,10 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * if an application is referred and a field is editable, the field(s) should be set from the previous answers. If the component contains multiple other questions,
    * for example multipart question, it should set each part of the individual answer and react to the value change events (ie. multipart will need to display other
    * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
-   * component should be made editable automatically and set the answers
+   * component should be made editable automatically and set the answers.
+   * 
+   * If the parent of the question component is not null, this method should not emit the event. The responsibility for emitting the event is up to the parent components when
+   * everything is initialised correctly
    * 
    * @param answer the answer to set the value from
    */
@@ -212,7 +239,7 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   /**
    * An optional method to implement and return false if this component should not be counted towards autosave
    */
-   disableAutosave?(): boolean;
+  disableAutosave?(): boolean;
 }
 
 /**

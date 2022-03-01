@@ -6,7 +6,7 @@ import { QuestionTableComponent } from '../../../models/components/questiontable
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import {  ComponentHostDirective, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
 import { Answer } from '../../../models/applications/answer';
@@ -36,7 +36,7 @@ function onInputStatic(component: QuestionTableViewComponent, event: QuestionCha
   templateUrl: './question-table-view.component.html',
   styleUrls: ['./question-table-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.QUESTION_TABLE)
+@ComponentViewRegistration(ComponentType.QUESTION_TABLE)
 export class QuestionTableViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnDestroy {
   /**
    * The component being rendered by this view
@@ -90,6 +90,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * The allowed types for the sub-questions
    */
   private readonly allowedQuestionTypes = [ComponentType.TEXT_QUESTION, ComponentType.SELECT_QUESTION, ComponentType.SIGNATURE];
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -178,6 +182,13 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
 
     this.detectChanges();
+    this.propagateEmits();
+  }
+
+  private propagateEmits() {
+    for (let key of Object.keys(this.matchedComponents)) {
+      this.matchedComponents[key].emit();
+    }
   }
 
   detectChanges(): void {
@@ -195,9 +206,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
   }
 
-  removeFromForm(): void {
-    this.form.removeControl(this.questionTable.componentId);
-  }
+  removeFromForm(): void {}
   
   castComponent() {
     return this.component as QuestionTableComponent;
@@ -209,8 +218,12 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   onInput(emitEvent: boolean = true) {    
     if (emitEvent) {
-      this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this));
+      this.emit();
     }
+  }
+
+  emit(): void {
+    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this));
   }
 
   display(): boolean {
@@ -241,5 +254,27 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     Object.keys(this.matchedComponents).forEach(key => answers.push(this.matchedComponents[key].value() as Answer));
 
     return answers;
+  }
+
+  isVisible(): boolean {
+    return this.visible;  
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  getHostedQuestions(): QuestionViewComponent[] {
+    const components = [];
+
+    for (let key of Object.keys(this.matchedComponents)) {
+      components.push(this.matchedComponents[key]);
+    }
+
+    return components;
+  }
+
+  displayAnswer(): boolean {
+    return true; // no-op
   }
 }

@@ -3,6 +3,7 @@ import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { AttachedFile } from "../applications/attachedfile";
 import { BaseResponse } from "../../../baseresponse";
 import { ApplicationStatus } from "../applications/applicationstatus";
+import { AnswersMapping as AnswerShapesMapping } from './applicationresponse';
 
 /**
  * Mapping of component IDs to answers
@@ -26,9 +27,9 @@ export class CreateDraftApplicationRequest {
    * Create a request object with the provided properties
    * @param username the username of the user creating the application
    * @param applicationTemplate the template the application is based on
-   * @param values the initial values for the draft application
+   * @param answers the initial answers for the draft application
    */
-  constructor(public username: string, public applicationTemplate: ApplicationTemplate, public values: AnswersMapping) {}
+  constructor(public username: string, public applicationTemplate: ApplicationTemplate, public answers: AnswersMapping) {}
 }
 
 /**
@@ -72,6 +73,10 @@ export interface CreateDraftApplicationResponse extends BaseResponse {
    * The timestamp as a string of when the application was created
    */
   createdAt: string;
+  /**
+   * The answers returned after creating the application
+   */
+  answers: AnswerShapesMapping;
 }
 
 /**
@@ -82,4 +87,8 @@ export interface UpdateDraftApplicationResponse extends BaseResponse {
    * The timestamp of when the application was last updated
    */
   lastUpdated: string;
+  /**
+   * The answers after updating a draft application response
+   */
+  answers: AnswerShapesMapping;
 }

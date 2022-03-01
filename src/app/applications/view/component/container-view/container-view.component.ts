@@ -3,7 +3,7 @@ import { ContainerComponent } from '../../../models/components/containercomponen
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { ComponentHost } from '../component-host.directive';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -15,7 +15,7 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
   templateUrl: './container-view.component.html',
   styleUrls: ['./container-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.CONTAINER)
+@ComponentViewRegistration(ComponentType.CONTAINER)
 export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
   /**
    * The parent template component
@@ -41,6 +41,10 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    * The flag to track if the view is initialised
    */
   private _viewInitialised: boolean = false;
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -110,5 +114,13 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   detectChanges(): void {
     this.cd.detectChanges();
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
   }
 }

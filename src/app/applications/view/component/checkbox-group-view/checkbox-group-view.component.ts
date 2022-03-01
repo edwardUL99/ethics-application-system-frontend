@@ -10,7 +10,7 @@ import { ApplicationTemplateContext } from '../../../applicationtemplatecontext'
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -38,7 +38,7 @@ export type ControlsMapping = {
   templateUrl: './checkbox-group-view.component.html',
   styleUrls: ['./checkbox-group-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.CHECKBOX_GROUP)
+@ComponentViewRegistration(ComponentType.CHECKBOX_GROUP)
 export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
@@ -80,6 +80,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -119,7 +123,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.checkboxGroupComponent.componentId);
+    Object.keys(this.selectedCheckboxes).forEach(identifier => {
+      this.selectedCheckboxes[identifier] = false;
+    });
+
+    this.checkboxArray.clear();
   }
 
   /**
@@ -131,7 +139,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       if (identifier != checkbox) {
         this.selectedCheckboxes[identifier] = false;
       }
-    })
+    });
   }
 
   /**
@@ -173,10 +181,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       });
     }
 
-    this._emit();
+    this.emit();
   }
 
-  private _emit() {
+  emit() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
@@ -213,6 +221,12 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     return QuestionViewUtils.display(this);
   }
 
+  private _emit() {
+    if (!this.parent) {
+      this.emit();
+    }
+  }
+
   setFromAnswer(answer: Answer): void {
     if (answer.valueType != ValueType.OPTIONS) {
       throw new Error('Invalid answer type for the chekcbox group component');
@@ -238,5 +252,17 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   disableAutosave(): boolean {
     return true; // TODO for now don't autosave. This may not work for file attachments but think about it
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return true; // no-op
   }
 }

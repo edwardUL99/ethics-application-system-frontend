@@ -86,4 +86,8 @@ export interface QuestionComponentHost extends ComponentHost {
    * @param componentType the type to validate
    */
   validComponent(componentType: ComponentType): boolean;
+  /**
+   * Get the hosted child questions in a list
+   */
+  getHostedQuestions(): QuestionViewComponent[];
 }

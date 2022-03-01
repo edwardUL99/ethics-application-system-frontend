@@ -72,10 +72,10 @@
       (questionChange)="questionChange($event)" (autoSave)="autoSave($event)" [viewingUser]="viewingUser"></app-application-template-display>
       <app-alert #saveAlert [alertType]="'alert-success'" [message]="'Saved'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
       <app-alert #saveErrorAlert [alertType]="'alert-danger'" [message]="saveError" [dismissible]="true" [hidden]="true"></app-alert>
-      <div class="card shadow px-3 py-2">
+      <div class="card shadow px-3 py-2" *ngIf="showSaveSubmitButton()">
         <div class="d-inline text-end">
-          <button type="button" class="btn btn-secondary" *ngIf="showSaveSubmitButton()" (click)="save()">Save</button>
-          <button type="button" class="btn btn-primary margin-left-1" *ngIf="showSaveSubmitButton()" [disabled]="!templateView?.form.valid" (click)="submit()">Submit</button> 
+          <button type="button" class="btn btn-secondary" (click)="save()">Save</button>
+          <button type="button" class="btn btn-primary margin-left-1" [disabled]="!templateView?.form.valid" (click)="submit()">Submit</button> 
           <button type="button" class="btn btn-primary margin-left-1" *ngIf="canReview" (click)="save()">Save Review</button>
         </div>
       </div>

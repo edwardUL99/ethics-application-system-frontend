@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -25,6 +25,8 @@ import { UserResponseShortened } from '../../../users/responses/userresponseshor
 import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
+import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
+import { mapAnswers } from '../../models/requests/mapping/applicationmapper'
 
 /**
  * The interval to display alerts for
@@ -131,7 +133,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private authorizationService: AuthorizationService,
     private router: Router,
     private fb: FormBuilder,
-    private element: ElementRef) {
+    private element: ElementRef,
+    private cd: ChangeDetectorRef) {
     super();
 
     this.assignForm = this.fb.group({
@@ -186,6 +189,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     this.application = application;
     this.applicationContext.setApplication(this.application);
+    this.cd.detectChanges();
   }
 
   private generateApplication(context: ApplicationTemplateContext) {
@@ -287,27 +291,26 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     // this.setApplication(createDraftApplication());
   }
 
-  private markNotNew() {
-    this.router.navigate([], {
-      queryParams: {
-        id: this.application.applicationId
-      },
-      replaceUrl: true,
-      relativeTo: this.activatedRoute
-    });
+  private reload(hotReload: boolean = false) {
+    if (!hotReload) {
+      this.router.navigate([], {
+        queryParams: {
+          id: this.application.applicationId
+        },
+        replaceUrl: true,
+        relativeTo: this.activatedRoute
+      });
 
-    this.newApplication = false;
+      this.newApplication = false;
+    } else {
+      window.location.reload();
+    }
   }
 
   private setAnswer(answer: Answer) {
     // set the answer on the application from a question change event
     const componentId = answer.componentId;
-    
-    if (answer.empty() && componentId in this.application?.answers) {
-      delete this.application.answers[componentId];
-    } else {
-      this.application.answers[componentId] = answer;
-    }
+    this.application.answers[componentId] = answer;
   }
 
   questionChange(event: QuestionChangeEvent) {
@@ -330,6 +333,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       const updateCallback = (response?: UpdateDraftApplicationResponse, error?: any) => {
         if (response) {
           this.application.lastUpdated = new Date(response.lastUpdated);
+          this.application.answers = mapAnswers(response.answers);
           section.onAutoSave(saveMessage);
           this.saved = true;
         } else {
@@ -342,10 +346,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         const createCallback = (response?: CreateDraftApplicationResponse, error?: any) => {
           if (response) {
             this.application.applicationId = response.id;
+            this.application.answers = mapAnswers(response.answers);
             this._populateApplication(response);
             section.onAutoSave(saveMessage);
             this.saved = true;
-            this.markNotNew();
+            this.reload();
           } else {
             section.onAutoSave(error, true);
           }
@@ -374,10 +379,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any): void {
     if (response) {
       this.application.applicationId = response.id;
+      this.application.answers = mapAnswers(response.answers);
       this._populateApplication(response);
       this.saved = true;
       this.displaySaveAlert();
-      this.markNotNew();
+      this.reload(true);
     } else {
       this.saveError = error;
       this.saveErrorAlert.show();
@@ -399,6 +405,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         this.saveError = response.error;
       } else if (response.message == 'application_updated') {
         this.application.lastUpdated = new Date(response.lastUpdated);
+        this.application.answers = mapAnswers(response.answers);
         this.saved = true;
         this.displaySaveAlert();
       } else {
@@ -449,10 +456,27 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  submit() {
-    if (confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
-      console.log('submit requested');
-      this.saved = true; // when this is implemented, save after the server returns an ok response
+  submit(confirmSubmission: boolean = true) {
+    if (!confirmSubmission || confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
+      if (!this.saved) {
+        this.save(); // save any unsaved answers before submitting
+        this.submit(false);
+      } else {
+        this.applicationService.submitApplication(new SubmitApplicationRequest(this.application.applicationId))
+          .subscribe({
+            next: response => {
+              this.application.status = response.status;
+              this.application.lastUpdated = new Date(response.lastUpdated);
+              this.application.id = response.dbId;
+              this.application.answers = mapAnswers(response.answers);
+              this.reload(true);
+            },
+            error: e => {
+              this.saveErrorAlert.message = e;
+              this.saveErrorAlert.show();
+            }
+          });
+      }
     }
   }
 

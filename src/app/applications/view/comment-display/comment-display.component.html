@@ -27,10 +27,10 @@
     <div *ngIf="comment">
       <ng-template #displayComment>
         <div class="my-2">
-          <h6>{{loadUser(comment.username) | async}}</h6>
-          <small class="form-text">{{formatDate(comment.createdAt)}}</small>
+          <h6>{{loadUser(comment?.username) | async}}</h6>
+          <small class="form-text">{{formatDate(comment?.createdAt)}}</small>
           <div class="mt-2">
-            <p class="text">{{comment.comment}}</p>
+            <p class="text">{{comment?.comment}}</p>
           </div>
         </div>
       </ng-template>

@@ -4,7 +4,7 @@ import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -19,7 +19,7 @@ let copiedSignature: string = undefined;
   templateUrl: './signature-question-view.component.html',
   styleUrls: ['./signature-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.SIGNATURE)
+@ComponentViewRegistration(ComponentType.SIGNATURE)
 export class SignatureQuestionViewComponent implements OnInit, QuestionViewComponent, AfterViewInit {
   /**
    * The component being rendered by this view
@@ -63,6 +63,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The form control for this component
    */
   control: FormControl;
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -84,11 +88,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     if (this.form && !this.form.get(this.questionComponent.name)) {
       this._addToForm();
     }
-
-    QuestionViewUtils.setExistingAnswer(this);
   }
 
   ngAfterViewInit(): void {
+    QuestionViewUtils.setExistingAnswer(this);
     this.resizeSignature();
   }
 
@@ -97,18 +100,29 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   private _addToForm() {
-    this.control = new FormControl({value: '', disabled: !this.questionComponent.editable}, Validators.required);
-    this.form.addControl(this.questionComponent.name, this.control);
+    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable}, Validators.required);
+    
+    if (!this.control.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
+    }
+
+    if (!this.form.get(this.questionComponent.name)) {
+      this.form.addControl(this.questionComponent.name, this.control);
+    }
+
+    this.control.updateValueAndValidity({emitEvent: false});
   }
 
   addToForm(): void {
-    if (!this.form.get(this.questionComponent.name)) {
+    if (this.edit()) {
       this._addToForm();
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.name);
+    this.control.setValue('', {emitEvent: false});
+    this.control.clearValidators();
+    this.control.updateValueAndValidity({emitEvent: false});
   }
 
   sizeChange() {
@@ -137,7 +151,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     return this.component as SignatureQuestionComponent;
   }
 
-  private _emit() {
+  emit() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
@@ -145,9 +159,15 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.control.markAsTouched();
   }
 
+  private _emit() {
+    if (!this.parent) {
+      this.emit();
+    }
+  }
+
   signatureEntered(signature: string) {
     this.signature = signature;
-    this._emit();
+    this.emit();
   }
 
   display(): boolean {
@@ -159,13 +179,16 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   setFromAnswer(answer: Answer): void {
+    // TODO this isn't working, answer doesn't get set. check if its even being saved in the first place
+
     if (answer.valueType != ValueType.IMAGE) {
       throw new Error('Invalid answer type for signature question');
     }
 
-    this.signatureFieldComponent.signaturePad.redrawCanvas();
-    this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
-    this.control.setValue(answer.value, {emitEvent: false});
+    this.signature = answer.value;
+    //this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
+    this.resizeSignature();
+    this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
 
     this._emit();
@@ -186,5 +209,17 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
       this.signature = copiedSignature;
       delete this.control.errors['required'];
     }
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+  
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return this.questionComponent?.componentId in this.application?.answers;
   }
 }

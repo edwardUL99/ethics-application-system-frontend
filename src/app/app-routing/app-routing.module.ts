@@ -32,6 +32,7 @@ function createRoute(path: string, component: Type<any>, canDeactivate?: Type<Ca
 const routes: Routes = [
     createRoute('login', LoginComponent),
     createRoute('logout', LogoutComponent),
+    createRoute('login-redirect', LogoutComponent),
     createRoute('register', RegistrationComponent),
     createRoute('user-redirect', UserRedirectComponent),
     createRoute('needs-confirm', NeedsConfirmationComponent, undefined, [AuthGuard]),

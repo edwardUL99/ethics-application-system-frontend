@@ -100,7 +100,7 @@ export class CommentDisplayComponent implements OnInit {
 
     this.replyComment = viewingUser?.reviewer && !this.createComment;
 
-    if (this.application.status != ApplicationStatus.DRAFT && this.component.template.viewingUser.reviewer) {
+    if (this.application.status != ApplicationStatus.DRAFT && viewingUser?.reviewer) {
       this.display = true;
     } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) == -1) {
       this.display = true;

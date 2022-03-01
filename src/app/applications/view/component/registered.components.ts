@@ -10,9 +10,9 @@ export type RegisteredComponentsMapping = {
 }
 
 /**
- * This class holds the view components registered for rendering the application template components
+ * This class holds the component views registered for rendering the application template components
  */
-class RegisteredViewComponents {
+class RegisteredComponentViews {
     /**
      * The mapping of components
      */
@@ -40,14 +40,14 @@ class RegisteredViewComponents {
     }
 }
 
-export const registeredComponents = new RegisteredViewComponents();
+export const registeredComponents = new RegisteredComponentViews();
 
 /**
- * This decorator registers the view component with the RegisteredViewComponents
+ * This decorator registers the component view with the RegisteredComponentViews
  * @param type the component type to register the component for
  * @returns the decorator instance
  */
-export function ViewComponentRegistration(type: ComponentType) {
+export function ComponentViewRegistration(type: ComponentType) {
     return <T extends ApplicationViewComponent>(target: new (...arg: any) => T): new (...arg: any) => T => {
         registeredComponents.registerComponent(type, target);
 

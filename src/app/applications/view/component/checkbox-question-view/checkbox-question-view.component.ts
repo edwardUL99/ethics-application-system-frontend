@@ -5,7 +5,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -16,7 +16,7 @@ import { QuestionViewUtils } from '../questionviewutils';
   templateUrl: './checkbox-question-view.component.html',
   styleUrls: ['./checkbox-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.CHECKBOX_QUESTION)
+@ComponentViewRegistration(ComponentType.CHECKBOX_QUESTION)
 export class CheckboxQuestionViewComponent implements OnInit, QuestionViewComponent {
   /**
    * The component being rendered by this view
@@ -62,6 +62,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The css clas for checkboxes
    */
   checkClass: string;
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor() {}
 
@@ -82,7 +86,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
     this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null);
+      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
       this.checkboxes[option.identifier] = checkbox;
 
       this.selectedCheckboxes[checkbox.identifier] = false;
@@ -110,24 +114,32 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxArray.addValidators(Validators.required);
     }
 
-    this.form.addControl(this.questionComponent.componentId, this.checkboxArray);
+    if (!this.form.get(this.questionComponent.name)) {
+      this.form.addControl(this.questionComponent.name, this.checkboxArray);
+    }
   }
 
   addToForm(): void {
-    if (this.edit() && !this.form.get(this.questionComponent.componentId)) {
+    if (this.edit()) {
       this._addToForm();
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.componentId);
+    Object.keys(this.checkboxControls).forEach(key => {
+      this.selectedCheckboxes[key] = false;
+      this.checkboxControls[key].setValue('', {emitEvent: false});
+    });
+    this.checkboxArray.clear();
+    this.checkboxArray.clearValidators();
+    this.checkboxArray.updateValueAndValidity({emitEvent: false});
   }
 
   castComponent() {
     return this.component as CheckboxQuestionComponent;
   }
 
-  private _emit() {
+  emit() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
   }
 
@@ -161,9 +173,15 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       });
     }
 
-    this._emit();
+    this.emit();
   }
   
+  private _emit() {
+    if (!this.parent) {
+      this.emit();
+    }
+  }
+
   display(): boolean {
     return QuestionViewUtils.display(this);
   }
@@ -177,20 +195,45 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       throw new Error('Invalid answer type for a radio question component');
     }
 
-    answer.value.split(',').forEach(option => {
-      const value = (option.includes('=')) ? option.split('=')[0]:option;
-      this.select(value);
-    });
+    if (answer.value != '') {
+      answer.value.split(',').forEach(option => {
+        const value = (option.includes('=')) ? option.split('=')[0]:option;
+        this.select(value);
+      });
 
-    this.checkboxArray.markAsTouched();
+      this.checkboxArray.markAsTouched();
 
-    this._emit();
+      this._emit();
+    }
   }
 
   value(): Answer {
-    const options = Object.keys(this.selectedCheckboxes)
-      .filter(key => this.selectedCheckboxes[key]).join(',');
+    const options = [];
 
-    return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS);
+    for (let key of Object.keys(this.selectedCheckboxes)) {
+      if (this.selectedCheckboxes[key]) {
+        const checkbox = this.checkboxes[key];
+
+        if (checkbox.value) {
+          options.push(`${key}=${checkbox.value}`);
+        } else {
+          options.push(key);
+        }
+      }
+    }
+
+    return new Answer(undefined, this.component.componentId, options.join(','), ValueType.OPTIONS);
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  displayAnswer(): boolean {
+    return this.questionComponent?.componentId in this.application?.answers;
   }
 }

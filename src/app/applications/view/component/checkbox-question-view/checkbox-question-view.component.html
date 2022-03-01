@@ -13,7 +13,7 @@
         <app-field-error [condition]="checkboxArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
     <ng-template #notEdit>
-        <app-answer-view *ngIf="questionComponent?.componentId in application?.answers"
+        <app-answer-view *ngIf="displayAnswer()"
             [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     </ng-template>
 </div>

@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy } from '@angular/core';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
-import { MultipartQuestionComponent } from '../../../models/components/multipartquestioncomponent';
+import { MultipartQuestionComponent, QuestionBranch } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponentHost, MatchedQuestionComponents } from '../component-host.directive';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
@@ -28,7 +28,7 @@ function onInputStatic(component: MultipartQuestionViewComponent, event: Questio
   templateUrl: './multipart-question-view.component.html',
   styleUrls: ['./multipart-question-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.MULTIPART_QUESTION)
+@ComponentViewRegistration(ComponentType.MULTIPART_QUESTION)
 export class MultipartQuestionViewComponent extends AbstractComponentHost implements OnInit, QuestionViewComponent, QuestionComponentHost, OnDestroy {
   /**
    * The component being rendered by this view
@@ -75,6 +75,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    * The allowed types for the part questions
    */
   private readonly allowedQuestionParts = [ComponentType.TEXT_QUESTION, ComponentType.SELECT_QUESTION, ComponentType.CHECKBOX_QUESTION, ComponentType.RADIO_QUESTION];
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -99,7 +103,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     this.addToForm();
 
     for (let key of Object.keys(this.multipartQuestion.parts)) {
-      if (!this.multipartQuestion.conditional) {
+      if (!this.multipartQuestion.conditional || !this.edit()) {
         this.displayedParts[key] = true;
       } else {
         this.setDisplayedPart(key);
@@ -154,6 +158,28 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
 
     this.detectChanges();
+    this.propagateEmits();
+    this.removeNotDisplayedFromForm(); // TODO make sure this works
+  }
+
+  private removeNotDisplayedFromForm() {
+    if (this.edit()) {
+      // remove any components that are not displayed from the form
+      for (let key of Object.keys(this.multipartQuestion.parts)) {
+        const part = this.multipartQuestion.parts[key];
+        if (!this.displayedParts[part.partName]) {
+          this.matchedComponents[part.partName].removeFromForm();
+        }
+      }
+    }
+  }
+
+  private propagateEmits() {
+    for (let key of Object.keys(this.matchedComponents)) {
+      if (this.matchedComponents[key].edit()) {
+        this.matchedComponents[key].emit();
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -162,7 +188,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   /**
-   * Initialise/set displayed parts for the given part name`
+   * Initialise/set displayed parts for the given part name
    * @param partName the name of the part to set/initialise the displayed part
    */
   private setDisplayedPart(partName: string) {
@@ -188,9 +214,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
   }
 
-  removeFromForm(): void {
-    this.form.removeControl(this.multipartQuestion.componentId);
-  }
+  removeFromForm(): void {}
 
   castComponent() {
     return this.component as MultipartQuestionComponent;
@@ -200,35 +224,48 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     // TODO no-op for now, may be needed
   }
 
-  private _emit() {
+  emit() {
     this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  }
+
+  private evaluateBranches(view: QuestionViewComponent, branches: QuestionBranch[], hide?: boolean) {
+    for (let branch of branches) {
+      let part = branch.part;
+      let branchValue = branch.value;
+      let display: boolean;
+      
+      if (hide != undefined) {
+        display = hide;
+      } else {
+        display = (view.value() as Answer).matches(branchValue);
+      }
+
+      this.displayedParts[part] = display;
+      this.matchedComponents[part].setVisible(display);
+
+      if (display) {
+        this.matchedComponents[part].addToForm();
+      } else {
+        this.matchedComponents[part].removeFromForm();
+        
+        if (this.matchedComponents[part].component.componentId in this.application?.answers) {
+          delete this.application.answers[this.matchedComponents[part].component.componentId];
+        }
+
+        const partBranches = this.multipartQuestion.parts[part].branches;
+        this.evaluateBranches(undefined, partBranches, false);
+      }
+    }
   }
 
   onInput(event: QuestionChangeEvent, part: string, emitEvent: boolean = true) {
     if (this.multipartQuestion.conditional) {
       const branches = this.multipartQuestion.parts[part].branches;
-
-      for (let branch of branches) {
-        let part = branch.part;
-        let branchValue = branch.value;
-        const display: boolean = (event.view.value() as Answer).matches(branchValue);
-
-        this.displayedParts[part] = display;
-
-        if (display) {
-          this.matchedComponents[part].addToForm();
-        } else {
-          this.matchedComponents[part].removeFromForm();
-          
-          if (this.matchedComponents[part].component.componentId in this.application?.answers) {
-            delete this.application.answers[this.matchedComponents[part].component.componentId];
-          }
-        }
-      }
+      this.evaluateBranches(event.view, branches);
     }
 
     if (emitEvent) {
-      this._emit();
+      this.emit();
     } 
   }
 
@@ -273,5 +310,27 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     Object.keys(this.matchedComponents).forEach(key => answers.push(this.matchedComponents[key].value() as Answer));
 
     return answers;
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+  }
+
+  getHostedQuestions(): QuestionViewComponent[] {
+    const components = [];
+
+    for (let key of Object.keys(this.matchedComponents)) {
+      components.push(this.matchedComponents[key]);
+    }
+
+    return components;
+  }
+
+  displayAnswer(): boolean {
+    return true; // no-op
   }
 }

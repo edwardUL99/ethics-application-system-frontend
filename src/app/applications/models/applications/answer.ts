@@ -56,13 +56,17 @@ class StringMatcher implements AnswerMatcher {
  */
 class OptionsMatcher implements AnswerMatcher {
   private getOptions(value: string) {
-    return value.split(',').map(s => (s.includes('=')) ? s.split('=')[0] : s);
+    return value.split(',').map(s => (s.includes('=')) ? s.split('=')[1] : s);
   }
 
   match(provided: string, value: string): boolean {
-    const options = this.getOptions(value);
+    if (value) {
+      const options = this.getOptions(value);
 
-    return options.indexOf(provided) != -1;
+      return options.indexOf(provided) != -1;
+    } else {
+      return false;
+    }
   }
 
   empty(provided: string): boolean {

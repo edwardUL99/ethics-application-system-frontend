@@ -3,8 +3,8 @@ import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SectionViewComponent as ISectionViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape, QuestionViewComponent, ApplicationViewComponent } from '../application-view.component';
-import { ComponentHost } from '../component-host.directive';
-import { ViewComponentRegistration } from '../registered.components';
+import { ComponentHost, QuestionComponentHost } from '../component-host.directive';
+import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
@@ -12,6 +12,7 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
 import { AlertComponent } from '../../../../alert/alert.component';
 import { Answer } from '../../../models/applications/answer';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
+import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 
 export interface SectionViewComponentShape extends QuestionViewComponentShape {
   /**
@@ -32,7 +33,7 @@ type QuestionAnswered = {
   templateUrl: './section-view.component.html',
   styleUrls: ['./section-view.component.css']
 })
-@ViewComponentRegistration(ComponentType.SECTION)
+@ComponentViewRegistration(ComponentType.SECTION)
 export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ISectionViewComponent, ComponentHost, OnDestroy {
   /**
    * The parent template component
@@ -79,6 +80,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    * A map of questions answered to determine when autosave should be triggered
    */
   private answeredQuestions: QuestionAnswered = {};
+  /**
+   * Determines if the component is visible
+   */
+  @Input() visible: boolean;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -126,14 +131,19 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     for (let child of this.childQuestions) {
       const childAnswered = this.answeredQuestions[child.component.componentId];
 
-      if ((child.component as QuestionComponent).required) {
-        answered = childAnswered;
+      if (child.isVisible()) {
+        if ((child.component as QuestionComponent).required) {
+          answered = childAnswered;
 
-        if (!answered) {
-          return false;
+          if (!answered) {
+            return false;
+          }
+        } else {
+          answered = answered && childAnswered;
         }
       } else {
-        answered = answered && childAnswered;
+        // if not visible, we don't need to wait for an answer
+        answered = true;
       }
     }
 
@@ -157,7 +167,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   }
 
   private registerQuestionsForAutosave() {
-    if (!this.subSection) {
+    if (!this.subSection && this.application.status == ApplicationStatus.DRAFT) { // TODO only autosave for draft 
       this.childQuestions = this.getChildQuestionComponents().filter(c => {
         if (typeof c.disableAutosave === 'function') {
           return !c.disableAutosave();
@@ -168,10 +178,9 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
       this.childQuestions.filter(c => !c.castComponent().editable)
         .forEach(component => this.answeredQuestions[component.component.componentId] = true);
-      const instance = this; // capture for callback
 
       for (let child of this.childQuestions) {
-        const callback = (e: QuestionChangeEvent) => instance.checkQuestionForAutoSave(e);
+        const callback = (e: QuestionChangeEvent) => this.checkQuestionForAutoSave(e);
         child.questionChange.register(callback);
 
         if (child.castComponent().editable) {
@@ -255,17 +264,31 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     for (let child of this.loader.getLoadedComponents(this.component.componentId)) {
       const type = child.component.getType();
 
-      if (child.component.isFormElement()) {
-        components.push(child as QuestionViewComponent);
-      } else if (type == ComponentType.SECTION) {
+      if (type == ComponentType.SECTION) {
         const childSection = child as ISectionViewComponent;
 
         childSection.getChildQuestionComponents().forEach(component => components.push(component));
       } else if (type == ComponentType.CONTAINER) {
         this.loadContainerQuestions(child, components);
+      } else {
+        const childQuestionHost = child as unknown as QuestionComponentHost;
+
+        if (typeof(childQuestionHost.getHostedQuestions) === 'function') {
+          childQuestionHost.getHostedQuestions().forEach(component => components.push(component));
+        } else if (child.component.isFormElement()) {
+          components.push(child as QuestionViewComponent);
+        }
       }
     }
 
     return components;
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  setVisible(visible: boolean): void {
+    this.visible = visible;
   }
 }
