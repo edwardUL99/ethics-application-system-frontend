@@ -285,6 +285,6 @@ export class ApplicationService {
    * @param response the response to map
    */
   mapApplicationResponse(response: ApplicationResponse): Observable<Application> {
-    return getResponseMapper(ApplicationStatus[response.status]).map(response);
+    return getResponseMapper(response.status).map(response);
   }
 }

@@ -178,7 +178,8 @@ describe('ApplicationService', () => {
       username: USERNAME,
       status: ApplicationStatus.DRAFT,
       templateId: request.applicationTemplate.databaseId,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      answers: {}
     };
 
     httpPostSpy.and.returnValue(new Observable<CreateDraftApplicationResponse>(observable => {
@@ -220,7 +221,8 @@ describe('ApplicationService', () => {
     const request = updateDraftRequest();
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      answers: {}
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
@@ -258,7 +260,8 @@ describe('ApplicationService', () => {
     const request = updateDraftRequest();
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      answers: {}
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
