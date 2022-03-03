@@ -3,7 +3,7 @@
   <div class="container" [appCenterBox]>
     <app-center-header *ngIf="!registeredNeedsConfirmation" [text]="'Create an Account'"></app-center-header>
     <app-center-header *ngIf="registeredNeedsConfirmation" [text]="'Registered Successfully'"></app-center-header>
-    <div class="row card ul-white-background shadow w-50 px-3 py-3">
+    <div class="row card ul-white-background shadow w-50 padded-fields-box">
       <div *ngIf="!registeredNeedsConfirmation">
         <form [formGroup]="form">
           <div class="form-group">
@@ -12,7 +12,7 @@
             <app-field-error [condition]="email.errors?.['required'] && email.touched" [error]="'E-mail address is required'"></app-field-error>
             <app-field-error [condition]="email.errors?.['email'] && email.touched" [error]="'Invalid E-mail address'"></app-field-error>
             <app-field-error [condition]="email.errors?.['invalidEmail'] && email.touched" [error]="'The e-mail address needs to be a UL e-mail address'"></app-field-error>
-            <div class="form-text">
+            <div class="form-text render-new-lines">
               Enter your e-mail address (12345678@studentmail.ul.ie for students, john.doe@ul.ie for staff)
             </div>
           </div>
@@ -48,6 +48,7 @@
           <p>Thank you for creating an account with the ethics application system. Your account is now registered. To confirm that it is in fact you, an e-mail has been sent
             to the e-mail address you used for registration. Follow the instructions in the e-mail to confirm your account. Once 
             confirmed, you will be able to create your user profile.</p>
+          <p>If you didn't receive the email, login to your account from <a routerLink="/login">login</a> and click the resend e-mail link</p>
           <p>Thank You,<br>The Team</p>
           <a routerLink="/login">Login</a>
         </div>

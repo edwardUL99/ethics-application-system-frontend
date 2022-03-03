@@ -1,0 +1,21 @@
+<div class="row">
+  <div class="col-4 text-center my-auto">
+    <h5>{{question?.title}}</h5>
+    <div class="form-text" [innerHTML]="question?.description"></div>
+  </div>
+  <div class="col-8">
+    <div class="border px-3 py-3 d-flex h-100" style="font-size: 18px;">
+      <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
+        <p class="my-auto">{{answer?.value}}</p>
+      </div>
+      <div *ngIf="isValueType('OPTIONS')">
+        <ul class="my-auto">
+          <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
+        </ul>
+      </div>
+      <div *ngIf="isValueType('IMAGE')">
+        <img [src]="answer?.value">
+      </div>
+    </div>
+  </div>
+</div>

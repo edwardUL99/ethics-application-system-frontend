@@ -2,7 +2,7 @@
   <app-navbar [hideLinks]="true"></app-navbar>
   <div class="container" [appCenterBox]>
     <app-center-header [text]="'Login'"></app-center-header>
-    <div class="card ul-white-background shadow w-50 px-3 py-3">
+    <div class="card ul-white-background shadow w-50 padded-fields-box">
       <form [formGroup]="form">
         <div class="form-group">
           <label>Username:</label>
@@ -36,7 +36,7 @@
         <app-alert *ngIf="error" [alertType]="'alert-danger'" [dismissible]="true" [message]="error"></app-alert>
         <div class="text-end">
           <a routerLink="/register">Register</a> 
-          <button type="button" (click)="login()" class="btn btn-primary w-25" style="margin-left: 3%">Login</button>
+          <button type="button" (click)="login()" class="btn btn-primary w-25" style="margin-left: 3%" [disabled]="!form.valid">Login</button>
         </div>
       </form>
     </div>

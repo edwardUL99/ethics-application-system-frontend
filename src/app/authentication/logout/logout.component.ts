@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ApplicationTemplateContext } from '../../applications/applicationtemplatecontext';
+import { CacheManager } from '../../caching/cachemanager';
+import { UserContext } from '../../users/usercontext';
 import { JWTStore } from '../jwtstore';
 
 /**
@@ -13,11 +16,32 @@ import { JWTStore } from '../jwtstore';
 export class LogoutComponent implements OnInit {
 
   constructor(private jwtStore: JWTStore,
-    private router: Router) { }
+    private router: Router,
+    private route: ActivatedRoute,
+    private userContext: UserContext,
+    private cache: CacheManager) { }
 
   ngOnInit() {
-    this.jwtStore.destroyToken();
-    this.router.navigate(['login']);
-  }
+    this.route.queryParams.subscribe(params => {
+      const sessionTimeout = params.sessionTimeout;
 
+      const queryParams = {}
+
+      if (params.sessionTimeout) {
+        queryParams['sessionTimeout'] = true;
+      }
+
+      if (params.returnUrl) {
+        queryParams['returnUrl'] = params.returnUrl;
+      }
+
+      this.jwtStore.destroyToken();
+      this.userContext.clearContext();
+      this.cache.clearCache();
+      ApplicationTemplateContext.getInstance().clear();
+      this.router.navigate(['login'], {
+        queryParams: queryParams
+      });
+    });
+  }
 }

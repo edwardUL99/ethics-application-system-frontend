@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { JWTStore } from '../../authentication/jwtstore';
 import { UserService } from '../user.service';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { User } from '../user';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../authentication/auth.service';
+import { UserContext } from '../usercontext';
 
 describe('UserRedirectComponent', () => {
   let component: UserRedirectComponent;
@@ -25,7 +26,8 @@ describe('UserRedirectComponent', () => {
       providers: [
         UserService,
         JWTStore,
-        AuthService  
+        AuthService,
+        UserContext 
       ],
       imports: [
         RouterTestingModule,
@@ -59,7 +61,7 @@ describe('UserRedirectComponent', () => {
     return new User(USERNAME, NAME, ACCOUNT, DEPARTMENT, ROLE);
   }
 
-  it('#redirectPostLogin should redirect to home if user exists', fakeAsync(() => {
+  it('#redirectPostLogin should redirect to home if user exists', (done) => {
     jwtStoreValid.and.returnValue(true);
     jwtStoreUsername.and.returnValue(USERNAME);
 
@@ -68,17 +70,17 @@ describe('UserRedirectComponent', () => {
     }));
 
     component.ngOnInit();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(userServiceSpy).toHaveBeenCalledWith(USERNAME, false);
       expect(component.error).toBeFalsy();
       expect(routerSpy).toHaveBeenCalledWith(['home']);
+      done();
     })
-  }));
+  });
 
-  it('#redirectPostLogin should redirect to create-user if user does not exist', fakeAsync(() => {
+  it('#redirectPostLogin should redirect to create-user if user does not exist', (done) => {
     jwtStoreValid.and.returnValue(true);
     jwtStoreUsername.and.returnValue(USERNAME);
 
@@ -87,17 +89,17 @@ describe('UserRedirectComponent', () => {
     }));
 
     component.ngOnInit();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(userServiceSpy).toHaveBeenCalledWith(USERNAME, false);
       expect(component.error).toBeFalsy();
       expect(routerSpy).toHaveBeenCalledWith(['create-user']);
+      done();
     })
-  }));
+  });
 
-  it('#redirectPostLogin should throw error if load user fails', fakeAsync(() => {
+  it('#redirectPostLogin should throw error if load user fails', (done) => {
     jwtStoreValid.and.returnValue(true);
     jwtStoreUsername.and.returnValue(USERNAME);
 
@@ -106,17 +108,17 @@ describe('UserRedirectComponent', () => {
     }));
 
     component.ngOnInit();
-    tick();
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
       expect(userServiceSpy).toHaveBeenCalledWith(USERNAME, false);
       expect(component.error).toBeTruthy();
       expect(routerSpy).not.toHaveBeenCalled();
+      done();
     })
-  }));
+  });
 
-  it('should redirect to login if not authenticated', () => {
+  it('should redirect to login if not authenticated', (done) => {
     jwtStoreValid.and.returnValue(false);
 
     component.ngOnInit();
@@ -126,7 +128,12 @@ describe('UserRedirectComponent', () => {
     fixture.whenStable().then(() => {
       expect(userServiceSpy).not.toHaveBeenCalled();
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
+      done();
     })
   });
 });

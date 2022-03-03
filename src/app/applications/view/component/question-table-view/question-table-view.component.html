@@ -1,0 +1,19 @@
+<div [id]="questionTable?.componentId" [formGroup]="group" *ngIf="display()">
+  <label>{{questionTable?.title}}</label>
+  <div [id]="questionTable?.componentId + '-cells'">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th *ngFor="let column of columnNames" scope="col">{{column}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows">
+          <td *ngFor="let component of row.components" class="my-auto align-middle">
+            <ng-template componentHost [hostId]="component?.componentId"></ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

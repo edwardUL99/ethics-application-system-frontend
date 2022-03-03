@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../auth.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationRequest } from '../authenticationrequest';
 import { throwError as throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -69,12 +69,18 @@ export class LoginComponent implements OnInit {
    * A tooltip for the username field on login
    */
   loginTooltip: string = 'You can enter just your username (student ID or first.lastname) or your full e-mail';
+  /**
+   * A return URL to redirect to after login
+   */
+  returnUrl: string;
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private jwtStore: JWTStore,
-    private userService: UserService) { 
+    private userService: UserService,
+    private route: ActivatedRoute,
+    private userContext: UserContext) { 
       this.form = this.fb.group({
         username: ['', [Validators.required, EmailUsernameValidator()]],
         password: ['', Validators.required],
@@ -83,8 +89,16 @@ export class LoginComponent implements OnInit {
     }
 
   ngOnInit() {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'];
+
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
+    } else {
+      this.route.queryParams.subscribe(params => {
+        if (params.sessionTimeout) {
+          this.error = 'The session has timed out. Please login again';
+        }
+      });
     }
   }
 
@@ -114,8 +128,13 @@ export class LoginComponent implements OnInit {
     this.userService.loadUser(username, false)
       .subscribe({
         next: response => {
-          UserContext.getInstance().user = response;
-          this.router.navigate(['home']);
+          this.userContext.setUser(response);
+          
+          if (this.returnUrl) {
+            this.router.navigateByUrl(this.returnUrl);
+          } else {
+            this.router.navigate(['home']);
+          }
         },
         error: e => {
           if (e == '404-User') {
@@ -138,7 +157,14 @@ export class LoginComponent implements OnInit {
     .subscribe({
       next: x => {
         this.jwtStore.storeToken(x.username, x.token, x.expiry);
-        this.router.navigate(['user-redirect']);
+        
+        if (this.returnUrl) {
+          this.router.navigate(['user-redirect'], {
+            queryParams: {returnUrl: this.returnUrl}
+          });
+        } else {
+          this.router.navigate(['user-redirect']);
+        }
       },
       error: e => {
         if (e == ErrorMappings.account_not_confirmed) {

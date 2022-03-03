@@ -12,9 +12,30 @@ This class represents the styling for UL's white background
 	background-color: white;
 }
 
-/**
+/*
 This class represents red error text 
 */
 .error-text {
 	color: red;
+}
+
+/*
+A class that pads on x and y axis a box with fields in it to make them appear more aesthetically pleasing
+*/
+.padded-fields-box {
+	padding: 1rem !important;
+}
+
+/*
+Add this class to render \n as line breaks
+*/
+.render-new-lines {
+	white-space: pre-line;
+}
+
+/**
+Sets the standard height for the app's containers
+*/
+.app-height {
+	height: 80vh !important;
 }

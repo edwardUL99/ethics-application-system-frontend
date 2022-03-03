@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -63,7 +63,7 @@ describe('RegistrationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('entering valid inputs should make form valid', () => {
+  it('entering valid inputs should make form valid', (done) => {
     setValues('', '', '');
 
     fixture.detectChanges();
@@ -77,11 +77,12 @@ describe('RegistrationComponent', () => {
 
       fixture.whenStable().then(() => {
         expect(component.form.valid).toEqual(true);
+        done();
       });
     })
   });
 
-  it('entering non-UL e-mail should throw error', () => {
+  it('entering non-UL e-mail should throw error', (done) => {
     environment.requireULEmail = true;
     setValues(EMAIL, PASSWORD, PASSWORD);
 
@@ -91,10 +92,11 @@ describe('RegistrationComponent', () => {
       expect(component.form.valid).toEqual(false);
       expect(component.email.errors?.['invalidEmail']).toBeTruthy();
       environment.requireULEmail = false;
+      done();
     })
   });
 
-  it('entering invalid inputs should make form invalid', () => {
+  it('entering invalid inputs should make form invalid', (done) => {
     setValues('', '', '');
 
     fixture.detectChanges();
@@ -117,12 +119,13 @@ describe('RegistrationComponent', () => {
         fixture.whenStable().then(() => {
           expect(component.form.valid).toEqual(false);
           expect(component.form.get('passwordGroup').errors?.['noMatch']).toBeTruthy();
+          done();
         })
       });
     })
   });
 
-  it('#register should register the user successfully', fakeAsync(() => {
+  it('#register should register the user successfully', (done) => {
     setValues(EMAIL, PASSWORD, PASSWORD);
 
     const expectedValue = {
@@ -149,19 +152,18 @@ describe('RegistrationComponent', () => {
 
       component.register();
 
-      tick();
-
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
         expect(authServiceSpy).toHaveBeenCalledWith(request);
         expect(routerSpy).not.toHaveBeenCalled();
         expect(component.error).toBeNull();
+        done();
       });
     })
-  }));
+  });
 
-  it('#register should register the user successfully and direct to login if already confirmed', fakeAsync(() => {
+  it('#register should register the user successfully and direct to login if already confirmed', (done) => {
     setValues(EMAIL, PASSWORD, PASSWORD);
 
     const expectedValue = {
@@ -189,20 +191,18 @@ describe('RegistrationComponent', () => {
       authServiceSpy.and.returnValue(new Observable<AccountResponse>(observer => observer.next(expectedResponse)));
 
       component.register();
-
-      tick();
-
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
         expect(authServiceSpy).toHaveBeenCalledWith(request);
         expect(routerSpy).toHaveBeenCalledWith(['login']);
         expect(component.error).toBeNull();
+        done();
       });
     })
-  }));
+  });
 
-  it('#register should throw error and handle it', fakeAsync(() => {
+  it('#register should throw error and handle it', (done) => {
     setValues(EMAIL, PASSWORD, PASSWORD);
 
     const expectedValue = {
@@ -226,16 +226,14 @@ describe('RegistrationComponent', () => {
       authServiceSpy.and.returnValue(new Observable<AccountResponse>(observer => observer.error(error)));
 
       component.register();
-
-      tick();
-
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
         expect(authServiceSpy).toHaveBeenCalledWith(request);
         expect(routerSpy).not.toHaveBeenCalled();
         expect(component.error).toEqual(ErrorMappings.email_exists);
+        done();
       });
     })
-  }));
+  });
 });

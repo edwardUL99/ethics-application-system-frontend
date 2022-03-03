@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { JWTStore } from '../../authentication/jwtstore';
 import { UserService } from '../user.service';
 import { UserContext } from '../usercontext';
@@ -14,18 +14,29 @@ export class UserRedirectComponent implements OnInit {
    * An error condition occurred
    */
   error: boolean;
+  /**
+   * A return url to redirect to
+   */
+  returnUrl: string;
 
   constructor(private userService: UserService,
     private router: Router,
-    private jwtStore: JWTStore) { }
+    private route: ActivatedRoute,
+    private jwtStore: JWTStore,
+    private userContext: UserContext) { }
 
   ngOnInit() {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'];
     this.error = false;
 
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
-      this.router.navigate(['logout']);
+      this.router.navigate(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
     }
   }
 
@@ -33,8 +44,13 @@ export class UserRedirectComponent implements OnInit {
     this.userService.loadUser(username, false)
       .subscribe({
         next: response => {
-          UserContext.getInstance().user = response;
-          this.router.navigate(['home']);
+          this.userContext.setUser(response);
+          
+          if (this.returnUrl) {
+            this.router.navigateByUrl(this.returnUrl);
+          } else {
+            this.router.navigate(['home']);
+          }
         },
         error: e => {
           if (e == '404-User') {

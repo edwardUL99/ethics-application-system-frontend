@@ -1,0 +1,21 @@
+<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
+    <div *ngIf="edit(); else notEdit">
+        <label>{{questionComponent?.title}}</label>
+        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
+        <div *ngIf="questionComponent?.singleLine">
+            <input [type]="questionComponent?.questionType" [name]="questionComponent?.name" (change)="onChange()" class="form-control"
+            [formControlName]="questionComponent?.name">
+        </div>
+        <div *ngIf="!questionComponent?.singleLine">
+            <textarea [name]="questionComponent?.name" class="form-control" (change)="onChange()" [formControlName]="questionComponent?.name"></textarea>
+        </div>
+        <app-field-error [condition]="control.errors?.['required'] && control.touched" [error]="'This field is required'"></app-field-error>
+        <app-field-error [condition]="control.errors?.['email'] && control.touched" [error]="'Please enter a valid e-mail address'"></app-field-error>
+    </div>
+    <ng-template #notEdit>
+        <app-answer-view *ngIf="displayAnswer()"
+            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    </ng-template>
+    <app-comment-display [application]="application" [component]="this"></app-comment-display>
+</div>

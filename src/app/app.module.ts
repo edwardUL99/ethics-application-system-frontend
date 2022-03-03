@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { Injector, NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
@@ -23,6 +23,43 @@ import { CenterHeaderComponent } from './center-header/center-header.component';
 import { CreateUserComponent } from './users/create-user/create-user.component';
 import { UserRedirectComponent } from './users/user-redirect/user-redirect.component';
 import { FieldErrorComponent } from './field-error/field-error.component';
+import { SectionViewComponent } from './applications/view/component/section-view/section-view.component';
+import { ComponentHostDirective } from './applications/view/component/component-host.directive';
+import { ContainerViewComponent } from './applications/view/component/container-view/container-view.component';
+import { TextViewComponent } from './applications/view/component/text-view/text-view.component';
+import { TextQuestionViewComponent } from './applications/view/component/text-question-view/text-question-view.component';
+import { SelectQuestionViewComponent } from './applications/view/component/select-question-view/select-question-view.component';
+import { CheckboxGroupViewComponent } from './applications/view/component/checkbox-group-view/checkbox-group-view.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ModalComponent } from './modal/modal.component';
+import { UserContext } from './users/usercontext';
+import { CheckboxQuestionViewComponent } from './applications/view/component/checkbox-question-view/checkbox-question-view.component';
+import { RadioQuestionViewComponent } from './applications/view/component/radio-question-view/radio-question-view.component';
+import { MultipartQuestionViewComponent } from './applications/view/component/multipart-question-view/multipart-question-view.component';
+import { ApplicationTemplateService } from './applications/application-template.service';
+import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
+import { SignatureQuestionViewComponent } from './applications/view/component/signature-question-view/signature-question-view.component'
+import { SignatureFieldComponent } from './applications/view/component/signature-question-view/signature-field/signature-field.component';
+import { QuestionTableViewComponent } from './applications/view/component/question-table-view/question-table-view.component';
+import { DynamicComponentLoader } from './applications/view/component/dynamiccomponents';
+import { ApplicationTemplateDisplayComponent } from './applications/view/application-template-display/application-template-display.component';
+import { InjectorService } from './injector.service';
+import { ApplicationService } from './applications/application.service';
+import { ApplicationContext } from './applications/applicationcontext';
+import { AnswerViewComponent } from './applications/view/answer-view/answer-view.component';
+import { CacheManager } from './caching/cachemanager';
+import { CachingInterceptor } from './caching/interceptor';
+import { ApplicationDisplayComponent } from './applications/view/application-display/application-display.component';
+import { FakeInterceptor } from './testing/fakeinterceptor';
+import { PendingChangesGuard } from './pending-changes/pendingchangesguard';
+import { LoadingComponent } from './loading/loading.component';
+import { ApplicationListComponent } from './applications/view/application-list/application-list.component';
+import { AuthorizationService } from './users/authorization.service';
+import { ReferMarkerComponent } from './applications/view/refer-marker/refer-marker.component';
+import { CommentDisplayComponent } from './applications/view/comment-display/comment-display.component';
+import { AuthGuard } from './authentication/authguard';
+import { IndexRedirectComponent } from './index-redirect/index-redirect.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
@@ -40,13 +77,38 @@ import { FieldErrorComponent } from './field-error/field-error.component';
     CenterHeaderComponent,
     CreateUserComponent,
     UserRedirectComponent,
-    FieldErrorComponent
+    FieldErrorComponent,
+    SectionViewComponent,
+    ComponentHostDirective,
+    ContainerViewComponent,
+    TextViewComponent,
+    TextQuestionViewComponent,
+    SelectQuestionViewComponent,
+    CheckboxGroupViewComponent,
+    ModalComponent,
+    CheckboxQuestionViewComponent,
+    RadioQuestionViewComponent,
+    MultipartQuestionViewComponent,
+    SignatureQuestionViewComponent,
+    SignatureFieldComponent,
+    QuestionTableViewComponent,
+    ApplicationTemplateDisplayComponent,
+    AnswerViewComponent,
+    ApplicationDisplayComponent,
+    LoadingComponent,
+    ApplicationListComponent,
+    ReferMarkerComponent,
+    CommentDisplayComponent,
+    IndexRedirectComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NgbModule,
+    AngularSignaturePadModule
   ],
   providers: [
     AuthService,
@@ -56,8 +118,31 @@ import { FieldErrorComponent } from './field-error/field-error.component';
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    }
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: FakeInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CachingInterceptor,
+      multi: true
+    },
+    UserContext,
+    ApplicationTemplateService,
+    DynamicComponentLoader,
+    ApplicationService,
+    ApplicationContext,
+    CacheManager,
+    PendingChangesGuard,
+    AuthorizationService,
+    AuthGuard
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(private injector: Injector) {
+    InjectorService.initialise(this.injector);
+  }
+}

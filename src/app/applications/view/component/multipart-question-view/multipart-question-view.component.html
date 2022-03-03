@@ -1,0 +1,10 @@
+<div [id]="multipartQuestion?.componentId" [formGroup]="group">
+    <label>{{multipartQuestion?.title}}</label>
+    <div [id]="multipartQuestion?.componentId + '-parts'">
+        <div *ngFor="let part of getParts()">
+            <div [ngClass]="(displayedParts[part?.partName]) ? '':'d-none'">
+                <ng-template componentHost [hostId]="part?.question?.componentId" (questionChange)="onInput($event, part?.partName)"></ng-template>
+            </div>
+        </div>
+    </div>
+</div>

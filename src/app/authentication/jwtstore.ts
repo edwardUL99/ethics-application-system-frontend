@@ -51,7 +51,7 @@ export class JWTStore {
      * Determine if the stored token is still valid
      */
     isTokenValid(): boolean {
-        const expiration = this.getExpiration();
+        const expiration = moment(this.getExpiration());
         return this.getToken() != null && expiration != null && moment().isBefore(expiration);
     }
 
@@ -68,6 +68,6 @@ export class JWTStore {
 
         const date = new Date(expiration);
 
-        return moment(date);
+        return date;
     }
 }

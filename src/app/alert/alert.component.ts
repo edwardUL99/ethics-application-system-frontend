@@ -21,10 +21,27 @@ export class AlertComponent implements OnInit {
    * Determines if the alert can be dismissed
    */
   @Input() dismissible: boolean = false;
+  /**
+   * A flag to indicate that the alert should be hidden
+   */
+  @Input() hidden: boolean = false;
 
   constructor() { }
 
   ngOnInit() {
   }
 
+  /**
+   * Show the alert
+   */
+  show() {
+    this.hidden = false;
+  }
+
+  /**
+   * Hide the alert
+   */
+  hide()  {
+    this.hidden = true;
+  }
 }

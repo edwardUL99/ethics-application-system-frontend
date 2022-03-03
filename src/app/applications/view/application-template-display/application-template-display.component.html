@@ -1,0 +1,21 @@
+<div>
+  <div *ngIf="application" class="">
+    <div class="card shadow text-center my-2 p-2">
+      <div class="mb-2">
+        <h3>{{template?.name}}</h3>
+      </div>
+      <div class="mb-2">
+        <p style="color: lightgrey" [innerHTML]="template?.description"></p>
+      </div>
+      <div class="mb-2">
+        <p><b>Version:</b> {{template?.version}}</p>
+      </div>
+    </div>
+    <div [id]="template?.id + '-components'">
+      <form [formGroup]="form">
+        <!-- The parent component host that will hold all components -->
+        <ng-template componentHost></ng-template>
+      </form>
+    </div>
+  </div>
+</div>

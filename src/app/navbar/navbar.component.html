@@ -20,6 +20,12 @@
           <a [ngClass]="active == 'Applications' ? 'nav-link active':'nav-link'" aria-current="page" routerLink="/applications">Applications</a>
         </li>
       </ul>
+      <div *ngIf="displayProfile" class="align-items-center justify-content-center mr-3 mt-2">
+        <h6 style="color: grey">{{name}}</h6>
+      </div>
+      <div class="text-end">
+        <a routerLink="/logout">Logout</a>
+      </div>
     </div>
   </div>
 </nav>

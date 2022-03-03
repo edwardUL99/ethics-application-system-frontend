@@ -1,0 +1,92 @@
+<div>
+  <app-navbar></app-navbar> 
+  <div *ngIf="!loadError; else displayError">
+    <div *ngIf="application; else loading" class="container">
+      <div class="card shadow p-2" *ngIf="isAdmin">
+        <div class="d-inline text-end">
+          <button type="button" class="btn btn-primary" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
+          <button type="button" class="btn btn-primary" *ngIf="checkStatus('REVIEWED')" (click)="referApplication()">Refer to Applicant</button>
+          <button type="button" class="btn btn-primary" *ngIf="checkStatus('RESUBMITTED')" (click)="acceptReferred()">Reassign</button>
+          <button type="button" class="btn btn-danger ml-2" *ngIf="checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(false)">Reject</button>
+          <button type="button" class="btn btn-success ml-2" *ngIf="checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(true)">Approve</button>
+        </div>
+      </div>
+      <div class="card shadow p-2" *ngIf="isAdmin && checkStatus('REVIEWED') && finalCommentFormDisplayed">
+        <form [formGroup]="finalCommentForm">
+          <div class="text-end">
+            <button type="button" class="btn-close" (click)="toggleFinalCommentForm(undefined, false)"></button>
+          </div>
+          <div class="form-group">
+            <label>Comment:</label>
+            <textarea name="comment" class="form-control" formControlName="comment" [value]="application?.finalComment"></textarea>
+            <app-field-error [condition]="finalCommentForm.get('comment').errors?.['required'] && finalCommentForm.get('comment').touched" [error]="'Field is required'"></app-field-error>
+            <div class="form-text">
+              Enter the final comment to leave on the aplication outlining the approval decision
+            </div>
+          </div>
+          <input type="hidden" name="approval" formControlName="approval" [value]="finalCommentFormApproval">
+          <div class="text-end">
+            <button type="button" [ngClass]="(finalCommentFormApproval) ? 'btn btn-primary':'btn btn-danger'" 
+              (click)="(finalCommentFormApproval) ? approveApplication():rejectApplication()" [disabled]="!finalCommentForm.valid">{{(finalCommentFormApproval) ? 'Approve':'Reject'}}</button>
+          </div>
+        </form>
+      </div>
+      <div class="card shadow p-2" *ngIf="isAdmin && (checkStatus('SUBMITTED') || checkStatus('REVIEW'))">
+        <div *ngIf="committeeMembers | async as members">
+          <form [formGroup]="acceptForm">
+            <div class="form-group">
+              <label>Committee Member:</label>
+              <select class="form-select" formControlName="member" [appTooltip]="'Choose the committee member(s) to assign to the application'" multiple>
+                <option></option>
+                <option *ngFor="let member of members" [value]="member.username">{{member.name + ' - ' + member.username}}</option>
+              </select>
+              <app-field-error [condition]="assignForm.get('member')?.errors?.['required'] && assignForm.get('member').touched" [error]="'This field is required'"></app-field-error>
+              <div class="form-text">
+                Choose the committee member(s) to assign to the application
+              </div>
+            </div>
+            <div class="text-end">
+              <button type="button" class="btn btn-primary" (click)="assignMembers()" [disabled]="!assignForm.valid">Assign</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <app-alert #actionAlert [alertType]="'alert-success'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
+      <app-alert *ngIf="actionError" [alertType]="'alert-danger'" [dismissible]="true" [message]="actionError"></app-alert>
+      <div class="card shadow text-center my-5 p-3">
+        <div class="text-end">
+          <p><b>Application ID:</b> {{application?.applicationId}}</p>
+        </div>
+        <div class="text-start">
+          <p class="application-text"><b>Applicant:</b> {{application?.user?.name}}</p>
+          <p class="application-text"><b>Application Status:</b> {{application?.status}}</p>
+          <p class="application-text"><b>Last Updated:</b> {{getLastUpdatedDate()}}</p>
+          <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> {{application.referredBy.name}}</p>
+        </div>
+      </div>
+      <div *ngIf="application?.finalComment">
+        <p>TODO Final Comment will go here</p>
+      </div>
+      <app-center-header [text]="'Application Form'"></app-center-header>
+      <app-application-template-display [application]="application"
+      (questionChange)="questionChange($event)" (autoSave)="autoSave($event)" [viewingUser]="viewingUser"></app-application-template-display>
+      <app-alert #saveAlert [alertType]="'alert-success'" [message]="'Saved'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
+      <app-alert #saveErrorAlert [alertType]="'alert-danger'" [message]="saveError" [dismissible]="true" [hidden]="true"></app-alert>
+      <div class="card shadow px-3 py-2" *ngIf="showSaveSubmitButton()">
+        <div class="d-inline text-end">
+          <button type="button" class="btn btn-secondary" (click)="save()">Save</button>
+          <button type="button" class="btn btn-primary margin-left-1" [disabled]="!templateView?.form.valid" (click)="submit()">Submit</button> 
+          <button type="button" class="btn btn-primary margin-left-1" *ngIf="canReview" (click)="save()">Save Review</button>
+        </div>
+      </div>
+    </div>
+    <ng-template #loading>
+      <app-loading></app-loading>
+    </ng-template> 
+  </div>
+  <ng-template #displayError>
+    <div class="container">
+      <app-alert [alertType]="'alert-danger'" [message]="loadError"></app-alert>
+    </div>
+  </ng-template>
+</div>

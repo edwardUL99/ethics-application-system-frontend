@@ -3,7 +3,7 @@
   <div class="container" [appCenterBox]>
     <app-alert *ngIf="initError" [alertType]="'alert-danger'" [message]="initError"></app-alert>
     <app-center-header *ngIf="!initError" [text]="'Confirm Account'"></app-center-header>
-    <div *ngIf="!initError" class="card ul-white-background shadow w-50 px-3 py-3">
+    <div *ngIf="!initError" class="card ul-white-background shadow w-50 padded-fields-box">
       <div *ngIf="useForm">
         <form [formGroup]="form">
           <div class="form-group">
@@ -22,7 +22,7 @@
           </div>
           <app-alert *ngIf="confirmError" [alertType]="'alert-danger'" [message]="confirmError" [dismissible]="true"></app-alert>
           <div class="text-end mt-2">
-            <button type="button" (click)="confirm()" class="btn btn-primary w-25" style="margin-left: 3%">Confirm</button>
+            <button type="button" (click)="confirm()" class="btn btn-primary w-25" style="margin-left: 3%" [disabled]="!form.valid">Confirm</button>
           </div>
         </form>
       </div>

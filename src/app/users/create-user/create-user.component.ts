@@ -45,29 +45,14 @@ export class CreateUserComponent implements OnInit {
       this.username = this.jwtStore.getUsername();
 
       if (!this.username) {
-        this.router.navigate(['logout']);
-      }
-
-      this.userService.getUser(this.username)
-        .pipe(
-          catchError(e => {
-            if (e.status != 404) {
-              return throwError(() => 'Unknown Error Occurred')
-            } else {
-              return throwError(() => 'OK');
-            }
-          })
-        )
-        .subscribe({
-          next: () => this.router.navigate(['user-redirect']),
-          error:e => {
-            if (e != 'OK') {
-              this.error = e;
-            }
+        this.router.navigate(['logout'], {
+          queryParams: {
+            sessionTimeout: true
           }
-      });
+        });
+      }
     } else {
-      this.router.navigate(['logout']);
+      this.router.navigate(['user-redirect']);
     }
   }
 
@@ -94,8 +79,7 @@ export class CreateUserComponent implements OnInit {
           catchError(e => throwError(() => getErrorMessage(e)))
         )
         .subscribe({
-          next: response => {
-            console.log(response);
+          next: () => {
             this.router.navigate(['user-redirect'])
           },
           error: e => this.error = e

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -10,7 +10,7 @@ import { JWTStore } from '../../authentication/jwtstore';
 import { CreateUpdateUserRequest } from '../createupdateuserrequest';
 import { UserResponse } from '../responses/userresponse';
 import { UserService } from '../user.service';
-import { USERNAME, NAME, DEPARTMENT } from '../../testing/fakes';
+import { USERNAME, NAME, DEPARTMENT, createUserResponse } from '../../testing/fakes';
 
 import { ErrorMappings } from '../../mappings';
 
@@ -75,33 +75,11 @@ describe('CreateUserComponent', () => {
     component.department.setValue(department);
   }
 
-  const createUserResponse = (): UserResponse => {
-    return {
-      username: USERNAME,
-      name: NAME,
-      department: DEPARTMENT,
-      email: 'username@email.com',
-      role: {
-        id: 1,
-        name: 'User',
-        description: 'default role',
-        singleUser: false,
-        permissions: [
-          {
-            id: 2,
-            name: 'Permission',
-            description: 'default permission'
-          }
-        ]
-      }
-    };
-  }
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('entering valid data should make the form valid', () => {
+  it('entering valid data should make the form valid', (done) => {
     setValues('', '');
 
     fixture.detectChanges();
@@ -115,11 +93,12 @@ describe('CreateUserComponent', () => {
 
       fixture.whenStable().then(() => {
         expect(component.form.value).toBeTruthy();
+        done();
       })
     })
   });
 
-  it('#create should successfully create user', fakeAsync(() => {
+  it('#create should successfully create user', (done) => {
     component.username = USERNAME;
     setValues(NAME, DEPARTMENT);
 
@@ -138,18 +117,18 @@ describe('CreateUserComponent', () => {
       expect(component.form.value).toEqual(expectedValue);
 
       component.create();
-      tick();
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
         expect(component.error).toBeFalsy();
         expect(userServiceCreate).toHaveBeenCalledWith(new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT), false);
         expect(routerSpy).toHaveBeenCalledWith(['user-redirect']);
+        done();
       });
     })
-  }));
+  });
 
-  it('#create should throw and handle error', fakeAsync(() => {
+  it('#create should throw and handle error', (done) => {
     component.username = USERNAME;
     setValues(NAME, DEPARTMENT);
 
@@ -172,84 +151,18 @@ describe('CreateUserComponent', () => {
       expect(component.form.value).toEqual(expectedValue);
 
       component.create();
-      tick();
       fixture.detectChanges();
 
       fixture.whenStable().then(() => {
         expect(component.error).toEqual(ErrorMappings.user_exists);
         expect(userServiceCreate).toHaveBeenCalledWith(new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT), false);
         expect(routerSpy).not.toHaveBeenCalled();
+        done();
       })
     });
-  }));
+  });
 
-  it('if user exists on route to create-user, it should redirect', fakeAsync(() => {
-    jwtStoreValid.and.returnValue(true);
-    jwtStoreUsername.and.returnValue(USERNAME);
-
-    userServiceGet.and.returnValue(new Observable(observer => observer.next(createUserResponse())));
-
-    component.ngOnInit();
-    tick();
-    fixture.detectChanges();
-
-    fixture.whenStable().then(() => {
-      expect(component.error).toBeFalsy();
-
-      expect(userServiceGet).toHaveBeenCalledWith(USERNAME);
-      expect(routerSpy).toHaveBeenCalledWith(['user-redirect']);
-    });
-  }));
-
-  it('if user exists on route to create-user, and not found occurs, it should be ok', fakeAsync(() => {
-    jwtStoreValid.and.returnValue(true);
-    jwtStoreUsername.and.returnValue(USERNAME);
-
-    const error: HttpErrorResponse = new HttpErrorResponse({
-      status: 404
-    });
-
-    userServiceGet.and.returnValue(new Observable<UserResponse>(observer => {
-      observer.error(error);
-    }));
-
-    component.ngOnInit();
-    tick();
-    fixture.detectChanges();
-
-    fixture.whenStable().then(() => {
-      expect(component.error).toBeFalsy();
-
-      expect(userServiceGet).toHaveBeenCalledWith(USERNAME);
-      expect(routerSpy).not.toHaveBeenCalledWith();
-    });
-  }));
-
-  it('if user exists on route to create-user, and unknown error occurs, it should be displayed', fakeAsync(() => {
-    jwtStoreValid.and.returnValue(true);
-    jwtStoreUsername.and.returnValue(USERNAME);
-
-    const error: HttpErrorResponse = new HttpErrorResponse({
-      error: {error: 'unknown'}, status: 400
-    });
-
-    userServiceGet.and.returnValue(new Observable<UserResponse>(observer => {
-      observer.error(error);
-    }));
-
-    component.ngOnInit();
-    tick();
-    fixture.detectChanges();
-
-    fixture.whenStable().then(() => {
-      expect(component.error).toBeTruthy();
-
-      expect(userServiceGet).toHaveBeenCalledWith(USERNAME);
-      expect(routerSpy).not.toHaveBeenCalled();
-    });
-  }));
-
-  it('if JWT token is invalid on route to create-user, redirect to login', () => {
+  it('if JWT token is invalid on route to create-user, redirect to login', (done) => {
     jwtStoreValid.and.returnValue(false);
 
     component.ngOnInit();
@@ -257,11 +170,12 @@ describe('CreateUserComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['user-redirect']);
+      done();
     });
   });
 
-  it('if JWT username is null on route to create-user, redirect to login', () => {
+  it('if JWT username is null on route to create-user, redirect to login', (done) => {
     jwtStoreValid.and.returnValue(true);
     jwtStoreUsername.and.returnValue(null);
 
@@ -270,7 +184,12 @@ describe('CreateUserComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(component.error).toBeFalsy();
-      expect(routerSpy).toHaveBeenCalledWith(['logout']);
+      expect(routerSpy).toHaveBeenCalledWith(['logout'], {
+        queryParams: {
+          sessionTimeout: true
+        }
+      });
+      done();
     });
   });
 });
