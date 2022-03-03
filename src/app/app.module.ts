@@ -58,6 +58,8 @@ import { AuthorizationService } from './users/authorization.service';
 import { ReferMarkerComponent } from './applications/view/refer-marker/refer-marker.component';
 import { CommentDisplayComponent } from './applications/view/comment-display/comment-display.component';
 import { AuthGuard } from './authentication/authguard';
+import { IndexRedirectComponent } from './index-redirect/index-redirect.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
@@ -96,7 +98,9 @@ import { AuthGuard } from './authentication/authguard';
     LoadingComponent,
     ApplicationListComponent,
     ReferMarkerComponent,
-    CommentDisplayComponent
+    CommentDisplayComponent,
+    IndexRedirectComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

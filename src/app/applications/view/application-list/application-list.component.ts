@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -92,6 +92,7 @@ export class ApplicationListComponent implements OnInit {
     private authorizationService: AuthorizationService,
     private userContext: UserContext,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private applicationService: ApplicationService) {
     this.newAppForm = this.fb.group({
       template: this.fb.control('')
@@ -137,6 +138,7 @@ export class ApplicationListComponent implements OnInit {
     });
 
     this.loadUserPermissions();
+    this.displayNewApp = this.activatedRoute.snapshot.queryParams.create !== undefined;
   }
 
   toggleNewApp() {

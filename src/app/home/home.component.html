@@ -1,0 +1,16 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container" [appCenterBox]>
+    <app-center-header [text]="'Research Ethics'"></app-center-header>
+    <app-alert [message]="error" [alertType]="'alert-danger'" [hidden]="!error" [dismissible]="true"></app-alert>
+    <div class="card p-2 text-center">
+      <p class="welcome-text">Welcome to the Education and Health Sciences Research Ethics Web Page. Research is important. It is one of the "raison d'etres" of a university.  
+      A university's infrastructure's purpose is to facilitate research, indeed to promote it. 
+      Yet there is also a need to safeguard those who are the subject of such research.</p>
+      <div class="text-center mt-3 d-flex align-self-center">
+        <button type="button" class="btn btn-primary" style="margin-right: 50px" (click)="goToApplications()">View Applications</button>
+        <button *ngIf="createApplication" type="button" class="btn btn-primary" (click)="goToApplication(true)">Create Application</button>
+      </div>
+    </div>
+  </div>
+</div>>

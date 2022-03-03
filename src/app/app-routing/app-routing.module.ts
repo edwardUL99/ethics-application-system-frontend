@@ -2,7 +2,7 @@ import { NgModule, Type } from '@angular/core';
 import { Routes, RouterModule, CanDeactivate, CanActivate } from '@angular/router';
 import { LoginComponent } from '../authentication/login/login.component';
 import { NotFoundComponent } from '../not-found/not-found.component';
-import { AppComponent } from '../app.component';
+import { IndexRedirectComponent } from '../index-redirect/index-redirect.component';
 import { RegistrationComponent } from '../authentication/registration/registration.component';
 import { EmailConfirmationComponent } from '../authentication/email-confirmation/email-confirmation.component';
 import { NeedsConfirmationComponent } from '../authentication/email-confirmation/needs-confirmation.component';
@@ -13,9 +13,10 @@ import { ApplicationDisplayComponent } from '../applications/view/application-di
 import { PendingChangesGuard } from '../pending-changes/pendingchangesguard';
 import { ApplicationListComponent } from '../applications/view/application-list/application-list.component';
 import { AuthGuard } from '../authentication/authguard';
+import { HomeComponent } from '../home/home.component';
 
 
-function createRoute(path: string, component: Type<any>, canDeactivate?: Type<CanDeactivate<any>>[], canActivate?: Type<CanActivate>[]) {
+function createRoute(path: string, component: Type<any>, canDeactivate?: Type<CanDeactivate<any>>[], canActivate?: Type<CanActivate>[], pathMatch?: string) {
     const route = {path: path, component: component};
 
     if (canDeactivate) {
@@ -25,6 +26,8 @@ function createRoute(path: string, component: Type<any>, canDeactivate?: Type<Ca
     if (canActivate) {
         route['canActivate'] = canActivate;
     }
+
+    route['pathMatch'] = pathMatch;
 
     return route;
 }
@@ -40,12 +43,15 @@ const routes: Routes = [
     createRoute('create-user', CreateUserComponent, undefined, [AuthGuard]),
     createRoute('application', ApplicationDisplayComponent, [PendingChangesGuard], [AuthGuard]),
     createRoute('applications', ApplicationListComponent, undefined, [AuthGuard]),
-    createRoute('', AppComponent),
+    createRoute('home', HomeComponent, undefined, [AuthGuard]),
+    createRoute('', IndexRedirectComponent, undefined, undefined, 'full'),
     createRoute('**', NotFoundComponent)
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes)],
+    imports: [RouterModule.forRoot(routes, {
+        enableTracing: true
+    })],
     exports: [RouterModule]
 })
 

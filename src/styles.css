@@ -32,3 +32,10 @@ Add this class to render \n as line breaks
 .render-new-lines {
 	white-space: pre-line;
 }
+
+/**
+Sets the standard height for the app's containers
+*/
+.app-height {
+	height: 80vh !important;
+}
