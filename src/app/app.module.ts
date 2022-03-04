@@ -60,6 +60,7 @@ import { CommentDisplayComponent } from './applications/view/comment-display/com
 import { AuthGuard } from './authentication/authguard';
 import { IndexRedirectComponent } from './index-redirect/index-redirect.component';
 import { HomeComponent } from './home/home.component';
+import { ApiInterceptor } from './api-interceptor/api-interceptor';
 
 @NgModule({
   declarations: [
@@ -127,6 +128,11 @@ import { HomeComponent } from './home/home.component';
     {
       provide: HTTP_INTERCEPTORS,
       useClass: CachingInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ApiInterceptor,
       multi: true
     },
     UserContext,
