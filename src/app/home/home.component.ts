@@ -16,22 +16,31 @@ export class HomeComponent implements OnInit {
   /**
    * Determines if an error occurred
    */
-  error: boolean;
+  error: string;
 
   constructor(private authorizationService: AuthorizationService,
     private userContext: UserContext,
     private router: Router) { }
 
   ngOnInit(): void {
-    this.userContext.getUser().subscribe({
-      next: user => {
-        this.authorizationService.authorizeUserPermissions(user, ['CREATE_APPLICATION'], true).subscribe({
-          next: create => this.createApplication = create,
-          error: e => this.error = e
-        });
-      },
-      error: e => this.error = e
-    });
+    try {
+      this.userContext.getUser().subscribe({
+        next: user => {
+          this.authorizationService.authorizeUserPermissions(user, ['CREATE_APPLICATION'], true).subscribe({
+            next: create => this.createApplication = create,
+            error: e => this.error = e
+          });
+        },
+        error: e => this.error = e
+      });
+    } catch (e) {
+      this.router.navigate(['logout'], {
+        queryParams: {
+          sessionTimeout: true,
+          redirectUrl: '/home'
+        }
+      });
+    }
   }
 
   goToApplications(create?: boolean) {

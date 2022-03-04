@@ -101,7 +101,7 @@ export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): 
   if (ResponseMapperKeys[key]) {
     return _mappers[key];
   } else {
-    return _mappers[_statusMapping[key]];
+    return _mappers[_statusMapping[ApplicationStatus[key]]];
   }
 }
 
