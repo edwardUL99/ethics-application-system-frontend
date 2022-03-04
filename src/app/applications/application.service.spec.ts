@@ -619,16 +619,4 @@ describe('ApplicationService', () => {
       }
     });
   });
-
-  it('#mapApplicationResponse should map resposne successfully', (done) => {
-    const response = createSubmittedApplicationResponse(ApplicationStatus.SUBMITTED);
-    const submitted = createSubmittedApplication(ApplicationStatus.SUBMITTED);
-    submitted.lastUpdated = undefined;
-
-    service.mapApplicationResponse(response).subscribe(value => {
-      value.lastUpdated = undefined;
-      expect(value).toEqual(submitted);
-      done();
-    });
-  })
 });
