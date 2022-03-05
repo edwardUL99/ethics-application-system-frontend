@@ -14,6 +14,8 @@ import { PendingChangesGuard } from '../pending-changes/pendingchangesguard';
 import { ApplicationListComponent } from '../applications/view/application-list/application-list.component';
 import { AuthGuard } from '../authentication/authguard';
 import { HomeComponent } from '../home/home.component';
+import { ForgotPasswordComponent } from '../authentication/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from '../authentication/reset-password/reset-password.component';
 
 
 function createRoute(path: string, component: Type<any>, canDeactivate?: Type<CanDeactivate<any>>[], canActivate?: Type<CanActivate>[], pathMatch?: string) {
@@ -44,6 +46,8 @@ const routes: Routes = [
     createRoute('application', ApplicationDisplayComponent, [PendingChangesGuard], [AuthGuard]),
     createRoute('applications', ApplicationListComponent, undefined, [AuthGuard]),
     createRoute('home', HomeComponent, undefined, [AuthGuard]),
+    createRoute('forgot-password', ForgotPasswordComponent, undefined, undefined),
+    createRoute('reset-password', ResetPasswordComponent, undefined, undefined),
     createRoute('', IndexRedirectComponent, undefined, undefined, 'full'),
     createRoute('**', NotFoundComponent)
 ];

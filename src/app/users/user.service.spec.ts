@@ -45,7 +45,7 @@ describe('UserService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('#getAllUsers should return list of responses', () => {
+  it('#getAllUsers should return list of responses', (done) => {
     const response: UserResponseShortened = {
       username: USERNAME,
       email: EMAIL,
@@ -59,6 +59,7 @@ describe('UserService', () => {
     service.getAllUsers().subscribe(data => {
       expect(data.length).toBe(1);
       expect(data[0]).toBe(response);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/');
@@ -67,7 +68,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#getAllUsers should return list of responses with specified permission', () => {
+  it('#getAllUsers should return list of responses with specified permission', (done) => {
     const response: UserResponseShortened[] = [] 
     response.push({
       username: USERNAME,
@@ -82,6 +83,7 @@ describe('UserService', () => {
     service.getAllUsers('CREATE_APPLICATION').subscribe(data => {
       expect(data.length).toBe(1);
       expect(data).toBe(response);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users?permission=CREATE_APPLICATION');
@@ -90,7 +92,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#getUser should return user by username', () => {
+  it('#getUser should return user by username', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     service.getUser(USERNAME, false).subscribe(data => {
@@ -101,6 +103,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/users/user?username=${USERNAME}&email=false`);
@@ -109,7 +112,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#getUser should return user by email', () => {
+  it('#getUser should return user by email', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     service.getUser(EMAIL, true).subscribe(data => {
@@ -120,6 +123,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/users/user?username=${EMAIL}&email=true`);
@@ -128,7 +132,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#createUpdateUser should create user', () => {
+  it('#createUpdateUser should create user', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     const request: CreateUpdateUserRequest = new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT);
@@ -141,6 +145,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/user/');
@@ -149,7 +154,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#createUpdateUser should update user', () => {
+  it('#createUpdateUser should update user', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     const request: CreateUpdateUserRequest = new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT);
@@ -162,6 +167,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/user/');
@@ -170,7 +176,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#createUpdateUserAdmin should create user admin', () => {
+  it('#createUpdateUserAdmin should create user admin', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     const request: CreateUpdateUserRequest = new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT);
@@ -183,6 +189,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/admin/user/');
@@ -191,7 +198,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#createUpdateUserAdmin should update user admin', () => {
+  it('#createUpdateUserAdmin should update user admin', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     const request: CreateUpdateUserRequest = new CreateUpdateUserRequest(USERNAME, NAME, DEPARTMENT);
@@ -204,6 +211,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/admin/user/');
@@ -212,7 +220,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#updateUserRole should update user role', () => {
+  it('#updateUserRole should update user role', (done) => {
     const expectedResponse: UserResponse = createUserResponse();
 
     const request: UpdateRoleRequest = new UpdateRoleRequest(USERNAME, expectedResponse.role.id);
@@ -225,6 +233,7 @@ describe('UserService', () => {
       expect(data.email).toBe(EMAIL);
       expect(data.department).toBe(DEPARTMENT);
       expect(data.role).toBe(expectedResponse.role);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/user/role/');
@@ -233,7 +242,7 @@ describe('UserService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#getRoles should return roles', () => {
+  it('#getRoles should return roles', (done) => {
     const response: GetAuthorizationResponse<RoleResponse> = {
       authorizations: [createUserResponse().role]
     };
@@ -243,6 +252,7 @@ describe('UserService', () => {
       expect(data.error).toBe(undefined);
       expect(data.authorizations.length).toBe(1);
       expect(data.authorizations[0]).toBe(response.authorizations[0]);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/roles/');
@@ -251,7 +261,7 @@ describe('UserService', () => {
     req.flush(response);
   });
 
-  it('#getPermissions should return permissions', () => {
+  it('#getPermissions should return permissions', (done) => {
     const response: GetAuthorizationResponse<PermissionResponse> = {
       authorizations: [createUserResponse().role.permissions[0]]
     };
@@ -261,6 +271,7 @@ describe('UserService', () => {
       expect(data.error).toBe(undefined);
       expect(data.authorizations.length).toBe(1);
       expect(data.authorizations[0]).toBe(response.authorizations[0]);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/users/permissions/');
@@ -269,13 +280,14 @@ describe('UserService', () => {
     req.flush(response);
   });
 
-  it('#loadUser should load user by username', () => {
+  it('#loadUser should load user by username', (done) => {
     const user: User = createUser();
 
     const userResponse: UserResponse = createUserResponse();
 
     service.loadUser(USERNAME, false).subscribe(data => {
       expect(data).toEqual(user);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/users/user?username=${USERNAME}&email=false`);
@@ -284,13 +296,14 @@ describe('UserService', () => {
     req.flush(userResponse);
   });
 
-  it('#loadUser should load user by email', () => {
+  it('#loadUser should load user by email', (done) => {
     const user: User = createUser();
 
     const userResponse: UserResponse = createUserResponse();
 
     service.loadUser(EMAIL, true).subscribe(data => {
       expect(data).toEqual(user);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/users/user?username=${EMAIL}&email=true`);
