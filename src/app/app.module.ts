@@ -61,6 +61,8 @@ import { AuthGuard } from './authentication/authguard';
 import { IndexRedirectComponent } from './index-redirect/index-redirect.component';
 import { HomeComponent } from './home/home.component';
 import { ApiInterceptor } from './api-interceptor/api-interceptor';
+import { ForgotPasswordComponent } from './authentication/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
 
 @NgModule({
   declarations: [
@@ -101,7 +103,9 @@ import { ApiInterceptor } from './api-interceptor/api-interceptor';
     ReferMarkerComponent,
     CommentDisplayComponent,
     IndexRedirectComponent,
-    HomeComponent
+    HomeComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent
   ],
   imports: [
     BrowserModule,

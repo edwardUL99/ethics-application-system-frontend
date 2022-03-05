@@ -7,7 +7,9 @@ import { AccountResponse } from './accountresponse';
 import { RegistrationRequest } from './registrationrequest';
 import { ConfirmationResponse } from './confirmationresponse';
 import { ConfirmationRequest } from './confirmationrequest';
+import { ResetPasswordRequest } from './resetpasswordrequest';
 import { Observable } from 'rxjs';
+import { BaseResponse } from '../baseresponse';
 
 /**
  * This service gives the ability to create and authenticate user accounts
@@ -76,5 +78,22 @@ export class AuthService {
    */
   resendConfirmationEmail(username: string, email: boolean) {
     return this.http.post(`/api/auth/account/confirm/resend?username=${username}&email=${email}`, {});
+  }
+
+  /**
+   * Creates a request to send a reset password email to the account
+   * @param username the username of the account
+   * @param email true if the username is an email
+   */
+  forgotPassword(username: string, email: boolean) {
+    return this.http.post(`/api/auth/forgot-password?username=${username}&email=${email}`, {});
+  }
+
+  /**
+   * Creates a request to reset the account's password
+   * @param request the request to send to the server
+   */
+  resetPassword(request: ResetPasswordRequest) {
+    return this.http.post<BaseResponse>('/api/auth/reset-password/', request);
   }
 }

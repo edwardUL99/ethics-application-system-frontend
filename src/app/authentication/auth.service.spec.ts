@@ -9,6 +9,7 @@ import { AuthenticationResponse } from './authenticationresponse';
 import { ConfirmationRequest } from './confirmationrequest';
 import { ConfirmationResponse } from './confirmationresponse';
 import { RegistrationRequest } from './registrationrequest';
+import { ResetPasswordRequest } from './resetpasswordrequest';
 
 describe('AuthService', () => {
   let httpTestingController: HttpTestingController;
@@ -32,7 +33,7 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('#authenticate should return authentication response', () => {
+  it('#authenticate should return authentication response', (done) => {
     const expectedResponse: AuthenticationResponse = {
       username: USERNAME,
       token: TOKEN,
@@ -47,6 +48,7 @@ describe('AuthService', () => {
       expect(data.username).toBe(USERNAME);
       expect(data.token).toBe(TOKEN);
       expect(data.expiry).toBe(EXPIRY);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/auth/login/');
@@ -55,7 +57,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#register should return account respone', () => {
+  it('#register should return account respone', (done) => {
     const expectedResponse: AccountResponse = {
       username: USERNAME,
       email: EMAIL,
@@ -70,6 +72,7 @@ describe('AuthService', () => {
       expect(data.username).toBe(USERNAME);
       expect(data.email).toBe(EMAIL);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/auth/register/');
@@ -78,7 +81,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it ('#getAccount should get account by username', () => {
+  it ('#getAccount should get account by username', (done) => {
     const expectedResponse: AccountResponse = {
       username: USERNAME,
       email: EMAIL,
@@ -91,6 +94,7 @@ describe('AuthService', () => {
       expect(data.username).toBe(USERNAME);
       expect(data.email).toBe(EMAIL);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account?username=${USERNAME}&email=false`);
@@ -99,7 +103,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it ('#getAccount should get account by email', () => {
+  it ('#getAccount should get account by email', (done) => {
     const expectedResponse: AccountResponse = {
       username: USERNAME,
       email: EMAIL,
@@ -112,6 +116,7 @@ describe('AuthService', () => {
       expect(data.username).toBe(USERNAME);
       expect(data.email).toBe(EMAIL);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account?username=${EMAIL}&email=true`);
@@ -120,7 +125,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#isConfirmed should check confirmed by username', () => {
+  it('#isConfirmed should check confirmed by username', (done) => {
     const expectedResponse: ConfirmationResponse = {
       confirmed: true
     };
@@ -129,6 +134,7 @@ describe('AuthService', () => {
       expect(data.error).toBe(undefined);
       expect(data.message).toBe(undefined);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account/confirmed?username=${USERNAME}&email=false`);
@@ -137,7 +143,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#isConfirmed should check confirmed by email', () => {
+  it('#isConfirmed should check confirmed by email', (done) => {
     const expectedResponse: ConfirmationResponse = {
       confirmed: true
     };
@@ -146,6 +152,7 @@ describe('AuthService', () => {
       expect(data.error).toBe(undefined);
       expect(data.message).toBe(undefined);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account/confirmed?username=${EMAIL}&email=true`);
@@ -154,7 +161,7 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it('#confirmAccout should return confirmation response', () => {
+  it('#confirmAccout should return confirmation response', (done) => {
     const expectedResponse: ConfirmationResponse = {
       confirmed: true
     };
@@ -165,6 +172,7 @@ describe('AuthService', () => {
       expect(data.error).toBe(undefined);
       expect(data.message).toBe(undefined);
       expect(data.confirmed).toBe(true);
+      done();
     });
 
     const req = httpTestingController.expectOne('/api/auth/account/confirm/');
@@ -173,9 +181,10 @@ describe('AuthService', () => {
     req.flush(expectedResponse);
   });
 
-  it ('#resendConfirmationEmail should resend email by username', () => {
+  it ('#resendConfirmationEmail should resend email by username', (done) => {
     service.resendConfirmationEmail(USERNAME, false).subscribe(data => {
       expect(data).toBeTruthy();
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account/confirm/resend?username=${USERNAME}&email=false`);
@@ -184,14 +193,45 @@ describe('AuthService', () => {
     req.flush({});
   });
 
-  it ('#resendConfirmationEmail should resend email by email', () => {
+  it ('#resendConfirmationEmail should resend email by email', (done) => {
     service.resendConfirmationEmail(EMAIL, true).subscribe(data => {
       expect(data).toBeTruthy();
+      done();
     });
 
     const req = httpTestingController.expectOne(`/api/auth/account/confirm/resend?username=${EMAIL}&email=true`);
     expect(req.request.method).toBe('POST');
 
     req.flush({});
+  });
+
+  it('#forgotPassword should send request successfully', (done) => {
+    service.forgotPassword(USERNAME, false).subscribe(data => {
+      expect(data).toBeTruthy();
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`/api/auth/forgot-password?username=${USERNAME}&email=${false}`);
+    expect(req.request.method).toBe('POST');
+
+    req.flush({});
+  });
+
+  it('#resetPassword should send reqeuest successfully', (done) => {
+    const request = new ResetPasswordRequest(USERNAME, 'token', PASSWORD);
+    const response = {
+      message: 'account_updated'
+    };
+
+    service.resetPassword(request).subscribe(data => {
+      expect(data).toBeTruthy();
+      expect(data.message).toEqual(response.message);
+      done();
+    });
+
+    const req = httpTestingController.expectOne('/api/auth/reset-password/');
+    expect(req.request.method).toBe('POST');
+
+    req.flush(response);
   });
 });
