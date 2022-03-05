@@ -3,7 +3,7 @@
   <div class="container" [appCenterBox]>
     <app-center-header *ngIf="!registeredNeedsConfirmation" [text]="'Create an Account'"></app-center-header>
     <app-center-header *ngIf="registeredNeedsConfirmation" [text]="'Registered Successfully'"></app-center-header>
-    <div class="row card ul-white-background shadow w-50 padded-fields-box">
+    <div class="card ul-white-background shadow w-50 padded-fields-box">
       <div *ngIf="!registeredNeedsConfirmation">
         <form [formGroup]="form">
           <div class="form-group">
@@ -21,7 +21,7 @@
               <label>Password:</label>
               <input name="password" type="password" minlength="8" class="form-control" formControlName="password">
               <app-field-error [condition]="password.errors?.['required'] && password.touched" [error]="'Password is required'"></app-field-error>
-              <app-field-error [condition]="password.value.length < 8 && password.touched" [error]="'Password must have at least 8 characters'"></app-field-error>
+              <app-field-error [condition]="password.value.length > 0 && password.value.length < 8 && password.touched" [error]="'Password must have at least 8 characters'"></app-field-error>
               <div class="form-text">
                 Enter a password of at least 8 characters
               </div>

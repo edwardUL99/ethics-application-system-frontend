@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors, AbstractControlOptions } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, AbstractControlOptions } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
@@ -10,28 +10,7 @@ import { RegistrationRequest } from '../registrationrequest';
 import { environment } from '../../../environments/environment';
 import { AccountResponse } from '../accountresponse';
 import { getErrorMessage } from '../../utils';
-import { EmailValidator } from '../../validators';
-
-/*
-CUSTOM VALIDATORS
-*/
-
-function PasswordConfirmValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
-
-    if (password.valid && confirmPassword.valid) {
-      if (password.value != confirmPassword.value) {
-        return {noMatch: true};
-      } else {
-        return null;
-      }
-    } else {
-      return {noMatch: true};
-    }
-  }
-}
+import { EmailValidator, PasswordConfirmValidator } from '../../validators';
 
 /**
  * This component represents a request to register for an account

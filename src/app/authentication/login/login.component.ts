@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationRequest } from '../authenticationrequest';
@@ -9,44 +9,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { JWTStore } from '../jwtstore';
 import { UserService } from '../../users/user.service';
 import { UserContext } from '../../users/usercontext';
-import { environment } from '../../../environments/environment';
 import { getErrorMessage, extractMappedError } from '../../utils';
 import { ErrorMappings } from '../../mappings';
-import { EmailValidator } from '../../validators';
+import { EmailUsernameValidator } from '../../validators';
 
-/*
-CUSTOM VALIDATORS
-*/
-
-function EmailUsernameValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value;
-
-    if (value == null) {
-      return null;
-    }
-
-    if (value.includes('@')) {
-      const result = Validators.email(control);
-
-      if (result != null) {
-        return {username: 'If using e-mail as the username, it needs to be a valid email'}
-      } else {
-        const ulResult = environment.requireULEmail ? EmailValidator()(control):null;
-
-        if (ulResult != null) {
-          return {username: 'The e-mail address must be a UL e-mail'};
-        }
-      }
-    } else {
-      if (value.length > 128) {
-        return {username: 'The username value entered cannot exceed 128 characters'};
-      }
-    }
-
-    return null;
-  }
-}
 
 /**
  * This component represents the component for login

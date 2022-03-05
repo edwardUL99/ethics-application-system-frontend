@@ -20,7 +20,8 @@ export const ErrorMappings = {
     unsupported_file_type: 'The given file type is not supported',
     virus_found_file: 'The upload of the given file has been blocked since a virus was found in it',
     invalid_application_status: 'The status of the application is invalid for the attempted operation',
-    application_already_exists: 'The application already exists'
+    application_already_exists: 'The application already exists',
+    invalid_reset_token: 'The current password reset request token is invalid'
 }
 
 /**
