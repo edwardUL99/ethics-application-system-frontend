@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
@@ -16,7 +16,7 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
 /**
  * A type for mapping checkbox names to the checkbox
  */
-export type CheckboxMapping = {
+ export type CheckboxMapping = {
   [key: string]: Checkbox
 };
 
@@ -25,6 +25,25 @@ export type CheckboxMapping = {
  */
 export type CheckboxSelection = {
   [key: string]: boolean
+}
+
+// custom required validator as Validators.required doesn't work for checkbox groups
+function CheckboxGroupRequired(selectedCheckboxes: CheckboxSelection): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!(control instanceof FormGroup)) {
+      return null;
+    } else {
+      for (let key of Object.keys(control.controls)) {
+        const checkbox = control.controls[key];
+
+        if (checkbox.value != undefined && checkbox.value != '' && selectedCheckboxes[key]) {
+          return null;
+        }
+      }
+
+      return {required: true};
+    }
+  }
 }
 
 @Component({
@@ -96,13 +115,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   ngOnInit(): void {
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
-    const edit = this.edit();
-    this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
-      this.checkboxes[checkbox.identifier] = checkbox;
-      this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
-    });
-
     QuestionViewUtils.setExistingAnswer(this);
   }
 
@@ -112,10 +124,22 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
-    if (this.edit() && !this.form.get(this.checkboxGroupComponent.componentId)) {
+    const edit = this.edit();
+
+    if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
+
+      this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
+        this.checkboxes[checkbox.identifier] = checkbox;
+        this.selectedCheckboxes[checkbox.identifier] = false;
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
+      });
+
+      if (this.checkboxGroupComponent.required) {
+        this.checkboxGroup.addValidators(CheckboxGroupRequired(this.selectedCheckboxes));
+      }
+
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
-      // TODO add field to specify if a checkbox group component needs a required attribute
     }
   }
 

@@ -10,7 +10,7 @@
                 <label class="form-check-label">{{checkbox?.title}}</label>
             </div>
         </div>
-        <app-field-error [condition]="checkboxGroup?.errors?.['required'] && checkboxGroup?.touched" [error]="'This field is required'"></app-field-error>
+        <app-field-error [condition]="checkboxGroup?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
     <ng-template #notEdit>
         <app-answer-view *ngIf="displayAnswer()"

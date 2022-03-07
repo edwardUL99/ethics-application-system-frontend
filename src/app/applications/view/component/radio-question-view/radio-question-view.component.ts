@@ -167,16 +167,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.emit();
   }
 
-  resetSelection() {
-    Object.keys(this.radios).forEach(key => this.radioGroup.get(key).setValue('', {emitEvent: false}));
-
-    if (this.component.componentId in this.application.answers) {
-      delete this.application.answers[this.component.componentId];
-    }
-
-    this.emit();
-  }
-
   display(): boolean {
     return QuestionViewUtils.display(this);
   }

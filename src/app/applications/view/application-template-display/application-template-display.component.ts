@@ -176,6 +176,8 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     component.components.forEach(component => this._loadComponent(component));
   }
 
+  // TODO need to make sure that autosaving still works after this
+
   loadNewContainer(replaced: ReplacedContainer) {
     if (!(replaced.replaced instanceof ContainerComponent) || !(replaced.container instanceof ContainerComponent)) {
       console.warn('Invalid container components passed into loadNewContainer on template display');

@@ -66,7 +66,7 @@ export class CheckboxGroupConverter implements ComponentConverter {
             }
 
             return new CheckboxGroupComponent(componentMap.databaseId, componentMap.componentId, componentMap.title,
-                defaultBranch, checkboxes, componentMap.multiple);
+                defaultBranch, checkboxes, componentMap.multiple, componentMap.required);
         }
     }
 }

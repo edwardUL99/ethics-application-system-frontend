@@ -7,5 +7,6 @@
             <input type="checkbox" class="form-check-input" [value]="checkbox.identifier" (change)="onCheckChange($event, checkbox.identifier)" 
             [name]="checkbox.identifier" [checked]="isChecked(checkbox.identifier)" [formControlName]="checkbox.identifier">
         </div>
+        <app-field-error [condition]="checkboxGroup?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
 </div>

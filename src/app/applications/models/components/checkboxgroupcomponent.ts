@@ -19,6 +19,10 @@ export class CheckboxGroupComponent extends SimpleComponent {
      * True if multiple checkboxes can be chosen in the group
      */
     multiple: boolean;
+    /**
+     * Determines if the component is required or not
+     */
+    required: boolean;
 
     /**
      * Create a CheckboxGroupComponent
@@ -28,12 +32,14 @@ export class CheckboxGroupComponent extends SimpleComponent {
      * @param defaultBranch the default branch to execute
      * @param checkboxes the list of checkboxes in the group
      * @param multiple true if multiple checkboxes can be chosen
+     * @param required determines if the component is required or not
      */
-     constructor(databaseId: number, componentId: string, title: string, defaultBranch: Branch, checkboxes: Checkbox[], multiple: boolean) {
+     constructor(databaseId: number, componentId: string, title: string, defaultBranch: Branch, checkboxes: Checkbox[], multiple: boolean, required: boolean) {
         super(databaseId, ComponentType.CHECKBOX_GROUP, title, componentId);
         this.defaultBranch = defaultBranch;
         this.checkboxes = checkboxes;
         this.multiple = multiple;
+        this.required = required;
     }
 
     /**
