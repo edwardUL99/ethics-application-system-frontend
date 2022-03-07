@@ -68,8 +68,8 @@
         <p>TODO Final Comment will go here</p>
       </div>
       <app-center-header [text]="'Application Form'"></app-center-header>
-      <app-application-template-display [application]="application"
-      (questionChange)="questionChange($event)" (autoSave)="autoSave($event)" [viewingUser]="viewingUser"></app-application-template-display>
+      <app-application-template-display [application]="application" (questionChange)="questionChange($event)" (autoSave)="autoSave($event)"
+      (terminate)="terminateApplication($event)" [viewingUser]="viewingUser"></app-application-template-display>
       <app-alert #saveAlert [alertType]="'alert-success'" [message]="'Saved'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
       <app-alert #saveErrorAlert [alertType]="'alert-danger'" [message]="saveError" [dismissible]="true" [hidden]="true"></app-alert>
       <div class="card shadow px-3 py-2" *ngIf="showSaveSubmitButton()">

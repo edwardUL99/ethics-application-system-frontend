@@ -1,16 +1,17 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
 import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
-import { ActionBranch } from '../../../models/components/actionbranch';
+import { ActionBranch, Actions } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ComponentViewRegistration } from '../registered.components';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -24,13 +25,6 @@ export type CheckboxMapping = {
  */
 export type CheckboxSelection = {
   [key: string]: boolean
-}
-
-/**
- * A mapping of a key to a form control
- */
-export type ControlsMapping = {
-  [key: string]: FormControl;
 }
 
 @Component({
@@ -53,17 +47,17 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @Input() application: Application;
   /**
+   * The template display component rendering this group
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
+  /**
    * The form group passed into this component
    */
   form: FormGroup;
   /**
-   * The array of checkboxes
+   * The checkboxes group
    */
-  checkboxArray: FormArray;
-  /**
-   * The mapping of checkbox name to controls
-   */
-  private controlsMapping: ControlsMapping = {};
+  checkboxGroup: FormGroup;
   /**
    * The cast checkbox group compoennt
    */
@@ -92,6 +86,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.component = questionData.component;
     this.application = questionData.application;
     this.form = questionData.form;
+    this.template = data.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -105,7 +100,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
       this.checkboxes[checkbox.identifier] = checkbox;
       this.selectedCheckboxes[checkbox.identifier] = false;
-      this.controlsMapping[checkbox.identifier] = new FormControl({value: '', disabled: !edit});
+      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
     });
 
     QuestionViewUtils.setExistingAnswer(this);
@@ -113,12 +108,14 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   addToForm(): void {
     if (this.edit() && !this.form.get(this.checkboxGroupComponent.componentId)) {
-      this.checkboxArray = (this.checkboxArray) ? this.checkboxArray:new FormArray([]);
-      this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxArray);
+      this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
+      this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
+      // TODO add field to specify if a checkbox group component needs a required attribute
     }
   }
 
@@ -127,7 +124,8 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.selectedCheckboxes[identifier] = false;
     });
 
-    this.checkboxArray.clear();
+    this.form.removeControl(this.checkboxGroupComponent.componentId);
+    this.checkboxGroup = undefined;
   }
 
   /**
@@ -137,15 +135,19 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   private uncheckAllExcept(checkbox: string) {
     Object.keys(this.selectedCheckboxes).forEach(identifier => {
       if (identifier != checkbox) {
-        this.selectedCheckboxes[identifier] = false;
+       this.unselectCheckbox(identifier);
       }
     });
+  }
+
+  private unselectCheckbox(checkbox: string) {
+    this.onCheckChange({target: {checked: false, value: checkbox}}, checkbox);
   }
 
   /**
    * Responds to a checkbox group selected
    * @param event the event
-   * @param checkboxId the title of the checkbox
+   * @param checkbox the identifier of the checkbox
    */
   onCheckChange(event, checkbox: string) {
     const defaultBranch = this.checkboxGroupComponent.defaultBranch;
@@ -160,25 +162,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
         this.uncheckAllExcept(checkbox);
       }
 
-      const control = this.controlsMapping[checkbox];
+      const control = this.checkboxGroup.get(checkbox);
       control.setValue(checkbox, {emitEvent: false});
-      this.checkboxArray.push(control);
 
       // execute the checked branch if it exists or else the default branch
-      this.executeBranch((branch == null) ? defaultBranch : branch);
+      this.executeBranch((branch == null) ? defaultBranch : branch, checkbox);
     } else {
       let i = 0;
       
       this.selectedCheckboxes[checkbox] = false;
-      this.checkboxArray.controls.forEach(control => {
-        if (control.value == event.target.value) {
-          control.setValue('', {emitEvent: false});
-          this.checkboxArray.removeAt(i);
-          return;
-        }
-
-        i++;
-      });
+      this.checkboxGroup.get(checkbox).setValue('');
     }
 
     this.emit();
@@ -192,25 +185,66 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     return this.component as CheckboxGroupComponent;
   }
 
-  /**
-   * Executes a checkbox group branch
-   * @param branch the branch to execute
-   */
-  executeBranch(branch: Branch) {
-    if (branch.type == ComponentType.ACTION_BRANCH) {
-      const actionBranch = branch as ActionBranch;
-      console.log(actionBranch);
+  private _terminate(actionBranch: ActionBranch, checkbox: string) {
+    let msg: string = 'Confirm application termination?';
 
-      // TODO here, execute the action in some way and remove console log
-    } else if (branch.type == ComponentType.REPLACEMENT_BRANCH) {
+    if (actionBranch.comment) {
+      msg += ` Comment: ${actionBranch.comment}`
+    }
+
+    if (confirm(msg)) {
+      this.template.terminateApplication();
+    } else {
+      this.unselectCheckbox(checkbox);
+    }
+  }
+
+  private _attachFile(checkbox: string) {
+    console.log(`Attach file to checkbox ${checkbox}`);
+  }
+
+  private _executeActionBranch(branch: Branch, checkbox: string) {
+    const actionBranch = branch as ActionBranch;
+      
+    if (actionBranch.action == Actions.TERMINATE) {
+      this._terminate(actionBranch, checkbox);
+    } else if (actionBranch.action == Actions.ATTACH_FILE) {
+      this._attachFile(checkbox);
+    }
+  }
+
+  private _executeReplacement(branch: Branch, checkbox: string) {
+    if (confirm('Are you sure you want to check this? It will change the application form you have to fill in and cannot be reversed')) {
       const replacementBranch = branch as ReplacementBranch;
       const templateContext = ApplicationTemplateContext.getInstance();
 
       for (let replacement of replacementBranch.replacements) {
-        templateContext.executeContainerReplacement(replacement.replaceId, replacement.targetId);
+        const replaced = templateContext.executeContainerReplacement(replacement.replaceId, replacement.targetId);
+        this.template.loadNewContainer(replaced);
         // TODO maybe here, add functionality to swap back the old container if the checkbox is unchecked again. may need a mapping to indicate a container was swapped out
       }
+    } else {
+      this.unselectCheckbox(checkbox);
     }
+  }
+
+  /**
+   * Executes a checkbox group branch
+   * @param branch the branch to execute
+   * @param checkbox the name of the checkbox
+   */
+  executeBranch(branch: Branch, checkbox: string) {
+    if (branch != undefined && branch != null) {
+      if (branch.type == ComponentType.ACTION_BRANCH) {
+        this._executeActionBranch(branch, checkbox);
+      } else if (branch.type == ComponentType.REPLACEMENT_BRANCH) {
+        this._executeReplacement(branch, checkbox);
+      }
+    }
+  }
+
+  isChecked(checkbox: string): boolean {
+    return this.selectedCheckboxes[checkbox];
   }
 
   edit(): boolean {
@@ -235,10 +269,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     answer.value.split(',').forEach(option => {
       const checkbox = (option.includes('=')) ? option.split('=')[0]:option;
       this.selectedCheckboxes[checkbox] = true;
-      this.controlsMapping[checkbox].setValue(true.valueOf, {emitEvent: false});
+      this.checkboxGroup.get(checkbox).setValue(true, {emitEvent: false});
     });
 
-    this.checkboxArray.markAsTouched();
+    this.checkboxGroup.markAsTouched();
 
     this._emit();
   }

@@ -86,7 +86,8 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
  * This interface is the base interface for all components that are designed to render the component
  * that they compose.
  * 
- * The ngOnDestroy should clean up after the component
+ * The ngOnDestroy should clean up after the component, i.e. removing itself from the form and destroying
+ * any child components
  */
 export interface ApplicationViewComponent extends OnDestroy {
   /**

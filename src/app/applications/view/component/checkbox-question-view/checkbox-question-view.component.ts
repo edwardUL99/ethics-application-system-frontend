@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
@@ -35,13 +35,9 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    */
   form: FormGroup;
   /**
-   * The array of checkboxes
+   * The group of checkboxes
    */
-  checkboxArray: FormArray;
-  /**
-  * Mapping of checkbox names to controls
-  */
-  checkboxControls = {};
+  checkboxGroup: FormGroup;
   /**
   * The cast checkbox question compoennt
   */
@@ -90,7 +86,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxes[option.identifier] = checkbox;
 
       this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxControls[checkbox.identifier] = new FormControl({value: '', disabled: !this.questionComponent.editable});
+      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
     });
 
     QuestionViewUtils.setExistingAnswer(this);
@@ -98,6 +94,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   getCheckboxes() {
@@ -108,14 +105,14 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   private _addToForm(): void {
-    this.checkboxArray = (this.checkboxArray) ? this.checkboxArray:new FormArray([]);
+    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    if (this.questionComponent.required && !this.checkboxArray.hasValidator(Validators.required)) {
-      this.checkboxArray.addValidators(Validators.required);
+    if (this.questionComponent.required && !this.checkboxGroup.hasValidator(Validators.required)) {
+      this.checkboxGroup.addValidators(Validators.required);
     }
 
     if (!this.form.get(this.questionComponent.name)) {
-      this.form.addControl(this.questionComponent.name, this.checkboxArray);
+      this.form.addControl(this.questionComponent.name, this.checkboxGroup);
     }
   }
 
@@ -126,13 +123,11 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   removeFromForm(): void {
-    Object.keys(this.checkboxControls).forEach(key => {
+    Object.keys(this.selectedCheckboxes).forEach(key => {
       this.selectedCheckboxes[key] = false;
-      this.checkboxControls[key].setValue('', {emitEvent: false});
     });
-    this.checkboxArray.clear();
-    this.checkboxArray.clearValidators();
-    this.checkboxArray.updateValueAndValidity({emitEvent: false});
+    this.form.removeControl(this.questionComponent.name);
+    this.checkboxGroup = undefined;
   }
 
   castComponent() {
@@ -146,9 +141,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   private select(checkbox: string) {
     this.selectedCheckboxes[checkbox] = true;
       
-    const control = this.checkboxControls[checkbox];
-    control.setValue(checkbox, {emitEvent: false})
-    this.checkboxArray.push(control);
+    const control = this.checkboxGroup.get(checkbox);
+    control.setValue(checkbox, {emitEvent: false});
   }
 
   /**
@@ -159,18 +153,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     if (event.target.checked) {
       this.select(event.target.value);
     } else {
-      let i = 0;
-      
       this.selectedCheckboxes[event.target.value] = false;
-      this.checkboxArray.controls.forEach(control => {
-        if (control.value == event.target.value) {
-          this.checkboxArray.removeAt(i);
-          control.setValue('', {emitEvent: false})
-          return;
-        }
-
-        i++;
-      });
+      this.checkboxGroup.get(event.target.value).setValue('', {emitEvent: false});
     }
 
     this.emit();
@@ -201,7 +185,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
         this.select(value);
       });
 
-      this.checkboxArray.markAsTouched();
+      this.checkboxGroup.markAsTouched();
 
       this._emit();
     }

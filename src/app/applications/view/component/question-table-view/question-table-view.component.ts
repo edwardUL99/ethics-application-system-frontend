@@ -129,6 +129,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   ngOnDestroy(): void {
     this.questionChange.destroy();
     Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
+    this.removeFromForm();
   }
 
   private populateRows() {
@@ -206,7 +207,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
   }
 
-  removeFromForm(): void {}
+  removeFromForm(): void {
+    this.form.removeControl(this.questionTable.componentId);
+  }
   
   castComponent() {
     return this.component as QuestionTableComponent;

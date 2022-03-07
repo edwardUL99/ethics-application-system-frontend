@@ -15,7 +15,7 @@
                 <button type="button" class="btn btn-link" (click)="resetSelection()" [appTooltip]="'Clears the selected option'">Reset</button>
             </div>
         </div>
-        <app-field-error [condition]="radioArray?.errors?.['required']" [error]="'This field is required'"></app-field-error>
+        <app-field-error [condition]="radioGroup?.errors?.['required'] && radioGroup?.touched" [error]="'This field is required'"></app-field-error>
     </div>
     <ng-template #notEdit>
         <app-answer-view *ngIf="displayAnswer()"

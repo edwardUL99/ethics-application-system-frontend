@@ -308,9 +308,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private setAnswer(answer: Answer) {
-    // set the answer on the application from a question change event
-    const componentId = answer.componentId;
-    this.application.answers[componentId] = answer;
+    if (answer) {
+      // set the answer on the application from a question change event
+      const componentId = answer.componentId;
+      this.application.answers[componentId] = answer;
+    }
   }
 
   questionChange(event: QuestionChangeEvent) {
@@ -319,10 +321,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     const answer: Answer | Answer[] = event.view.value();
 
-    if (Array.isArray(answer)) {
-      answer.forEach(a => this.setAnswer(a));
-    } else {
-      this.setAnswer(answer);
+    if (answer) {
+      if (Array.isArray(answer)) {
+        answer.forEach(a => this.setAnswer(a));
+      } else {
+        this.setAnswer(answer);
+      }
     }
   }
 
@@ -576,6 +580,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     } else {
       this.canReview = !this.viewingUser.applicant && this.viewingUser.reviewer;
       this.isAdmin = this.viewingUser.admin;
+    }
+  }
+
+  terminateApplication(terminate: boolean) {
+    if (terminate) {
+      this.router.navigate(['applications']);
     }
   }
 }
