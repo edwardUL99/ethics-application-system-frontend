@@ -2,7 +2,7 @@
  * This file defines some validators
  */
 
-import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { environment } from '../environments/environment';
 
 /**
@@ -82,5 +82,26 @@ export function EmailUsernameValidator(): ValidatorFn {
     }
 
     return null;
+  }
+}
+
+/**
+ * Custom required validator as Validators.required doesn't work for checkbox type questions
+ */
+ export function CheckboxGroupRequired(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!(control instanceof FormGroup)) {
+      return null;
+    } else {
+      for (let key of Object.keys(control.controls)) {
+        const checkbox = control.controls[key];
+
+        if (checkbox.value != undefined && checkbox.value != '') {
+          return null;
+        }
+      }
+
+      return {required: true};
+    }
   }
 }

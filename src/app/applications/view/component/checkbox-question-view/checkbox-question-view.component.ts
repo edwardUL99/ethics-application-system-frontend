@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
@@ -9,6 +9,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { CheckboxGroupRequired } from '../../../../validators';
 
 
 @Component({
@@ -107,8 +108,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   private _addToForm(): void {
     this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    if (this.questionComponent.required && !this.checkboxGroup.hasValidator(Validators.required)) {
-      this.checkboxGroup.addValidators(Validators.required);
+    if (this.questionComponent.required) {
+      this.checkboxGroup.addValidators(CheckboxGroupRequired());
     }
 
     if (!this.form.get(this.questionComponent.name)) {

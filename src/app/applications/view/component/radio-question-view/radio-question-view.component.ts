@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
@@ -9,6 +9,19 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+
+/**
+ * A custom validator as Validators.required is not working
+ */
+function RadioValidator(component: RadioQuestionViewComponent): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (component.selectedRadioValue == undefined || component.selectedRadioValue == '' || component.selectedRadioValue == null) {
+      return {required: true};
+    } else {
+      return null;
+    }
+  }
+}
 
 @Component({
   selector: 'app-radio-question-view',
@@ -104,8 +117,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   private _addToForm(): void {
     this.radioGroup = (this.radioGroup) ? this.radioGroup:new FormGroup({});
 
-    if (this.questionComponent.required && !this.radioGroup.hasValidator(Validators.required)) {
-      this.radioGroup.addValidators(Validators.required);
+    if (this.questionComponent.required) {
+      this.radioGroup.addValidators(RadioValidator(this));
     }
 
     if (!this.form.get(this.questionComponent.componentId)) {

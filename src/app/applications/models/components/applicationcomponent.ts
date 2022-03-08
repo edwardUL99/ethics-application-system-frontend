@@ -57,7 +57,7 @@ export enum ComponentType {
     /**
      * This type is used for a component that contains columns and rows of inputs giving answers to those inputs
      */
-    QUESTION_TABLE = "question-table"
+    QUESTION_TABLE = "question-table",
 }
 
 export abstract class ApplicationComponent {

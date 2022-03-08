@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
@@ -12,6 +12,7 @@ import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ComponentViewRegistration } from '../registered.components';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { CheckboxGroupRequired } from '../../../../validators';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -25,25 +26,6 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
  */
 export type CheckboxSelection = {
   [key: string]: boolean
-}
-
-// custom required validator as Validators.required doesn't work for checkbox groups
-function CheckboxGroupRequired(selectedCheckboxes: CheckboxSelection): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!(control instanceof FormGroup)) {
-      return null;
-    } else {
-      for (let key of Object.keys(control.controls)) {
-        const checkbox = control.controls[key];
-
-        if (checkbox.value != undefined && checkbox.value != '' && selectedCheckboxes[key]) {
-          return null;
-        }
-      }
-
-      return {required: true};
-    }
-  }
 }
 
 @Component({
@@ -136,7 +118,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       });
 
       if (this.checkboxGroupComponent.required) {
-        this.checkboxGroup.addValidators(CheckboxGroupRequired(this.selectedCheckboxes));
+        this.checkboxGroup.addValidators(CheckboxGroupRequired());
       }
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
@@ -243,7 +225,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       const templateContext = ApplicationTemplateContext.getInstance();
 
       for (let replacement of replacementBranch.replacements) {
-        const replaced = templateContext.executeContainerReplacement(replacement.replaceId, replacement.targetId);
+        const replaced = templateContext.executeContainerReplacement(replacement.replace, replacement.target);
         this.template.loadNewContainer(replaced);
         // TODO maybe here, add functionality to swap back the old container if the checkbox is unchecked again. may need a mapping to indicate a container was swapped out
       }

@@ -292,6 +292,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private reload(hotReload: boolean = false) {
+    this.newApplication = false;
+
     if (!hotReload) {
       this.router.navigate([], {
         queryParams: {
@@ -300,10 +302,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         replaceUrl: true,
         relativeTo: this.activatedRoute
       });
-
-      this.newApplication = false;
     } else {
-      window.location.reload();
+      this.router.navigate(['application'], {
+        queryParams: {
+          id: this.application.applicationId
+        }
+      });
     }
   }
 
@@ -423,7 +427,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private updateDraft(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
-    this.applicationService.updateDraftApplication(new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles))
+    this.applicationService.updateDraftApplication(
+      new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles, this.application.applicationTemplate))
       .subscribe({
         next: response => {
           callback(response);
@@ -443,7 +448,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveReferred(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
-    const request = new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles);
+    const request = new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles, this.application.applicationTemplate);
     this.applicationService.updateReferredApplication(request)
       .subscribe({
         next: response => callback(response),

@@ -10,17 +10,23 @@ export class QuestionTableComponent extends SimpleComponent {
   /**
    * The map of column names to the question components for the column
    */
-  columns: CellsMapping;
+  cells: CellsMapping;
+  /**
+   * The number of rows in the question table component
+   */
+  numRows: number;
 
   /**
-   * 
+   * Create a question table
    * @param databaseId the database ID
    * @param componentId the HTML component ID
-   * @param columns the column names mapping to question components
+   * @param cells the column names mapping to question components
+   * @param numRows number of rows in the question table
    */
-  constructor(databaseId: number, componentId: string, columns: CellsMapping) {
+  constructor(databaseId: number, componentId: string, cells: CellsMapping, numRows: number) {
     super(databaseId, ComponentType.QUESTION_TABLE, null, componentId);
-    this.columns = columns;
+    this.cells = cells;
+    this.numRows = numRows;
   }
 }
 

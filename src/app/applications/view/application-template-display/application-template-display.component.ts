@@ -179,6 +179,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   // TODO need to make sure that autosaving still works after this
 
   loadNewContainer(replaced: ReplacedContainer) {
+    // TODO this sometimes throws null
     if (!(replaced.replaced instanceof ContainerComponent) || !(replaced.container instanceof ContainerComponent)) {
       console.warn('Invalid container components passed into loadNewContainer on template display');
     } else {
@@ -188,5 +189,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
       this._clearOldContainerComponents(oldContainer);
       this._loadNewContainer(newContainer);
     }
+
+    this.application.applicationTemplate = this.templateContext.getCurrentTemplate();
   }
 }
