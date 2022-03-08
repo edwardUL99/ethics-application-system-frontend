@@ -514,14 +514,19 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   /**
    * Display the action success alert
    * @param message the message to display
+   * @param error if the message is an error
    */
-  private displayActionAlert(message: string) {
+  private displayActionAlert(message: string, error: boolean = false) {
     this.actionAlert.message = message;
+    this.actionAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
     this.actionAlert.show();
-    setTimeout(() => {
-      this.actionAlert.hide();
-      this.actionAlert.message = '';
-    }, ALERT_INTERVAL);
+    
+    if (!error) {
+      setTimeout(() => {
+        this.actionAlert.hide();
+        this.actionAlert.message = '';
+      }, ALERT_INTERVAL);
+    }
   }
 
   assignMembers() {
@@ -611,6 +616,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             error: e => checkbox.displayError(e)
           });
       }
+    }
+  }
+
+  deleteApplication() {
+    if (confirm('Are you sure you want to delete the application. You will lose all your changes?')) {
+      this.saved = true;
+      this.applicationService.deleteApplication(this.application.applicationId)
+        .subscribe({
+          next: () => this.router.navigate(['applications']),
+          error: e => this.displayActionAlert(e, true)
+        });
     }
   }
 }
