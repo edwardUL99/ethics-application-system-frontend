@@ -10,28 +10,7 @@ import { Converter } from "./converter";
 @Converter(ComponentType.QUESTION_TABLE)
 export class QuestionTableConverter implements ComponentConverter {
     validate(component: ComponentObject): string {
-        const error = validateKeys(ComponentType.QUESTION_TABLE, Object.keys(component), ['columns', 'numRows']);
-        
-        if (!error) {
-            const componentMap = component as any;
-            const columns = componentMap.columns;
-
-            if (!(columns instanceof Map)) {
-                return 'The columns field of the ' + ComponentType.QUESTION_TABLE + ' component must be a map of the column name to its corresponding quesion';
-            } else {
-                for (let key of Object.keys(columns)) {
-                    if (!(columns[key] instanceof Map)) {
-                        return 'Each column in columns must map to a question component';
-                    }
-                }
-
-                if (!(componentMap.numRows instanceof Number)) {
-                    return 'The numRows field of the ' + ComponentType.QUESTION_TABLE + ' component must be a number type';
-                }
-            }
-        }
-
-        return null;
+        return validateKeys(ComponentType.QUESTION_TABLE, Object.keys(component), ['cells', 'numRows']);
     }
 
     convert(component: ComponentObject): ApplicationComponent {
@@ -41,7 +20,7 @@ export class QuestionTableConverter implements ComponentConverter {
             throw new Error(error);
         } else {
             const componentMap = component as any;
-            const cellsMap = componentMap.columns;
+            const cellsMap = componentMap.cells;
 
             const columnsMapping: ColumnsMapping = {};
             const columns: CellsMapping = new CellsMapping(cellsMap.databaseId, columnsMapping);
@@ -60,7 +39,7 @@ export class QuestionTableConverter implements ComponentConverter {
                 columnsMapping[cells.columnName] = cellsInstance;
             }
 
-            return new QuestionTableComponent(componentMap.databaseId, componentMap.componentId, columns);
+            return new QuestionTableComponent(componentMap.databaseId, componentMap.componentId, columns, componentMap.numRows);
         }
     }
 }

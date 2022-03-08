@@ -114,6 +114,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   ngOnDestroy(): void {
     this.questionChange.destroy();
     Object.keys(this.multipartQuestion.parts).forEach(part => this.loader.destroyComponents(this.multipartQuestion.parts[part].question.componentId));
+    this.removeFromForm();
   }
 
   viewInitialised(): boolean {
@@ -214,7 +215,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
   }
 
-  removeFromForm(): void {}
+  removeFromForm(): void {
+    this.form.removeControl(this.multipartQuestion.componentId);
+  }
 
   castComponent() {
     return this.component as MultipartQuestionComponent;

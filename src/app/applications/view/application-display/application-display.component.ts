@@ -292,6 +292,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private reload(hotReload: boolean = false) {
+    this.newApplication = false;
+
     if (!hotReload) {
       this.router.navigate([], {
         queryParams: {
@@ -300,17 +302,21 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         replaceUrl: true,
         relativeTo: this.activatedRoute
       });
-
-      this.newApplication = false;
     } else {
-      window.location.reload();
+      this.router.navigate(['application'], {
+        queryParams: {
+          id: this.application.applicationId
+        }
+      });
     }
   }
 
   private setAnswer(answer: Answer) {
-    // set the answer on the application from a question change event
-    const componentId = answer.componentId;
-    this.application.answers[componentId] = answer;
+    if (answer) {
+      // set the answer on the application from a question change event
+      const componentId = answer.componentId;
+      this.application.answers[componentId] = answer;
+    }
   }
 
   questionChange(event: QuestionChangeEvent) {
@@ -319,10 +325,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     const answer: Answer | Answer[] = event.view.value();
 
-    if (Array.isArray(answer)) {
-      answer.forEach(a => this.setAnswer(a));
-    } else {
-      this.setAnswer(answer);
+    if (answer) {
+      if (Array.isArray(answer)) {
+        answer.forEach(a => this.setAnswer(a));
+      } else {
+        this.setAnswer(answer);
+      }
     }
   }
 
@@ -419,7 +427,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private updateDraft(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
-    this.applicationService.updateDraftApplication(new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles))
+    this.applicationService.updateDraftApplication(
+      new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles, this.application.applicationTemplate))
       .subscribe({
         next: response => {
           callback(response);
@@ -439,7 +448,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveReferred(callback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
-    const request = new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles);
+    const request = new UpdateDraftApplicationRequest(this.application.applicationId, this.application.answers, this.application.attachedFiles, this.application.applicationTemplate);
     this.applicationService.updateReferredApplication(request)
       .subscribe({
         next: response => callback(response),
@@ -576,6 +585,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     } else {
       this.canReview = !this.viewingUser.applicant && this.viewingUser.reviewer;
       this.isAdmin = this.viewingUser.admin;
+    }
+  }
+
+  terminateApplication(terminate: boolean) {
+    if (terminate) {
+      this.router.navigate(['applications']);
     }
   }
 }

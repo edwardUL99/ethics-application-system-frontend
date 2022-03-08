@@ -82,6 +82,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   private _addToForm(): void {
@@ -110,9 +111,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   removeFromForm(): void {
-    this.control.setValue('');
-    this.control.clearValidators();
-    this.control.updateValueAndValidity({emitEvent: false});
+    this.control = undefined;
+    this.form.removeControl(this.questionComponent.name);
   }
 
   castComponent() {
@@ -165,8 +165,12 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   value(): Answer {
-    return new Answer(undefined, this.component.componentId, this.control.value, 
-      (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT);
+    if (this.control) {
+      return new Answer(undefined, this.component.componentId, this.control.value, 
+        (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT);
+    } else {
+      return undefined;
+    }
   }
 
   isVisible(): boolean {

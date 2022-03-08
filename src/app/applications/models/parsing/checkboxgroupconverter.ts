@@ -37,7 +37,7 @@ export class CheckboxGroupConverter implements ComponentConverter {
                 const replacements: Replacement[] = [];
 
                 for (let replacement of branch.replacements) {
-                    replacements.push(new Replacement(replacement.id, replacement.replaceId, replacement.targetId));
+                    replacements.push(new Replacement(replacement.id, replacement.replace, replacement.target));
                 }
 
                 return new ReplacementBranch(branch.branchId, replacements);
@@ -66,7 +66,7 @@ export class CheckboxGroupConverter implements ComponentConverter {
             }
 
             return new CheckboxGroupComponent(componentMap.databaseId, componentMap.componentId, componentMap.title,
-                defaultBranch, checkboxes, componentMap.multiple);
+                defaultBranch, checkboxes, componentMap.multiple, componentMap.required);
         }
     }
 }

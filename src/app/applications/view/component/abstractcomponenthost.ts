@@ -1,6 +1,7 @@
-import {  ViewComponentShape } from './application-view.component';
+import {  ApplicationViewComponent, ViewComponentShape } from './application-view.component';
 import { SectionViewComponentShape } from './section-view/section-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
+import { ComponentRef } from '@angular/core';
 
 /**
  * This class represents the base class that all component hosts should extend from
@@ -17,6 +18,7 @@ export class AbstractComponentHost {
 
     componentRef.instance.initialise(data);
     componentRef.instance.setVisible(true);
+
     componentRef.changeDetectorRef.detectChanges();
 
     return componentRef;
@@ -32,6 +34,7 @@ export class AbstractComponentHost {
     const componentRef = loader.loadComponent(componentHost, data.component.getType());
 
     componentRef.instance.initialise(data);
+
     componentRef.changeDetectorRef.detectChanges();
 
     return componentRef;

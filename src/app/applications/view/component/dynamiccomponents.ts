@@ -4,6 +4,7 @@
 
 import { ComponentRef, Injectable } from '@angular/core';
 import { ComponentType } from '../../models/components/applicationcomponent';
+import { AbstractComponentHost } from './abstractcomponenthost';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { ComponentHostDirective } from './component-host.directive';
 import { registeredComponents } from './registered.components';
@@ -23,6 +24,13 @@ type HostsMapping = {
 }
 
 /**
+ * A map of loaded component refs that the client wants the loader to track
+ */
+type LoadedReferences = {
+  [key: string]: ComponentRef<ApplicationViewComponent>
+};
+
+/**
  * This class is used to load, store and return the component reference of ApplicationViewComponents. It allows for the creation and subsequent
  * destruction of all sub components in a component host
  */
@@ -36,6 +44,10 @@ export class DynamicComponentLoader {
    * Mapping of host ID to component host directive
    */
   private hosts: HostsMapping = {}
+  /**
+   * Registered references
+   */
+  private registeredRefs: LoadedReferences = {};
 
   /**
    * Register the component reference 
@@ -69,6 +81,27 @@ export class DynamicComponentLoader {
         this.hosts[hostId].viewContainerRef.clear();
         delete this.hosts[hostId];
       }
+    }
+  }
+
+  /**
+   * Register a reference with the loader so that it can be deleted later. This method allows components to be registered for tracking purposes,
+   * and to allow destruction later. It is not a mandatory method to load components
+   * @param componentId the ID of the component that the ref represents
+   * @param ref the ref to register
+   */
+  registerReference(componentId: string, ref: ComponentRef<ApplicationViewComponent>) {
+    this.registeredRefs[componentId] = ref;
+  }
+
+  /**
+   * Delete and destroy the reference identified by the ID
+   * @param componentId the ID of the host reference
+   */
+  deleteReference(componentId: string) {
+    if (componentId in this.registeredRefs) {
+      this.registeredRefs[componentId].destroy();
+      delete this.registeredRefs[componentId];
     }
   }
 
@@ -129,13 +162,11 @@ export class DynamicComponentLoader {
     return componentRef;
   }
 
-  // TODO the view holding the template (i.e. all the components), should implement OnDestroy and call destroyComponents()
-
   /**
    * Destroy the components loaded by the host with the given ID
    * @param hostId the ID of the host to destroy the components of
    */
-  destroyComponents(hostId: string): void;
+  destroyComponents(hostId: string, destroySelf?: boolean): void;
   /**
    * Destroy all the components loaded by all component hosts
    */

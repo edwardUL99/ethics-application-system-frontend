@@ -1,4 +1,4 @@
-import { ApplicationTemplateContext } from "./applicationtemplatecontext";
+import { ApplicationTemplateContext, ReplacedContainer } from "./applicationtemplatecontext";
 import { ApplicationTemplate } from "./models/applicationtemplate";
 import { createApplicationTemplateWithContainer, TEMPLATE_ID } from '../testing/fakes';
 import { SectionComponent } from "./models/components/sectioncomponent";
@@ -110,13 +110,15 @@ describe('ApplicationTemplateContext', () => {
   it('#executeContainerReplacement should replace container', () => {
     const oldContainer = (template.components[0] as SectionComponent).components[0];
     const replaceContainer = (replaceTemplate.components[0] as SectionComponent).components[0] as ContainerComponent;
+    const replacedContainer = new ReplacedContainer(replaceTemplate.components[0], replaceContainer, oldContainer);
 
     expect(oldContainer).not.toEqual(replaceContainer);
 
     const returned = context.executeContainerReplacement('test-container', 'test1.test-container1');
     const templateContainer = (template.components[0] as SectionComponent).components[0] as ContainerComponent;
 
-    expect(oldContainer).toEqual(returned);
+    expect(replacedContainer).toEqual(returned);
+    expect(oldContainer).toEqual(replacedContainer.replaced);
     expect(templateContainer).toBe(replaceContainer);
   });
 
@@ -129,7 +131,7 @@ describe('ApplicationTemplateContext', () => {
     const returned = context.executeContainerReplacement('test-container', replaceContainer);
     const templateContainer = (template.components[0] as SectionComponent).components[0] as ContainerComponent;
 
-    expect(oldContainer).toEqual(returned);
+    expect(oldContainer).toEqual(returned.replaced);
     expect(templateContainer).toBe(replaceContainer);
   });
 });

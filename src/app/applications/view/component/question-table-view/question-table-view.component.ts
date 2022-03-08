@@ -117,9 +117,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     this.questionTable = this.castComponent();
     this.addToForm();
     
-    for (let key of Object.keys(this.questionTable.columns.columns)) {
+    for (let key of Object.keys(this.questionTable.cells.columns)) {
       this.columnNames.push(key);
-      const columns = this.questionTable.columns.columns[key];
+      const columns = this.questionTable.cells.columns[key];
       columns.components.forEach(component => this.questionsMapping[component.componentId] = component);
     }
 
@@ -129,10 +129,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   ngOnDestroy(): void {
     this.questionChange.destroy();
     Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
+    this.removeFromForm();
   }
 
   private populateRows() {
-    const columnsMapping = this.questionTable.columns.columns;
+    const columnsMapping = this.questionTable.cells.columns;
 
     if (Object.keys(columnsMapping).length > 0) {
       const numRows = columnsMapping[this.columnNames[0]].components.length;
@@ -206,7 +207,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
   }
 
-  removeFromForm(): void {}
+  removeFromForm(): void {
+    this.form.removeControl(this.questionTable.componentId);
+  }
   
   castComponent() {
     return this.component as QuestionTableComponent;

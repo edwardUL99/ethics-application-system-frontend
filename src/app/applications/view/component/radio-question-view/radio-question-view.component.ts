@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
@@ -9,6 +9,19 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+
+/**
+ * A custom validator as Validators.required is not working
+ */
+function RadioValidator(component: RadioQuestionViewComponent): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (component.selectedRadioValue == undefined || component.selectedRadioValue == '' || component.selectedRadioValue == null) {
+      return {required: true};
+    } else {
+      return null;
+    }
+  }
+}
 
 @Component({
   selector: 'app-radio-question-view',
@@ -34,9 +47,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    */
   @Input() form: FormGroup;
   /**
-   * The array of radios
+   * The group of radios
    */
-  radioArray: FormArray;
+  radioGroup: FormGroup;
   /**
   * The cast radio question compoennt
   */
@@ -49,10 +62,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * The selected radio value
    */
   selectedRadioValue: string;
-  /**
-  * Mapping of option names to controls
-  */
-  radioControls = {};
   /**
    * The question change event emitter
    */
@@ -87,7 +96,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.questionComponent.options.forEach(option => {
       const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
       this.radios[option.value] = checkbox;
-      this.radioControls[checkbox.value] = new FormControl({vaue: '', disabled: !this.questionComponent.editable});
+      this.radioGroup.addControl(checkbox.value, new FormControl({vaue: '', disabled: !this.questionComponent.editable}));
     });
 
     QuestionViewUtils.setExistingAnswer(this);
@@ -95,6 +104,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   getRadios() {
@@ -105,14 +115,14 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   private _addToForm(): void {
-    this.radioArray = (this.radioArray) ? this.radioArray:new FormArray([]);
+    this.radioGroup = (this.radioGroup) ? this.radioGroup:new FormGroup({});
 
-    if (this.questionComponent.required && !this.radioArray.hasValidator(Validators.required)) {
-      this.radioArray.addValidators(Validators.required);
+    if (this.questionComponent.required) {
+      this.radioGroup.addValidators(RadioValidator(this));
     }
 
     if (!this.form.get(this.questionComponent.componentId)) {
-      this.form.addControl(this.questionComponent.componentId, this.radioArray);
+      this.form.addControl(this.questionComponent.componentId, this.radioGroup);
     }
   }
 
@@ -123,12 +133,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   removeFromForm(): void {
-    Object.keys(this.radioControls).forEach(key => {
-      this.radioControls[key].setValue('', {emitEvent: false})
-    });
-    this.radioArray.clear();
-    this.radioArray.clearValidators();
-    this.radioArray.updateValueAndValidity({emitEvent: false});
+    this.form.removeControl(this.questionComponent.componentId);
+    this.radioGroup = undefined;
   }
 
   castComponent() {
@@ -136,9 +142,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   private deselectOthers(radio: string) {
-    Object.keys(this.radioControls).forEach(key => {
+    Object.keys(this.radios).forEach(key => {
       if (radio != key) {
-        this.radioControls[key].setValue('', {emitEvent: false})
+        this.radioGroup.get(key).setValue('', {emitEvent: false})
       }
     });
   }
@@ -155,10 +161,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
 
   private select(checkbox: string) {
     this.selectedRadioValue = checkbox;
-    const control = this.radioControls[checkbox];
+    const control = this.radioGroup.get(checkbox);
     control.setValue(checkbox, {emitEvent: false});
     this.deselectOthers(checkbox);
-    this.radioArray.push(control);
   }
 
   /**
@@ -169,40 +174,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     if (event.target.checked) {
       this.select(event.target.value);
     } else {
-      let i = 0;
-
-      this.radioArray.controls.forEach(control => {
-        if (control.value == event.target.value) {
-          this.radioArray.removeAt(i);
-          this.selectedRadioValue = undefined;
-          control.setValue('', {emitEvent: false});
-          return;
-        }
-
-        i++;
-      });
-
-      this.radioArray.clear();
-    }
-
-    this.emit();
-  }
-
-  resetSelection() {
-    let i = 0;
-
-    this.radioArray.controls.forEach(control => {
-      this.radioArray.removeAt(i);
-      this.selectedRadioValue = undefined;
-      control.setValue('', {emitEvent: false});
-
-      i++;
-    });
-
-    this.radioArray.clear();
-
-    if (this.component.componentId in this.application.answers) {
-      delete this.application.answers[this.component.componentId];
+      this.radioGroup.get(event.target.value).setValue('', {emitEvent: false});
     }
 
     this.emit();
@@ -227,7 +199,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
         this.select(value);
       });
 
-      this.radioArray.markAsTouched();
+      this.radioGroup.markAsTouched();
 
       this._emit();
     }
