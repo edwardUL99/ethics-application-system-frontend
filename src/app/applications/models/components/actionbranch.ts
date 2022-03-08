@@ -26,3 +26,17 @@ export class ActionBranch extends Branch {
         this.comment = comment;
     }
 }
+
+/**
+ * The list of action types 
+ */
+export const Actions = {
+    /**
+     * Terminate the application currently being made
+     */
+    TERMINATE: 'terminate',
+    /**
+     * Attach a file to the application
+     */
+    ATTACH_FILE: 'attach-file'
+}

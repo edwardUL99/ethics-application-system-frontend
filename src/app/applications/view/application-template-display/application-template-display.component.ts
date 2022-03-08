@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
+import { ApplicationTemplateContext, ReplacedContainer } from '../../applicationtemplatecontext';
 import { ApplicationTemplate } from '../../models/applicationtemplate';
-import { ComponentType } from '../../models/components/applicationcomponent';
+import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
 import { ComponentHost } from '../component/component-host.directive';
@@ -10,8 +10,10 @@ import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
 import { Application } from '../../models/applications/application';
-import { Observable } from 'rxjs';
-import { ApplicationContext, ViewingUser } from '../../applicationcontext';
+import { ViewingUser } from '../../applicationcontext';
+import { ApplicationStatus } from '../../models/applications/applicationstatus';
+import { ContainerComponent } from '../../models/components/containercomponent';
+import { CompositeComponent } from '../../models/components/compositecomponent';
 
 /*
 TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
@@ -31,7 +33,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   /**
    * The current template to display
    */
-  template: ApplicationTemplate;
+  @Input() template: ApplicationTemplate;
   /**
    * The form group instance to pass to the child components
    */
@@ -48,6 +50,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * Event for when a section is autosaved to tell the parent to autosave
    */
   @Output() autoSave: EventEmitter<SectionViewComponent> = new EventEmitter<SectionViewComponent>();
+  /**
+   * An event that indicates that the application being filled out should be terminated
+   */
+  @Output() terminate: EventEmitter<boolean> = new EventEmitter<boolean>();
   /**
    * The user viewing the application
    */
@@ -95,34 +101,36 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     this.autoSave.emit(section);
   }
 
+  private _loadComponent(component: ApplicationComponent) {
+    const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
+
+    if (component.getType() == ComponentType.SECTION) {
+      const data: SectionViewComponentShape = {
+        component: component,
+        application: this.application,
+        form: this.form,
+        subSection: false,
+        questionChangeCallback: callback,
+        template: this
+      };
+
+      this.loadComponentSubSection(this.loader, '', data);
+    } else {
+      const data: QuestionViewComponentShape = {
+        application: this.application,
+        form: this.form,
+        questionChangeCallback: callback,
+        component: component,
+        template: this
+      };
+
+      this.loadComponent(this.loader, '', data);
+    }
+  }
+
   loadComponents(): void {
     if (this._viewInitialised && this.application) {
-      const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
-
-      for (let component of this.template.components) {
-        if (component.getType() == ComponentType.SECTION) {
-          const data: SectionViewComponentShape = {
-            component: component,
-            application: this.application,
-            form: this.form,
-            subSection: false,
-            questionChangeCallback: callback,
-            template: this
-          };
-
-          this.loadComponentSubSection(this.loader, '', data);
-        } else {
-          const data: QuestionViewComponentShape = {
-            application: this.application,
-            form: this.form,
-            questionChangeCallback: callback,
-            component: component,
-            template: this
-          };
-
-          this.loadComponent(this.loader, '', data);
-        }
-      }
+      this.template.components.forEach(component => this._loadComponent(component));
     }
 
     this.detectChanges()
@@ -130,5 +138,58 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   detectChanges(): void {
     this.cd.detectChanges();
+  }
+
+  terminateApplication() {
+    if (this.application.status == ApplicationStatus.DRAFT) {
+      this.terminate.emit(true);
+    }
+  }
+
+  private _deleteOldComponent(component: ApplicationComponent, hostIds: string[]) {
+    if (component.isComposite) {
+      hostIds.push(component.componentId);
+      for (let sub of (component as CompositeComponent).getComponents()) {
+        this._deleteOldComponent(sub, hostIds); // recursively delete the child components
+      }
+    } else {
+      if (component.componentId in this.application.answers) {
+        delete this.application.answers[component.componentId];
+      }
+    }
+  }
+
+  private _deleteOldComponentViews(hostIds: string[]) {
+    hostIds.forEach(id => {
+      this.loader.destroyComponents(id);
+      this.loader.deleteReference(id);
+    });
+  }
+
+  private _clearOldContainerComponents(component: ContainerComponent) {
+    const hostIds = [];
+    component.components.forEach(component => this._deleteOldComponent(component, hostIds));
+    this._deleteOldComponentViews(hostIds);
+  }
+
+  private _loadNewContainer(component: ContainerComponent) {
+    component.components.forEach(component => this._loadComponent(component));
+  }
+
+  // TODO need to make sure that autosaving still works after this
+
+  loadNewContainer(replaced: ReplacedContainer) {
+    // TODO this sometimes throws null
+    if (!(replaced.replaced instanceof ContainerComponent) || !(replaced.container instanceof ContainerComponent)) {
+      console.warn('Invalid container components passed into loadNewContainer on template display');
+    } else {
+      const oldContainer: ContainerComponent = replaced.replaced as ContainerComponent;
+      const newContainer: ContainerComponent = replaced.container as ContainerComponent;
+
+      this._clearOldContainerComponents(oldContainer);
+      this._loadNewContainer(newContainer);
+    }
+
+    this.application.applicationTemplate = this.templateContext.getCurrentTemplate();
   }
 }

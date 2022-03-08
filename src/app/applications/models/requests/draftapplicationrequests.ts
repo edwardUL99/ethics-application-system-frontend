@@ -41,8 +41,9 @@ export class UpdateDraftApplicationRequest {
    * @param id the id of the application being updated
    * @param answers the map of answers on the application
    * @param attachedFiles the map of any files that may have been attached
+   * @param template the template to update
    */
-  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping) {}
+  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping, public template: ApplicationTemplate) {}
 }
 
 /**

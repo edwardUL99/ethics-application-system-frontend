@@ -32,21 +32,21 @@ export class Replacement {
     /**
      * The container ID to replace
      */
-    replaceId: string;
+    replace: string;
     /**
      * The ID of the container to add into the replacement
      */
-    targetId: string;
+    target: string;
 
     /**
      * Create a Replacement instance
      * @param id the database ID
-     * @param replaceId the container ID to replace
-     * @param targetId the ID of the container to add into the replacement
+     * @param replace the container ID to replace
+     * @param target the ID of the container to add into the replacement
      */
-    constructor(id: number, replaceId: string, targetId: string) {
+    constructor(id: number, replace: string, target: string) {
         this.id = id;
-        this.replaceId = replaceId;
-        this.targetId = targetId;
+        this.replace = replace;
+        this.target = target;
     }
 }

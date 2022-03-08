@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output, ComponentRef } from '@angular/core';
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
@@ -89,6 +89,8 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
       const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
       const castedComponent = this.castComponent();
       castedComponent.components.forEach(component => {
+        let ref: ComponentRef<ApplicationViewComponent>;
+        
         const data: QuestionViewComponentShape = {
           application: this.application,
           component: component,
@@ -97,7 +99,12 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
           template: this.template
         };
 
-        this.loadComponent(this.loader, this.component.componentId, data)
+        ref = this.loadComponent(this.loader, this.component.componentId, data);
+
+        if (component.isComposite) {
+          // register a composite component so that it can be deleted after all its children if a container is replace in the template display
+          this.loader.registerReference(component.componentId, ref);
+        }
       });
     }
 

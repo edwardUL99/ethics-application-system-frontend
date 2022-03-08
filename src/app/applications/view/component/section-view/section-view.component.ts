@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Output, ViewChild, ComponentRef } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -155,12 +155,14 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   private checkQuestionForAutoSave(event: QuestionChangeEvent) {
     const answer: Answer | Answer[] = event.view.value();
 
-    if (Array.isArray(answer)) {
-      answer.forEach(a => {
-        this.answeredQuestions[a.componentId] = !a.empty();
-      });
-    } else {
-      this.answeredQuestions[answer.componentId] = !answer.empty();
+    if (answer) {
+      if (Array.isArray(answer)) {
+        answer.forEach(a => {
+          this.answeredQuestions[a.componentId] = !a.empty();
+        });
+      } else {
+        this.answeredQuestions[answer.componentId] = !answer.empty();
+      }
     }
 
     this.checkAllRequiredAnswered();
@@ -196,8 +198,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
       const castedComponent = this.castComponent();
       
       castedComponent.components.forEach(component => {
+        let ref: ComponentRef<ApplicationViewComponent>;
+
         if (component.getType() == ComponentType.SECTION) {
-          this.loadComponentSubSection(this.loader, this.component.componentId,
+          ref = this.loadComponentSubSection(this.loader, this.component.componentId,
             {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
         } else {
           const data: QuestionViewComponentShape = {
@@ -208,7 +212,12 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
             template: this.template
           };
 
-          this.loadComponent(this.loader, this.component.componentId, data);
+          ref = this.loadComponent(this.loader, this.component.componentId, data);
+        }
+
+        if (component.isComposite) {
+          // register a composite component so that it can be deleted after all its children if a container is replace in the template display
+          this.loader.registerReference(component.componentId, ref);
         }
       });
     }

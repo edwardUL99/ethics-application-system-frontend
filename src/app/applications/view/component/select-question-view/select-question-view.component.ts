@@ -99,6 +99,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   addToForm(): void {
@@ -121,9 +122,8 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   removeFromForm(): void {
-    this.control.setValue('', {emitEvent: false});
-    this.control.clearValidators();
-    this.control.updateValueAndValidity({emitEvent: false});
+    this.control = undefined;
+    this.form.removeControl(this.questionComponent.name);
   }
 
   castComponent() {
@@ -196,16 +196,20 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   value(): Answer {
-    const valueRaw = this.control.value;
-    let value: string;
+    if (this.control) {
+      const valueRaw = this.control.value;
+      let value: string;
 
-    if (Array.isArray(valueRaw)) {
-      value = valueRaw.join(',');
+      if (Array.isArray(valueRaw)) {
+        value = valueRaw.join(',');
+      } else {
+        value = valueRaw;
+      }
+
+      return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS);
     } else {
-      value = valueRaw;
+      return null;
     }
-
-    return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS);
   }
 
   isVisible(): boolean {

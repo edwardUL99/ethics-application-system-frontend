@@ -1,11 +1,12 @@
-<div [id]="checkboxGroupComponent?.componentId" [formGroup]="form" *ngIf="display">
+<div [id]="checkboxGroupComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display">
     <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <label>{{checkboxGroupComponent?.title}}</label>
     <div [id]="checkboxGroupComponent?.componentId + '-checkboxes'">
         <div *ngFor="let checkbox of checkboxGroupComponent?.checkboxes" class="form-check">
-            <label class="form-check-label">{{checkbox?.title}}</label>
-            <input type="checkbox" class="form-check-input" [value]="checkbox?.identifier" (change)="onCheckChange($event, checkbox?.identifier)" 
-            [name]="checkbox?.name" [checked]="selectedCheckboxes[checkbox?.identifier]">
+            <label class="form-check-label">{{checkbox.title}}</label>
+            <input type="checkbox" class="form-check-input" [value]="checkbox.identifier" (change)="onCheckChange($event, checkbox.identifier)" 
+            [name]="checkbox.identifier" [checked]="isChecked(checkbox.identifier)" [formControlName]="checkbox.identifier">
         </div>
+        <app-field-error [condition]="checkboxGroup?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
 </div>

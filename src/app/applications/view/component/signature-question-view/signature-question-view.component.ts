@@ -97,6 +97,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.removeFromForm();
   }
 
   private _addToForm() {
@@ -120,9 +121,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   removeFromForm(): void {
-    this.control.setValue('', {emitEvent: false});
-    this.control.clearValidators();
-    this.control.updateValueAndValidity({emitEvent: false});
+    this.control = undefined;
+    this.form.removeControl(this.questionComponent.name);
   }
 
   sizeChange() {
