@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -13,6 +13,7 @@ import { QuestionViewUtils } from '../questionviewutils';
 import { ComponentViewRegistration } from '../registered.components';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { CheckboxGroupRequired } from '../../../../validators';
+import { AlertComponent } from '../../../../alert/alert.component';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -79,6 +80,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * An error message to display
+   */
+  @ViewChild('error')
+  error: AlertComponent;
 
   constructor() {}
 
@@ -191,6 +197,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     return this.component as CheckboxGroupComponent;
   }
 
+  displayError(msg: string) {
+    this.error.message = msg;
+    this.error.show();
+  }
+
   private _terminate(actionBranch: ActionBranch, checkbox: string) {
     let msg: string = 'Confirm application termination?';
 
@@ -199,7 +210,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     }
 
     if (confirm(msg)) {
-      this.template.terminateApplication();
+      this.template.terminateApplication(this);
     } else {
       this.unselectCheckbox(checkbox);
     }

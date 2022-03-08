@@ -18,6 +18,7 @@ import { AssignMembersResponse } from './models/requests/assignmembersresponse';
 import { User } from '../users/user';
 import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
 import { ApplicationStatus } from './models/applications/applicationstatus';
+import { BaseResponse } from '../baseresponse';
 
 /**
  * This interface represents options for getting an application
@@ -286,5 +287,23 @@ export class ApplicationService {
    */
   mapApplicationResponse(response: ApplicationResponse): Observable<Application> {
     return getResponseMapper(response.status).map(response);
+  }
+
+  /**
+   * Delete the application with the given ID from the server
+   * @param id the ID of the application to delete
+   * @param admin if true, any application can be deleted
+   */
+  deleteApplication(id: string, admin: boolean = false): Observable<BaseResponse> {
+    const url = (admin) ? '/api/applications/admin/delete' : '/api/applications/delete';
+
+    return this.http.delete(url, {
+      params: {
+        id: id
+      }
+    })
+    .pipe(
+      catchError(this.handleError)
+    );
   }
 }

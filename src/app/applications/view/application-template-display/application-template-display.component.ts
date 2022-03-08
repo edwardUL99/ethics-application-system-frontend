@@ -14,6 +14,7 @@ import { ViewingUser } from '../../applicationcontext';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ContainerComponent } from '../../models/components/containercomponent';
 import { CompositeComponent } from '../../models/components/compositecomponent';
+import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 
 /*
 TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
@@ -53,7 +54,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   /**
    * An event that indicates that the application being filled out should be terminated
    */
-  @Output() terminate: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() terminate: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
   /**
    * The user viewing the application
    */
@@ -140,9 +141,9 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     this.cd.detectChanges();
   }
 
-  terminateApplication() {
+  terminateApplication(checkbox: CheckboxGroupViewComponent) {
     if (this.application.status == ApplicationStatus.DRAFT) {
-      this.terminate.emit(true);
+      this.terminate.emit(checkbox);
     }
   }
 
