@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -27,6 +27,7 @@ import { ReviewApplicationRequest } from '../../models/requests/reviewapplicatio
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
 import { mapAnswers } from '../../models/requests/mapping/applicationmapper'
+import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 
 /**
  * The interval to display alerts for
@@ -104,6 +105,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * A variable indicating if the application is saved
    */
   private saved: boolean = true;
+  /**
+   * This variable if set freezes changes to the saved property
+   */
+  private freezeSaved: boolean = false;
   /**
    * The observable retrieving users that can review applications
    */
@@ -321,7 +326,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   questionChange(event: QuestionChangeEvent) {
     // a question has a change to it in a sub component
-    this.saved = false;
+    if (!this.freezeSaved)
+      this.saved = false;
 
     const answer: Answer | Answer[] = event.view.value();
 
@@ -508,14 +514,19 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   /**
    * Display the action success alert
    * @param message the message to display
+   * @param error if the message is an error
    */
-  private displayActionAlert(message: string) {
+  private displayActionAlert(message: string, error: boolean = false) {
     this.actionAlert.message = message;
+    this.actionAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
     this.actionAlert.show();
-    setTimeout(() => {
-      this.actionAlert.hide();
-      this.actionAlert.message = '';
-    }, ALERT_INTERVAL);
+    
+    if (!error) {
+      setTimeout(() => {
+        this.actionAlert.hide();
+        this.actionAlert.message = '';
+      }, ALERT_INTERVAL);
+    }
   }
 
   assignMembers() {
@@ -588,9 +599,34 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  terminateApplication(terminate: boolean) {
-    if (terminate) {
-      this.router.navigate(['applications']);
+  terminateApplication(checkbox: CheckboxGroupViewComponent) {
+    if (checkbox && this.application.status == ApplicationStatus.DRAFT) {
+      const redirect = () => {
+        this.freezeSaved = true; // don't allow any event propagation to change the saved property
+        this.saved = true;
+        this.router.navigate(['applications']);
+      };
+
+      if (this.newApplication || !environment.deleteApplicationOnTerminate) {
+        redirect();
+      } else {
+        this.applicationService.deleteApplication(this.application.applicationId)
+          .subscribe({
+            next: () => redirect(),
+            error: e => checkbox.displayError(e)
+          });
+      }
+    }
+  }
+
+  deleteApplication(admin: boolean) {
+    if (confirm('Are you sure you want to delete the application. All changes will be lost and cannot be reversed')) {
+      this.saved = true;
+      this.applicationService.deleteApplication(this.application.applicationId, admin)
+        .subscribe({
+          next: () => this.router.navigate(['applications']),
+          error: e => this.displayActionAlert(e, true)
+        });
     }
   }
 }

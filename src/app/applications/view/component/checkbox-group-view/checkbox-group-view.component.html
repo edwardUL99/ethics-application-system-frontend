@@ -9,4 +9,5 @@
         </div>
         <app-field-error [condition]="checkboxGroup?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
+    <app-alert #error [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
 </div>
