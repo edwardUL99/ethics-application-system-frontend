@@ -240,14 +240,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   onAutoSave(message: string, error: boolean = false) {
     if (this.autoSaveAlert) {
-      this.autoSaveAlert.hidden = true;
-      this.autoSaveAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
-      this.autoSaveAlert.message = message;
-      this.autoSaveAlert.show();
-
-      if (!error) {
-        setTimeout(() => this.autoSaveAlert.hide(), 2000);
-      }
+      this.autoSaveAlert.displayMessage(message, error);
     }
   }
 

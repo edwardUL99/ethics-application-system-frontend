@@ -30,11 +30,6 @@ import { mapAnswers } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 
 /**
- * The interval to display alerts for
- */
-const ALERT_INTERVAL = 2000;
-
-/**
  * The default template ID to use
  */
 export const DEFAULT_TEMPLATE = environment.default_template_id;
@@ -160,6 +155,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   ngOnInit(): void {
     this.applicationContext.disableAutosave = true;
     this.load();
+  }
+
+  // TODO where else user's names or usernames are added, allow clicking to go to their user profile
+  navigateToUser(username: string) {
+    if (username) {
+      this.router.navigate(['profile'], {
+        queryParams: {
+          username: username
+        }
+      });
+    }
   }
 
   private load() {
@@ -378,9 +384,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private displaySaveAlert() {
-    this.saveAlert.show();
-    this.saveAlert.message = MessageMappings.application_updated;
-    setTimeout(() => this.saveAlert.hide(), ALERT_INTERVAL);
+    this.saveAlert.displayMessage(MessageMappings.application_updated);
   }
 
   private _populateApplication(response?: CreateDraftApplicationResponse) {
@@ -486,10 +490,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
               this.application.answers = mapAnswers(response.answers);
               this.reload(true);
             },
-            error: e => {
-              this.saveErrorAlert.message = e;
-              this.saveErrorAlert.show();
-            }
+            error: e => this.saveErrorAlert.displayMessage(e, true)
           });
       }
     }
@@ -517,16 +518,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * @param error if the message is an error
    */
   private displayActionAlert(message: string, error: boolean = false) {
-    this.actionAlert.message = message;
-    this.actionAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
-    this.actionAlert.show();
-    
-    if (!error) {
-      setTimeout(() => {
-        this.actionAlert.hide();
-        this.actionAlert.message = '';
-      }, ALERT_INTERVAL);
-    }
+    this.actionAlert.displayMessage(message, error);
   }
 
   assignMembers() {

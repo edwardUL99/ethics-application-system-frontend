@@ -196,8 +196,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   displayError(msg: string) {
-    this.error.message = msg;
-    this.error.show();
+    this.error.displayMessage(msg, true);
   }
 
   private _terminate(actionBranch: ActionBranch, checkbox: string) {

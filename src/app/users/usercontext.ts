@@ -1,7 +1,7 @@
-import { Injectable } from "@angular/core";
+import { EventEmitter, Injectable } from "@angular/core";
+import { Observable, Observer, share, Subscription } from 'rxjs';
 import { User } from "./user";
 import { UserService } from "./user.service";
-import { Observable, share} from "rxjs";
 
 /**
  * The local storage username key
@@ -28,6 +28,10 @@ export class UserContext {
    * The username of the user to save in the context
    */
   private _username: string;
+  /**
+   * An event that can be subscribed to if a client needs to be informed that the context has updated
+   */
+  private _userUpdates: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private userService: UserService) {
     const username = localStorage.getItem(USERNAME);
@@ -109,5 +113,24 @@ export class UserContext {
     this._username = user.username;
     localStorage.setItem('_username', this._username);
     localStorage.setItem('_name', user.name);
+    this._userUpdates.emit(true);
+  }
+
+  /**
+   * Subscribe to the context to be notified that the context has been updated
+   * @param subscriber the subscriber function
+   */
+  subscribeToUpdates(subscriber: Partial<Observer<boolean>>): Subscription {
+    return this._userUpdates.subscribe(subscriber);
+  }
+
+  /**
+   * This should be called to notify the context that the user has been updated
+   */
+  update() {
+    this._username = this._user.username;
+    localStorage.setItem('_username', this._user.username);
+    localStorage.setItem('_name', this._user.name);
+    this._userUpdates.emit(true);
   }
 }

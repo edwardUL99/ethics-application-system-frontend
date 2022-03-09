@@ -44,4 +44,18 @@ export class AlertComponent implements OnInit {
   hide()  {
     this.hidden = true;
   }
+
+  /**
+   * A utility function to display the given success message and hide it after 2000 ms.
+   * If error, it will not be hidden automatically
+   */
+  displayMessage(message: string, error?: boolean) {
+    this.message = message;
+    this.alertType = (error) ? 'alert-danger' : 'alert-success';
+    this.show();
+
+    if (!error) {
+      setTimeout(() => this.hide(), 2000);
+    }
+  }
 }

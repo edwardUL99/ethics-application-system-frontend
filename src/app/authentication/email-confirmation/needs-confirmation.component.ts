@@ -53,9 +53,7 @@ export class NeedsConfirmationComponent implements OnInit {
           catchError(this.handleError)
         )
         .subscribe({
-            next: () => {
-            this.message = "Confirmation E-mail re-sent";
-          },
+          next: () => this.message = "Confirmation E-mail re-sent",
           error: e => this.error = e
         });
     });

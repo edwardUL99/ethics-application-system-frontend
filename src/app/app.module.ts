@@ -63,6 +63,7 @@ import { HomeComponent } from './home/home.component';
 import { ApiInterceptor } from './api-interceptor/api-interceptor';
 import { ForgotPasswordComponent } from './authentication/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
+import { UserProfileComponent } from './users/user-profile/user-profile.component';
 
 @NgModule({
   declarations: [
@@ -105,7 +106,8 @@ import { ResetPasswordComponent } from './authentication/reset-password/reset-pa
     IndexRedirectComponent,
     HomeComponent,
     ForgotPasswordComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    UserProfileComponent
   ],
   imports: [
     BrowserModule,

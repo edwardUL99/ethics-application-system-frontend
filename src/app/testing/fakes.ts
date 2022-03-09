@@ -48,7 +48,7 @@ export const DEPARTMENT = 'department';
 export const NAME = 'name';
 
 export const ROLE = new Role(1, 'Applicant', 'This role is the default role allocated to every new user. New committee members are upgraded from this role by the Chair', 'APPLICANT',
-  [new Permission(1, 'Create Application', 'This permission allows a user to create and submit an application', 'CREATE_APPLICATION')], false);
+  [new Permission(1, 'Create Application', 'This permission allows a user to create and submit an application', 'CREATE_APPLICATION')], false, undefined);
 
 
 export function createUserResponse(): UserResponse {
@@ -72,7 +72,8 @@ export function createUserResponse(): UserResponse {
                     description: rolePermission.description,
                     tag: rolePermission.tag
                 }
-            ]
+            ],
+            downgradeTo: ROLE.downgradeTo
         }
     };
 }
@@ -279,7 +280,8 @@ export function createRolesResponse(): GetAuthorizationResponse<RoleResponse> {
                 permissions: [
                     createPermissionsResponse().authorizations[0]
                 ],
-                singleUser: false
+                singleUser: false,
+                downgradeTo: undefined
             }
         ]
     };
