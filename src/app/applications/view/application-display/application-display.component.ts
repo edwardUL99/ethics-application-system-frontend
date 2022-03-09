@@ -619,10 +619,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  deleteApplication() {
-    if (confirm('Are you sure you want to delete the application. You will lose all your changes?')) {
+  deleteApplication(admin: boolean) {
+    if (confirm('Are you sure you want to delete the application. All changes will be lost and cannot be reversed')) {
       this.saved = true;
-      this.applicationService.deleteApplication(this.application.applicationId)
+      this.applicationService.deleteApplication(this.application.applicationId, admin)
         .subscribe({
           next: () => this.router.navigate(['applications']),
           error: e => this.displayActionAlert(e, true)

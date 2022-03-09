@@ -180,8 +180,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       // execute the checked branch if it exists or else the default branch
       this.executeBranch((branch == null) ? defaultBranch : branch, checkbox);
     } else {
-      let i = 0;
-      
       this.selectedCheckboxes[checkbox] = false;
       this.checkboxGroup.get(checkbox).setValue('');
     }
