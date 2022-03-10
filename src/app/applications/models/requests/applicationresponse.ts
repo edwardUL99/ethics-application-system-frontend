@@ -85,7 +85,11 @@ export interface SubmittedApplicationResponse extends ApplicationResponse {
   /**
    * An optional value of previous committee members
    */
-  previousCommitteeMembers?: string[]; 
+  previousCommitteeMembers?: string[];
+  /**
+   * The time the application was submitted at
+   */ 
+  submittedTime: string;
   /**
    * The timestamp of when the application was approved
    */

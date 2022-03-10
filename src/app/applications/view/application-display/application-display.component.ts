@@ -245,13 +245,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     ApplicationTemplateContext.getInstance().clear(); // TODO decide if this is necessary, but it maybe as container replacement may modify the template for the next createApplication
   }
 
-  getLastUpdatedDate() {
-    let lastUpdated = this.application?.lastUpdated;
-
-    if (!lastUpdated) {
+  formatDate(date: Date) {
+    if (!date) {
       return 'N/A';
     } else {
-      return lastUpdated.toLocaleString();
+      return date.toLocaleString();
     }
   }
 
@@ -482,6 +480,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             next: response => {
               this.application.status = response.status;
               this.application.lastUpdated = new Date(response.lastUpdated);
+              this.application.submittedTime = new Date(response.submittedTime);
               this.application.id = response.dbId;
               this.application.answers = mapAnswers(response.answers);
               this.reload(true);

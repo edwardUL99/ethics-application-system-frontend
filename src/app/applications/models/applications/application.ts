@@ -61,6 +61,10 @@ export class Application {
    */
   previousCommitteeMembers: User[] = undefined;
   /**
+   * The time the application was submitted at
+   */
+  submittedTime: Date = undefined;
+  /**
    * The timestamp of when the application was approved if approval is granted
    */
   approvalTime: Date = undefined;
