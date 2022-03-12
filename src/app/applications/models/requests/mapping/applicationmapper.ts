@@ -93,6 +93,22 @@ export function MapApplicationResponse(key: ResponseMapperKeys | ResponseMapperK
   }
 }
 
+function resolveStatus(key: ApplicationStatus): string {
+  const keys = Object.keys(ApplicationStatus);
+
+  if (key in keys) {
+    return ApplicationStatus[key];
+  } else {
+    for (let k of keys) {
+      if (ApplicationStatus[k] == key) {
+        return key;
+      }
+    }
+
+    throw new Error("Could not find a ResponseMapper for " + key);
+  }
+}
+
 /**
  * Get a response mapper for the given key
  * @param key the key for the response mapper or application status that will be mapped to a key
@@ -101,7 +117,7 @@ export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): 
   if (ResponseMapperKeys[key]) {
     return _mappers[key];
   } else {
-    return _mappers[_statusMapping[ApplicationStatus[key]]];
+    return _mappers[_statusMapping[resolveStatus(key as ApplicationStatus)]];
   }
 }
 
@@ -247,7 +263,7 @@ function assignedMemberObservableMapper(v: AssignedCommitteeMemberResponse, user
       .subscribe({
         next: user => {
           const mapped = userResponseMapper(user);
-          observer.next(new AssignedCommitteeMember(v.id, mapped, v.finishReview));
+          observer.next(new AssignedCommitteeMember(v.id, v.applicationId, mapped, v.finishReview));
           observer.complete();
         },
         error: e => {

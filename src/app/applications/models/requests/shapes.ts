@@ -88,6 +88,10 @@ export interface AssignedCommitteeMemberResponse {
    */
   id: number;
   /**
+   * The ID of the application the user is assigned to
+   */
+  applicationId: string;
+  /**
    * The username of the assigned committee member
    */
   username: string;
