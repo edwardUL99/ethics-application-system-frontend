@@ -15,7 +15,7 @@ export class ApplicationSearchComponent implements OnInit, SearchComponent<Appli
   /**
    * The results event emitter
    */
-  @Output() results: EventEmitter<ApplicationResponse[]>;
+  @Output() results: EventEmitter<ApplicationResponse[]> = new EventEmitter<ApplicationResponse[]>();
   /**
    * The endpoint to search with
    */
@@ -30,6 +30,10 @@ export class ApplicationSearchComponent implements OnInit, SearchComponent<Appli
   ngOnInit(): void {}
 
   search(query: Query): void {
-    console.log(query);
+    this.searchService.search<ApplicationResponse>(this.endpoint, query.query, query.or)
+      .subscribe({
+        next: response => this.results.emit(response.results),
+        error: e => this.results.error(e)
+      });
   }
 }

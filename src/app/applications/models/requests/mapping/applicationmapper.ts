@@ -104,7 +104,7 @@ export function resolveStatus(key: ApplicationStatus | string): string {
     }
   }
 
-  throw new Error("Could not find a ResponseMapper for " + key);
+  throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
 }
 
 /**

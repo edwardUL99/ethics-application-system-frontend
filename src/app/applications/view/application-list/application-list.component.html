@@ -31,7 +31,8 @@
       </div>
       <div>
         <h4 style="color: white">Search</h4>
-        <app-application-search></app-application-search>
+        <app-application-search #applicationSearch></app-application-search>
+        <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
       </div>
       <div>
         <h4 style="color: white">Applications</h4>
@@ -56,7 +57,7 @@
                   <h5 class="card-title">{{application.id}}</h5>
                   <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
                   <p class="card-text">{{lastUpdated(application.lastUpdated)}}</p>
-                  <a [routerLink]="['application']" [queryParams]="{id: application.id}">Open</a>
+                  <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AlertComponent } from '../../../alert/alert.component';
 import { shortResponseToUserMapper, UserResponseShortened } from '../../responses/userresponseshortened';
 import { User } from '../../user';
 import { UserSearchComponent } from '../user-search/user-search.component';
@@ -16,17 +17,17 @@ export class UserSearchPageComponent implements OnInit, AfterViewInit, OnDestroy
   @ViewChild('userSearch')
   userSearch: UserSearchComponent;
   /**
+   * The alert to display search errors
+   */
+  searchError: AlertComponent;
+  /**
    * The list of loaded user results;
    */
   @Input() users: User[];
   /**
    * The Subscription to user results
    */
-  resultsSubscription: Subscription;
-  /**
-   * An error that may have occurred performing search
-   */
-  error: string;
+  private resultsSubscription: Subscription;
 
   constructor() { }
 
@@ -36,7 +37,10 @@ export class UserSearchPageComponent implements OnInit, AfterViewInit, OnDestroy
   ngAfterViewInit(): void {
     this.resultsSubscription = this.userSearch.results.subscribe({
       next: (results: UserResponseShortened[]) => this.loadResults(results),
-      error: (e: string) => this.error = e
+      error: (e: string) => {
+        this.searchError.message = e;
+        this.searchError.show();
+      }
     });
   }
 
