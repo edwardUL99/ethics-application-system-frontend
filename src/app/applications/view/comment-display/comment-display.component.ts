@@ -1,8 +1,7 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { catchError, Observable, retry } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AlertComponent } from '../../../alert/alert.component';
-import { UserResponse } from '../../../users/responses/userresponse';
 import { UserService } from '../../../users/user.service';
 import { ApplicationService } from '../../application.service';
 import { Application } from '../../models/applications/application';
@@ -11,6 +10,7 @@ import { Comment } from '../../models/applications/comment';
 import { mapComment } from '../../models/requests/mapping/applicationmapper';
 import { RequestComment, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ApplicationViewComponent } from '../component/application-view.component';
+import { CommentsDisplayComponent } from '../comments-display/comments-display.component';
 
 /**
  * This component displays a form to leave a comment 
@@ -30,22 +30,13 @@ export class CommentDisplayComponent implements OnInit {
    */
   @Input() parentComment: CommentDisplayComponent;
   /**
+   * The host comments display
+   */
+  @Input() hostDisplay: CommentsDisplayComponent;
+  /**
    * The component view the comment is attached to
    */
   @Input() component: ApplicationViewComponent;
-  /**
-   * The form to create the comment
-   */
-  form: FormGroup;
-  /**
-   * Determine if the form is displayed
-   */
-  formDisplayed: boolean = false;
-  /**
-   * The alert message outlining the outcome of adding a comment
-   */
-  @ViewChild('addAlert')
-  private addAlert: AlertComponent;
   /**
    * The alert for adding a sub comment
    */
@@ -59,10 +50,6 @@ export class CommentDisplayComponent implements OnInit {
    * Determine if the sub comment form is displayed
    */
   subCommentFormDisplayed: boolean = false;
-  /**
-   * Determine if no comment exists and a button to create the comment should be displayed
-   */
-  createComment: boolean;
   /**
    * Determine if you can reply to the comment
    */
@@ -79,10 +66,6 @@ export class CommentDisplayComponent implements OnInit {
   constructor(private fb: FormBuilder,
     private applicationService: ApplicationService,
     private userService: UserService) {
-      this.form = this.fb.group({
-        comment: this.fb.control('', [Validators.required])
-      });
-
       this.subCommentForm = this.fb.group({
         comment: this.fb.control('', [Validators.required])
       });
@@ -90,15 +73,7 @@ export class CommentDisplayComponent implements OnInit {
 
   ngOnInit(): void {
     const viewingUser = this.component.template?.viewingUser;
-
-    this.createComment = this.parentComment == undefined && viewingUser?.reviewer && 
-      !(this.component.component.componentId in this.application.comments);
-    
-    if (!this.comment) {
-      this.comment = this.application.comments?.[this.component.component.componentId];
-    }
-
-    this.replyComment = viewingUser?.reviewer && !this.createComment;
+    this.replyComment = viewingUser?.reviewer;
 
     if (this.application.status != ApplicationStatus.DRAFT && viewingUser?.reviewer) {
       this.display = true;
@@ -109,16 +84,8 @@ export class CommentDisplayComponent implements OnInit {
     }
   }
 
-  toggleForm(explicit?: boolean) {
-    if (explicit != undefined) {
-      this.formDisplayed = explicit;
-    } else {
-      this.formDisplayed = !this.formDisplayed;
-    }
-  }
-
-  private displayAddAlert(message: string, error: boolean = false, subComment: boolean = false) {
-    const alert = (subComment) ? this.addSubAlert : this.addAlert;
+  private displayAddAlert(message: string, error: boolean = false) {
+    const alert = this.addSubAlert;
     
     if (error) {
       alert.alertType = 'alert-danger';
@@ -131,46 +98,6 @@ export class CommentDisplayComponent implements OnInit {
 
       setTimeout(() => alert.hide(), 2000);
     }
-  }
-
-  addComment() {
-    const value = this.form.get('comment').value;
-    const componentId = this.component.component.componentId;
-
-    if (value) {
-      const request = new ReviewSubmittedApplicationRequest(this.application.applicationId,
-        [{
-          id: undefined,
-          username: this.component.template.viewingUser.user.username,
-          comment: value,
-          subComments: [],
-          componentId: componentId,
-          createdAt: new Date().toISOString()
-        }]);
-
-      this.applicationService.updateReview(request)
-        .subscribe({
-          next: response => {
-            const commentShape = response.comments[componentId];
-            const comment = mapComment(commentShape);
-            this.application.comments[componentId] = comment;
-            this.comment = comment;
-            this.displayAddAlert('Comment added successfully');
-            this.toggleForm(false);
-          },
-          error: e => this.displayAddAlert(e, true)
-        });
-    }
-  }
-
-  private convertCommentToRequest(comment: Comment): RequestComment {
-    const mapped: RequestComment = {id: comment.id, componentId: comment.componentId, username: comment.username, comment: comment.comment, subComments: [], createdAt: comment.createdAt.toISOString()};
-
-    for (let sub of comment.subComments) {
-      mapped.subComments.push(this.convertCommentToRequest(sub));
-    }
-
-    return mapped;
   }
 
   toggleSubCommentForm(explicit?: boolean) {
@@ -187,22 +114,7 @@ export class CommentDisplayComponent implements OnInit {
 
     if (value) {
       const subComment: Comment = new Comment(undefined, this.component.template.viewingUser.user.username, value, componentId, [], new Date());
-      const mapped: RequestComment = this.convertCommentToRequest(this.comment);
-      mapped.subComments.push(this.convertCommentToRequest(subComment));
-
-      const request = new ReviewSubmittedApplicationRequest(this.application.applicationId, [mapped]);
-      this.applicationService.updateReview(request)
-        .subscribe({
-          next: response => {
-            const commentShape = response.comments[componentId];
-            const comment = mapComment(commentShape);
-            this.application.comments[componentId] = comment;
-            this.comment = comment;
-            this.displayAddAlert('Replied successfully', false, false);
-            this.toggleSubCommentForm(false);
-          },
-          error: e => this.displayAddAlert(e, true, true)
-        });
+      this.hostDisplay.addSubComment(this.comment, subComment, () => this.displayAddAlert('Replied Successfully'), (e: any) => this.displayAddAlert(e, true));
     }
   }
 

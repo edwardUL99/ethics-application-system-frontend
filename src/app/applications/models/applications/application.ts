@@ -2,7 +2,7 @@ import { User } from '../../../users/user';
 import { ApplicationTemplate } from '../applicationtemplate';
 import { ApplicationStatus } from './applicationstatus';
 import { AttachedFile } from './attachedfile';
-import { Comment } from './comment';
+import { ApplicationComments, Comment } from './comment';
 import { ApplicationInitialiser } from './applicationinit';
 import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
 import { AssignedCommitteeMember } from './assignedcommitteemember';
@@ -110,6 +110,12 @@ export class Application {
    * @param comment the comment to add
    */
   addComment(comment: Comment) {
-    this.comments[comment.componentId] = comment;
+    const comments = this.comments[comment.componentId];
+
+    if (comments) {
+      comments.comments.push(comment);
+    } else {
+      this.comments[comment.componentId] = new ApplicationComments(undefined, comment.componentId, [comment]);
+    }
   }
 }

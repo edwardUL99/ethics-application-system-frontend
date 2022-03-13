@@ -57,6 +57,24 @@ export interface CommentShape {
 }
 
 /**
+ * This interface represents the shape of the application comments
+ */
+export interface ApplicationCommentsShape {
+  /**
+   * The database ID
+   */
+  id: number;
+  /**
+   * The component ID of the component the comments are attached to
+   */
+  componentId: string;
+  /**
+   * The comments attached to the component
+   */
+  comments: CommentShape[];
+}
+
+/**
  * This interface represents the shape of an attached file
  */
 export interface AttachedFileShape {
