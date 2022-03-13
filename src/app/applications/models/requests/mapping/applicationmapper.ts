@@ -93,20 +93,18 @@ export function MapApplicationResponse(key: ResponseMapperKeys | ResponseMapperK
   }
 }
 
-function resolveStatus(key: ApplicationStatus): string {
+export function resolveStatus(key: ApplicationStatus | string): string {
   const keys = Object.keys(ApplicationStatus);
 
-  if (key in keys) {
-    return ApplicationStatus[key];
-  } else {
-    for (let k of keys) {
-      if (ApplicationStatus[k] == key) {
-        return key;
-      }
+  for (let k of keys) {
+    if (ApplicationStatus[k] == key) {
+      return key;
+    } else if (k == key) {
+      return ApplicationStatus[k];
     }
-
-    throw new Error("Could not find a ResponseMapper for " + key);
   }
+
+  throw new Error("Could not find a ResponseMapper for " + key);
 }
 
 /**

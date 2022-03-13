@@ -66,6 +66,9 @@ import { ResetPasswordComponent } from './authentication/reset-password/reset-pa
 import { SearchService } from './search/search.service';
 import { ApplicationSearchComponent } from './applications/search/application-search/application-search.component';
 import { SearchControlComponent } from './search/search-control/search-control.component';
+import { UserSearchComponent } from './users/search/user-search/user-search.component';
+import { UserQueryService } from './users/search/user-query.service';
+import { UserSearchPageComponent } from './users/search/user-search-page/user-search-page.component';
 
 @NgModule({
   declarations: [
@@ -110,7 +113,9 @@ import { SearchControlComponent } from './search/search-control/search-control.c
     ForgotPasswordComponent,
     ResetPasswordComponent,
     ApplicationSearchComponent,
-    SearchControlComponent
+    SearchControlComponent,
+    UserSearchComponent,
+    UserSearchPageComponent
   ],
   imports: [
     BrowserModule,
@@ -153,7 +158,8 @@ import { SearchControlComponent } from './search/search-control/search-control.c
     PendingChangesGuard,
     AuthorizationService,
     AuthGuard,
-    SearchService
+    SearchService,
+    UserQueryService
   ],
   bootstrap: [AppComponent]
 })

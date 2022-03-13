@@ -16,6 +16,7 @@ import { AuthGuard } from '../authentication/authguard';
 import { HomeComponent } from '../home/home.component';
 import { ForgotPasswordComponent } from '../authentication/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from '../authentication/reset-password/reset-password.component';
+import { UserSearchPageComponent } from '../users/search/user-search-page/user-search-page.component';
 
 
 function createRoute(path: string, component: Type<any>, canDeactivate?: Type<CanDeactivate<any>>[], canActivate?: Type<CanActivate>[], pathMatch?: string) {
@@ -46,6 +47,7 @@ const routes: Routes = [
     createRoute('application', ApplicationDisplayComponent, [PendingChangesGuard], [AuthGuard]),
     createRoute('applications', ApplicationListComponent, undefined, [AuthGuard]),
     createRoute('home', HomeComponent, undefined, [AuthGuard]),
+    createRoute('user-search', UserSearchPageComponent, undefined, [AuthGuard]),
     createRoute('forgot-password', ForgotPasswordComponent, undefined, undefined),
     createRoute('reset-password', ResetPasswordComponent, undefined, undefined),
     createRoute('', IndexRedirectComponent, undefined, undefined, 'full'),

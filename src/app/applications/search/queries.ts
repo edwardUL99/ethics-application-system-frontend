@@ -13,12 +13,14 @@ import { ApplicationStatus } from '../models/applications/applicationstatus';
   private controls: SearchControl[];
 
   createControls(fb: FormBuilder): SearchControl[] {
-    const controls = [];
+    if (!this.controls) {
+      const controls = [];
 
-    controls.push(new SearchControl('Username:', fb.control('', [Validators.required]), 'text', undefined, 'Enter the username of the committee member'));
-    this.controls = controls;
+      controls.push(new SearchControl('Username:', fb.control('', [Validators.required]), 'text', undefined, 'Enter the username of the committee member'));
+      this.controls = controls;
+    }
 
-    return controls;
+    return this.controls;
   }
 
   constructQuery(): Query {
@@ -46,16 +48,18 @@ class SubmittedDateRangeQuery implements SearchQuery {
   }
 
   createControls(fb: FormBuilder): SearchControl[] {
-    const controls = [];
+    if (!this.controls) {
+      const controls = [];
 
-    const now = this.getDate();
-    controls.push(new SearchControl('Start:', fb.control(now, [Validators.required]), 'date', undefined, 
-      'The start of the date range to search'));
-    controls.push(new SearchControl('End: ', fb.control(now, [Validators.required]), 'date', undefined,
-      'The end of the date range to search'));
-    this.controls = controls;
+      const now = this.getDate();
+      controls.push(new SearchControl('Start:', fb.control(now, [Validators.required]), 'date', undefined, 
+        'The start of the date range to search'));
+      controls.push(new SearchControl('End: ', fb.control(now, [Validators.required]), 'date', undefined,
+        'The end of the date range to search'));
+      this.controls = controls;
+    }
 
-    return controls;
+    return this.controls;
   }
 
   constructQuery(): Query {
@@ -76,12 +80,14 @@ class UserQuery implements SearchQuery {
   private controls: SearchControl[];
 
   createControls(fb: FormBuilder): SearchControl[] {
-    const controls = [];
+    if (!this.controls) {
+      const controls = [];
 
-    controls.push(new SearchControl('Username:', fb.control('', [Validators.required]), 'text', undefined, 'The username of the user'));
-    this.controls = controls;
+      controls.push(new SearchControl('Username:', fb.control('', [Validators.required]), 'text', undefined, 'The username of the user'));
+      this.controls = controls;
+    }
 
-    return controls;
+    return this.controls;
   }
 
   constructQuery(): Query {
@@ -101,18 +107,20 @@ class StatusQuery implements SearchQuery {
   private controls: SearchControl[];
 
   createControls(fb: FormBuilder): SearchControl[] {
-    const controls = [];
+    if (!this.controls) {
+      const controls = [];
 
-    const options: SearchControlOption[] = [];
+      const options: SearchControlOption[] = [];
 
-    for (let value of Object.keys(ApplicationStatus)) {
-      options.push({value: value, label: ApplicationStatus[value]});
+      for (let value of Object.keys(ApplicationStatus)) {
+        options.push({value: value, label: ApplicationStatus[value]});
+      }
+
+      controls.push(new SearchControl('Status:', fb.control('', [Validators.required]), undefined, undefined, 'The status of the application', options));
+      this.controls = controls;
     }
 
-    controls.push(new SearchControl('Status:', fb.control('', [Validators.required]), undefined, undefined, 'The status of the application', options));
-    this.controls = controls;
-
-    return controls;
+    return this.controls;
   }
 
   constructQuery(): Query {

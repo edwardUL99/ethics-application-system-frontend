@@ -9,6 +9,7 @@ import { ApplicationService } from '../../application.service';
 import { Authorizer } from '../../../users/authorizations';
 import { catchError, Observable, of } from 'rxjs';
 import { ApplicationResponse } from '../../models/requests/applicationresponse';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
 
 /**
  * A template choice
@@ -139,6 +140,14 @@ export class ApplicationListComponent implements OnInit {
 
     this.loadUserPermissions();
     this.displayNewApp = this.activatedRoute.snapshot.queryParams.create !== undefined;
+  }
+
+  mapStatus(status: string) {
+    return resolveStatus(status);
+  }
+
+  lastUpdated(lastUpdated: string) {
+    return new Date(lastUpdated).toLocaleString();
   }
 
   toggleNewApp() {
