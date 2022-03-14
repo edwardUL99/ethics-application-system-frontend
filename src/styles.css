@@ -39,3 +39,11 @@ Sets the standard height for the app's containers
 .app-height {
 	height: 80vh !important;
 }
+
+/**
+Displays an underline and pointer cursor when hovered over
+*/
+.hover-underline:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}

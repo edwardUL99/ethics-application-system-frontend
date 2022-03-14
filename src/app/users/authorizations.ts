@@ -28,7 +28,7 @@ export type Permissions = {
 export function mapRole(response: RoleResponse): Role {
   const mappedPermissions: Permission[] = response.permissions.map(permission => mapPermission(permission));
 
-  return new Role(response.id, response.name, response.description, response.tag, mappedPermissions, response.singleUser);
+  return new Role(response.id, response.name, response.description, response.tag, mappedPermissions, response.singleUser, response.downgradeTo);
 }
 
 /**

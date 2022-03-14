@@ -1,0 +1,138 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container" [appCenterBox] [toggle]="centerBox()">
+    <div *ngIf="!loadError; else displayLoadError" class="w-50 align-items-center mx-auto">
+      <app-center-header [text]="'User Profile'"></app-center-header>
+      <div class="card p-4 shadow">
+        <div class="row w-100">
+          <div class="col">
+            <h4>{{user?.name}}</h4>
+            <h5 style="color: grey">{{user?.role?.name}}</h5>
+            <p style="font-size: 18px"><b>Department: </b>{{user?.department}}</p>
+            <p style="font-size: 18px"><b>Contact: </b><a [href]="'mailto:' + user?.account?.email">{{user?.account?.email}}</a></p>
+          </div>
+          <div class="text-end" *ngIf="settings && settings.length > 0">
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Settings
+              </button>
+              <!-- <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                <li *ngFor="let setting of settings">
+                  <a class="dropdown-item" [routerLink]="" (click)="setting.callback()">{{setting.label}}</a>
+                </li>
+              </ul> -->
+              <div class="dropdown-menu" aria-labelledby="settingsDropdown">
+                <button *ngFor="let setting of settings" class="dropdown-item" type="button" (click)="setting.callback()">{{setting.label}}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4" *ngIf="editDetailsDisplayed">
+        <h4 style="color: white">Edit Details</h4>
+        <div class="card p-2 shadow mt-2">
+          <div class="text-end">
+            <button type="button" class="btn-close" (click)="toggleEditDisplayed(false)"></button>
+          </div>
+          <form [formGroup]="editDetailsForm">
+            <div class="form-group">
+              <label>Name:</label>
+              <input type="text" name="name" class="form-control" formControlName="name">
+              <app-field-error [condition]="name.errors?.['required'] && name.touched" [error]="'This field is required'"></app-field-error>
+              <div class="form-text">
+                Enter the new value for your name
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Department:</label>
+              <input type="text" name="department" class="form-control" formControlName="department">
+              <app-field-error [condition]="department.errors?.['required'] && department.touched" [error]="'This field is required'"></app-field-error>
+              <div class="form-text">
+                Enter the new department name
+              </div>
+            </div>
+            <app-alert #editAlert [hidden]="true" [dismissible]="true"></app-alert>
+            <div class="text-end">
+              <button type="button" class="btn btn-primary" (click)="updateUserDetails()" [disabled]="!editDetailsForm.valid">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="mt-4" *ngIf="editPasswordDisplayed">
+        <h4 style="color: white">Change Password</h4>
+        <div class="card p-2 shadow my-2">
+          <div class="text-end">
+            <button type="button" class="btn-close" (click)="togglePasswordDisplayed(false)"></button>
+          </div>
+          <form [formGroup]="editPasswordForm">
+            <div class="form-group">
+              <label>Current Password:</label>
+              <input type="password" name="oldPassword" class="form-control" formControlName="oldPassword">
+              <app-field-error [condition]="oldPassword.errors?.['required'] && oldPassword.touched" [error]="'This field is required'"></app-field-error>
+              <app-field-error [condition]="oldPassword.errors?.['oldPassword'] && oldPassword.touched" [error]="oldPassword.errors?.['oldPassword']"></app-field-error>
+              <div class="form-text">
+                Enter the current password
+              </div>
+            </div>
+            <div formGroupName="passwordGroup">
+              <div class="col form-group">
+                <label>Password:</label>
+                <input name="password" type="password" minlength="8" class="form-control" formControlName="password">
+                <app-field-error [condition]="password.errors?.['required'] && password.touched" [error]="'Password is required'"></app-field-error>
+                <app-field-error [condition]="password.value?.length > 0 && password.value?.length < 8 && password.touched" [error]="'Password must have at least 8 characters'"></app-field-error>
+                <div class="form-text">
+                  Enter a password of at least 8 characters
+                </div>
+              </div>
+              <div class="col form-group">
+                <label>Confirm Password:</label>
+                <input name="confirmPassword" type="password" minlength="8" class="form-control" formControlName="confirmPassword">
+                <app-field-error [condition]="confirmPassword.errors?.['required'] && confirmPassword.touched" [error]="'Password Confirmation is required'"></app-field-error>
+                <app-field-error [condition]="passwordGroup.errors?.['noMatch'] && (password.touched && confirmPassword.touched)" [error]="'Passwords must match'"></app-field-error>
+                <div class="form-text">
+                  Re-enter your password to confirm it
+                </div>
+              </div>
+            </div>
+            <app-alert #passwordAlert [hidden]="true" [dismissible]="true"></app-alert>
+            <div class="text-end">
+              <button type="button" class="btn btn-primary" (click)="updatePassword()" [disabled]="!editPasswordForm.valid">Change Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="mt-4" *ngIf="editRoleDisplayed">
+        <h4 style="color: white">Edit User Role</h4>
+        <div class="card p-2 shadow my-2">
+          <div class="text-end">
+            <button type="button" class="btn-close" (click)="toggleRoleDisplayed(false)"></button>
+          </div>
+          <form [formGroup]="editRoleForm">
+            <div class="form-group">
+              <label>Role:</label>
+              <div *ngIf="getRoles() as rolesList; else noRoles">
+                <select class="form-select" name="role" formControlName="role" (change)="roleSelected($event)">
+                  <option *ngFor="let role of rolesList" [value]="role.id">{{role.name}}</option>
+                </select>
+              </div>
+              <ng-template #noRoles>
+                <select class="form-select" name="role" formControlName="role"></select>
+              </ng-template>
+              <app-field-error [condition]="role.errors?.['required'] && role.touched" [error]="'This field is required'"></app-field-error>
+              <div class="form-text">
+                {{selectedRole?.description}}
+              </div>
+            </div>
+            <app-alert #roleAlert [hidden]="true" [dismissible]="true"></app-alert>
+            <div class="text-end">
+              <button type="button" class="btn btn-primary" (click)="updateRole()" [disabled]="!editRoleForm.valid">Update Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <ng-template #displayLoadError>
+      <app-alert [alertType]="'alert-danger'" [dismissible]="false" [message]="loadError"></app-alert>
+    </ng-template>
+  </div>
+</div>

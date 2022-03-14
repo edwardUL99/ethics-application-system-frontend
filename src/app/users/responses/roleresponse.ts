@@ -13,4 +13,8 @@ export interface RoleResponse extends AuthorizationResponse {
      * Indicates if the role is only allowed to be assigned to a single user at a time
      */
     singleUser: boolean;
+    /**
+     * The tag of the role to downgrade the user to
+     */
+    downgradeTo: string;
 }

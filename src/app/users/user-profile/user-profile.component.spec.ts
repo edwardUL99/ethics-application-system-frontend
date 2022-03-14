@@ -1,35 +1,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UserContext } from '../users/usercontext';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
-import { NavbarComponent } from './navbar.component';
-import { UserService } from '../users/user.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AuthService } from '../authentication/auth.service';
 import { Observable } from 'rxjs';
-import { User } from '../users/user';
-import { createUser } from '../testing/fakes';
+import { AuthService } from '../../authentication/auth.service';
 
-describe('NavbarComponent', () => {
-  let component: NavbarComponent;
-  let fixture: ComponentFixture<NavbarComponent>;
+import { createUser } from '../../testing/fakes';
+import { User } from '../user';
+import { UserService } from '../user.service';
+import { UserContext } from '../usercontext';
+import { UserProfileComponent } from './user-profile.component';
+import { AuthorizationService } from '../authorization.service';
+import { ReactiveFormsModule } from '@angular/forms';
 
-  beforeEach(() => {
+describe('UserProfileComponent', () => {
+  let component: UserProfileComponent;
+  let fixture: ComponentFixture<UserProfileComponent>;
+
+  beforeEach(async () => {
     const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser', 'getUsername', 'getName', 'subscribeToUpdates']);
     userContextSpy.getUser.and.returnValue(new Observable<User>(observer => {
       observer.next(createUser());
       observer.complete();
     }));
 
-    TestBed.configureTestingModule({
-      declarations: [ NavbarComponent ],
+    await TestBed.configureTestingModule({
+      declarations: [ UserProfileComponent ],
       providers: [
         AuthService,
         UserService,
-        {provide: UserContext, useValue: userContextSpy},
-        NgbModal
+        AuthorizationService,
+        {provide: UserContext, useValue: userContextSpy}
       ],
       imports: [
+        ReactiveFormsModule,
         HttpClientTestingModule,
         RouterTestingModule
       ]
@@ -38,7 +41,7 @@ describe('NavbarComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(NavbarComponent);
+    fixture = TestBed.createComponent(UserProfileComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
