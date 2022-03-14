@@ -24,7 +24,7 @@ const allowedKeys: AllowedKeys = {};
 
 const baseKeys: string[] = ['id', 'applicationId', 'user', 'applicationTemplate', 'answers', 'attachedFiles', 'lastUpdated', 'status'];
 const submittedKeys: string[] = [...baseKeys];
-submittedKeys.push('comments', 'assignedCommitteeMembers', 'finalComment', 'previousCommitteeMembers', 'approvalTime');
+submittedKeys.push('comments', 'assignedCommitteeMembers', 'finalComment', 'previousCommitteeMembers', 'submittedTime', 'approvalTime');
 const referredKeys: string[] = [...submittedKeys];
 referredKeys.push('editableFields', 'referredBy');
 
@@ -134,13 +134,14 @@ export class SubmittedApplicationInitialiser extends ApplicationInitialiser {
    * @param finalComment the last comment left on the application
    * @param previousCommitteeMembers the list of any committee members that were previously assigned to the application but it was referred
    * and resubmitted
+   * @param submittedTime the time the application was submitted at
    * @param approvalTime the timestamp of when the application was approved if approval is granted
    */
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
     answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
     public comments: CommentsMapping, public assignedCommitteeMembers: AssignedCommitteeMember[], public finalComment: Comment,
-    public previousCommitteeMembers: User[], public approvalTime: Date) {
+    public previousCommitteeMembers: User[], public submittedTime: Date, public approvalTime: Date) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated);
   }
   
@@ -179,6 +180,7 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
    * @param finalComment the last comment left on the application
    * @param previousCommitteeMembers the list of any committee members that were previously assigned to the application but it was referred
    * and resubmitted
+   * @param submittedTime the time the application was submitted at
    * @param approvalTime the timestamp of when the application was approved if approval is granted
    * @param editableFields the list of field IDs that can be edited
    * @param referredBy the user that referred the application
@@ -187,10 +189,10 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
     answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
     comments: CommentsMapping, assignedCommitteeMembers: AssignedCommitteeMember[], finalComment: Comment,
-    previousCommitteeMembers: User[], approvalTime: Date,
+    previousCommitteeMembers: User[], approvalTime: Date, submittedTime: Date,
     public editableFields: string[], public referredBy: User) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated,
-      comments, assignedCommitteeMembers, finalComment, previousCommitteeMembers, approvalTime);
+      comments, assignedCommitteeMembers, finalComment, previousCommitteeMembers, submittedTime, approvalTime);
   }
 
   protected validateStatus(status: ApplicationStatus): void {

@@ -205,7 +205,7 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
 
 export function createSubmittedApplication(status: ApplicationStatus): Application {
     return Application.create(new SubmittedApplicationInitialiser(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
-    {}, {}, new Date(), {}, [], undefined, [], undefined));
+    {}, {}, new Date(), {}, [], undefined, [], undefined, undefined));
 }
 
 export function createSubmittedApplicationResponse(status: ApplicationStatus): SubmittedApplicationResponse {
@@ -222,6 +222,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
         lastUpdated: new Date().toISOString(),
         comments: {},
         assignedCommitteeMembers: [],
+        submittedTime: undefined,
         finalComment: undefined,
         previousCommitteeMembers: undefined,
         approvalTime: undefined
@@ -230,7 +231,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
 
 export function createReferredApplication(): Application {
     return Application.create(new ReferredApplicationInitialiser(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
-        createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, [], undefined));
+        createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, undefined, [], undefined));
 }
 
 export function createReferredApplicationResponse(): ReferredApplicationResponse {
@@ -249,6 +250,7 @@ export function createReferredApplicationResponse(): ReferredApplicationResponse
         assignedCommitteeMembers: [],
         finalComment: undefined,
         previousCommitteeMembers: undefined,
+        submittedTime: undefined,
         approvalTime: undefined,
         editableFields: [],
         referredBy: undefined
