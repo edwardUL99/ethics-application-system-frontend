@@ -162,13 +162,15 @@ export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngAfterViewInit(): void {
-    this.applicationSearchSubscription = this.applicationSearch.results.subscribe({
-      next: (results: ApplicationResponse[]) => this.loadApplicationSearchResults(results),
-      error: (e: string) => {
-        this.searchError.message = e;
-        this.searchError.show();
-      }
-    });
+    if (this.applicationSearch?.results) {
+      this.applicationSearchSubscription = this.applicationSearch.results.subscribe({
+        next: (results: ApplicationResponse[]) => this.loadApplicationSearchResults(results),
+        error: (e: string) => {
+          this.searchError.message = e;
+          this.searchError.show();
+        }
+      });
+    }
   }
 
   ngOnDestroy(): void {
