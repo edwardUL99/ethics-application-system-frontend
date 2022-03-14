@@ -63,6 +63,12 @@ import { HomeComponent } from './home/home.component';
 import { ApiInterceptor } from './api-interceptor/api-interceptor';
 import { ForgotPasswordComponent } from './authentication/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
+import { SearchService } from './search/search.service';
+import { ApplicationSearchComponent } from './applications/search/application-search/application-search.component';
+import { SearchControlComponent } from './search/search-control/search-control.component';
+import { UserSearchComponent } from './users/search/user-search/user-search.component';
+import { UserQueryService } from './users/search/user-query.service';
+import { UserSearchPageComponent } from './users/search/user-search-page/user-search-page.component';
 import { UserProfileComponent } from './users/user-profile/user-profile.component';
 
 @NgModule({
@@ -107,6 +113,10 @@ import { UserProfileComponent } from './users/user-profile/user-profile.componen
     HomeComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
+    ApplicationSearchComponent,
+    SearchControlComponent,
+    UserSearchComponent,
+    UserSearchPageComponent,
     UserProfileComponent
   ],
   imports: [
@@ -149,7 +159,9 @@ import { UserProfileComponent } from './users/user-profile/user-profile.componen
     CacheManager,
     PendingChangesGuard,
     AuthorizationService,
-    AuthGuard
+    AuthGuard,
+    SearchService,
+    UserQueryService
   ],
   bootstrap: [AppComponent]
 })

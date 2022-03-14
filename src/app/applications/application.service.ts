@@ -175,7 +175,7 @@ export class ApplicationService {
             const applicationAssigned = application.assignedCommitteeMembers;
             
             response.members.forEach(assigned => {
-              const assignedMember = new AssignedCommitteeMember(assigned.id, shortResponseToUserMapper(assigned.member), assigned.finishReview);
+              const assignedMember = new AssignedCommitteeMember(assigned.id, assigned.applicationId, shortResponseToUserMapper(assigned.member), assigned.finishReview);
 
               if (!this.containsAssignedMember(applicationAssigned, assignedMember)) {
                 applicationAssigned.push(assignedMember);

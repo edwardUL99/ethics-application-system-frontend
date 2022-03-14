@@ -28,6 +28,10 @@ export interface ResponseAssignedCommitteeMember {
    */
   id: number;
   /**
+   * The id of the application the user is assigned to
+   */
+  applicationId: string;
+  /**
    * The assigned committee member
    */
   member: UserResponseShortened;

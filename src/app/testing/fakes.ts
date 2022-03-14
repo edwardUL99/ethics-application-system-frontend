@@ -295,6 +295,7 @@ export function createAssignMembersResponse(): AssignMembersResponse {
         members: [
             {
                 id: 1,
+                applicationId: APPLICATION_ID,
                 member: {
                     username: USERNAME,
                     email: EMAIL,

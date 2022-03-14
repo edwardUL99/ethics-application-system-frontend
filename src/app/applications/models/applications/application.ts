@@ -106,7 +106,7 @@ export class Application {
    * @param user the user to assign
    */
    assignCommitteeMember(user: User) {
-    this.assignedCommitteeMembers.push(new AssignedCommitteeMember(undefined, user, false));
+    this.assignedCommitteeMembers.push(new AssignedCommitteeMember(undefined, this.applicationId, user, false));
   }
 
   /**

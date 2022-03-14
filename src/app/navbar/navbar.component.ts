@@ -23,10 +23,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   @Input() displayProfile = false;
   /**
-   * The name of the url to be active
-   */
-  @Input() active = '';
-  /**
    * This determines if the navbar should be "sticky"
    */
   @Input() sticky = true;
