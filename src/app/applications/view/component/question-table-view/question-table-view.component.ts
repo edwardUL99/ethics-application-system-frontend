@@ -5,7 +5,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import {  ComponentHostDirective, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';

@@ -113,7 +113,7 @@ export function resolveStatus(key: ApplicationStatus | string): string {
  */
 export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): ApplicationResponseMapper {
   if (ResponseMapperKeys[key]) {
-    return _mappers[key];
+    return _mappers[ResponseMapperKeys[key]];
   } else {
     return _mappers[_statusMapping[resolveStatus(key as ApplicationStatus)]];
   }

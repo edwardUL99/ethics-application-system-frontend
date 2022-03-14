@@ -121,8 +121,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       this.radioGroup.addValidators(RadioValidator(this));
     }
 
-    if (!this.form.get(this.questionComponent.componentId)) {
-      this.form.addControl(this.questionComponent.componentId, this.radioGroup);
+    if (!this.form.get(this.questionComponent.name)) {
+      this.form.addControl(this.questionComponent.name, this.radioGroup);
     }
   }
 
@@ -133,7 +133,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.componentId);
+    this.form.removeControl(this.questionComponent.name);
     this.radioGroup = undefined;
   }
 

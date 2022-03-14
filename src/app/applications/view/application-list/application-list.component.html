@@ -16,7 +16,6 @@
             <div class="form-group">
               <label>Application:</label>
               <select class="form-select" formControlName="template" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
-                <option></option>
                 <option *ngFor="let option of templateOptions" [value]="option.value">{{option.label}}</option>
               </select>
               <div class="form-text">
