@@ -50,8 +50,7 @@ export class ForgotPasswordComponent implements OnInit {
   }
 
   displayError(error: any) {
-    this.error.message = error;
-    this.error.show();
+    this.error.displayMessage(error, true);
   }
 
   submit() {

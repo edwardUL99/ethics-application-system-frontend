@@ -69,6 +69,7 @@ import { SearchControlComponent } from './search/search-control/search-control.c
 import { UserSearchComponent } from './users/search/user-search/user-search.component';
 import { UserQueryService } from './users/search/user-query.service';
 import { UserSearchPageComponent } from './users/search/user-search-page/user-search-page.component';
+import { UserProfileComponent } from './users/user-profile/user-profile.component';
 
 @NgModule({
   declarations: [
@@ -115,7 +116,8 @@ import { UserSearchPageComponent } from './users/search/user-search-page/user-se
     ApplicationSearchComponent,
     SearchControlComponent,
     UserSearchComponent,
-    UserSearchPageComponent
+    UserSearchPageComponent,
+    UserProfileComponent
   ],
   imports: [
     BrowserModule,

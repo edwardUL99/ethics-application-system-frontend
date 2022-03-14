@@ -72,7 +72,7 @@
           <p><b>Application ID:</b> {{application?.applicationId}}</p>
         </div>
         <div class="text-start">
-          <p class="application-text"><b>Applicant:</b> {{application?.user?.name}}</p>
+          <p class="application-text"><b>Applicant:</b> <span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
           <p class="application-text"><b>Application Status:</b> {{application?.status}}</p>
           <div class="d-inline-flex">
             <p *ngIf="application?.submittedTime" class="application-text" style="margin-right: 5px;"><b>Submitted At:</b> {{formatDate(application?.submittedTime)}}</p>

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, Observable } from 'rxjs';
+import { AlertComponent } from './alert/alert.component';
 import { ErrorMappings } from './mappings';
 
 /**

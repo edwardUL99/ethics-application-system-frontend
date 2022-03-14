@@ -23,8 +23,8 @@
           <a aria-current="page" class="nav-link" routerLink="/user-search"> User Search</a>
         </li>
       </ul>
-      <div *ngIf="displayProfile" class="align-items-center justify-content-center mr-3 mt-2">
-        <h6 style="color: grey">{{name}}</h6>
+      <div *ngIf="displayProfile" class="mt-2" style="margin-right: 1%">
+        <h6 style="color: grey;" class="hover-underline" (click)="navigateToProfile()">{{name}}</h6>
       </div>
       <div class="text-end">
         <a routerLink="/logout">Logout</a>

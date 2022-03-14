@@ -376,8 +376,9 @@ describe('ApplicationService', () => {
   it('#assignCommitteeMembers should assign committee member to application', (done) => {
     const application = createSubmittedApplication(ApplicationStatus.SUBMITTED);
     const user = application.user;
+    
     const assigned = new AssignedCommitteeMember(1, APPLICATION_ID, user, false);
-    user.role = new Role(undefined, user.role.name, undefined, undefined, [], undefined);
+    user.role = new Role(undefined, user.role.name, undefined, undefined, [], undefined, undefined);
 
     const response = createAssignMembersResponse();
 

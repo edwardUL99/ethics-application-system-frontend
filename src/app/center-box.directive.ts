@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, OnInit, Renderer2 } from '@angular/core';
 
 /**
  * This directive adds the following class labels to an element:
@@ -7,8 +7,9 @@ import { Directive, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
 @Directive({
   selector: '[appCenterBox]'
 })
-export class CenterBoxDirective implements OnInit {
+export class CenterBoxDirective implements OnInit, OnChanges {
   @Input() appCenterBox: string;
+  @Input() toggle: boolean;
 
   constructor(private el: ElementRef,
     private renderer: Renderer2) { }
@@ -18,7 +19,15 @@ export class CenterBoxDirective implements OnInit {
     const classes = ['d-flex', 'flex-column', 'align-items-center', 'justify-content-center', 'app-height'];
 
     for (let cl of classes) {
-      this.renderer.addClass(element, cl);
-    }
+      if (this.toggle == undefined || this.toggle) {
+        this.renderer.addClass(element, cl);
+      } else {
+        this.renderer.removeClass(element, cl);
+      }
+    } 
+  }
+
+  ngOnChanges(): void {
+    this.ngOnInit();
   }
 }
