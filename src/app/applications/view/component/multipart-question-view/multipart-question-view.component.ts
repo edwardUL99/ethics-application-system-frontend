@@ -210,7 +210,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   addToForm(): void {
-    if (!this.form.get(this.multipartQuestion.componentId)) {
+    if (this.edit() && !this.form.get(this.multipartQuestion.componentId)) {
       this.form.addControl(this.multipartQuestion.componentId, this.group);
     }
   }

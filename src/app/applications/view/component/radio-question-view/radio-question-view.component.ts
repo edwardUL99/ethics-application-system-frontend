@@ -93,11 +93,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.questionComponent = this.castComponent();
     this.radioClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
-    this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
-      this.radios[option.value] = checkbox;
-      this.radioGroup.addControl(checkbox.value, new FormControl({vaue: '', disabled: !this.questionComponent.editable}));
-    });
 
     QuestionViewUtils.setExistingAnswer(this);
   }
@@ -115,8 +110,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   private _addToForm(): void {
-    this.radioGroup = (this.radioGroup) ? this.radioGroup:new FormGroup({});
-
     if (this.questionComponent.required) {
       this.radioGroup.addValidators(RadioValidator(this));
     }
@@ -127,6 +120,14 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
+    this.radioGroup = (this.radioGroup) ? this.radioGroup:new FormGroup({});
+
+    this.questionComponent.options.forEach(option => {
+      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
+      this.radios[option.value] = checkbox;
+      this.radioGroup.addControl(checkbox.value, new FormControl({vaue: '', disabled: !this.questionComponent.editable}));
+    });
+
     if (this.edit()) {
       this._addToForm();
     }

@@ -84,15 +84,15 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   ngOnInit(): void {
     this.questionComponent = this.castComponent();
-
-    if (this.form && !this.form.get(this.questionComponent.name)) {
-      this._addToForm();
-    }
+    this.addToForm();
   }
 
   ngAfterViewInit(): void {
     QuestionViewUtils.setExistingAnswer(this);
-    this.resizeSignature();
+
+    if (this.signatureFieldComponent) {
+      this.resizeSignature();
+    }
   }
 
   ngOnDestroy(): void {
@@ -126,7 +126,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   sizeChange() {
-    this.resizeSignature();
+    if (this.signatureFieldComponent) {
+      this.resizeSignature();
+    }
   }
 
   private resizeSignature() {

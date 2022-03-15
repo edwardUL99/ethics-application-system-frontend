@@ -134,6 +134,8 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
       this.template.components.forEach(component => this._loadComponent(component));
     }
 
+    this.form.updateValueAndValidity();
+    console.log(this.form);
     this.detectChanges()
   }
 
