@@ -82,13 +82,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.questionComponent = this.castComponent();
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
-    this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
-      this.checkboxes[option.identifier] = checkbox;
-
-      this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
-    });
 
     QuestionViewUtils.setExistingAnswer(this);
   }
@@ -106,8 +99,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   private _addToForm(): void {
-    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
-
     if (this.questionComponent.required) {
       this.checkboxGroup.addValidators(CheckboxGroupRequired());
     }
@@ -118,6 +109,17 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   addToForm(): void {
+    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
+
+    this.questionComponent.options.forEach(option => {
+      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
+      this.checkboxes[option.identifier] = checkbox;
+
+      this.selectedCheckboxes[checkbox.identifier] = false;
+
+      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
+    });
+
     if (this.edit()) {
       this._addToForm();
     }

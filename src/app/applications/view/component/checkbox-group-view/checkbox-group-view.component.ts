@@ -114,15 +114,15 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   addToForm(): void {
     const edit = this.edit();
 
+    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
+
+    this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
+      this.checkboxes[checkbox.identifier] = checkbox;
+      this.selectedCheckboxes[checkbox.identifier] = false;
+      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
+    });
+
     if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
-      this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
-
-      this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
-        this.checkboxes[checkbox.identifier] = checkbox;
-        this.selectedCheckboxes[checkbox.identifier] = false;
-        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
-      });
-
       if (this.checkboxGroupComponent.required) {
         this.checkboxGroup.addValidators(CheckboxGroupRequired());
       }
