@@ -189,7 +189,7 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
     answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
     comments: CommentsMapping, assignedCommitteeMembers: AssignedCommitteeMember[], finalComment: Comment,
-    previousCommitteeMembers: User[], approvalTime: Date, submittedTime: Date,
+    previousCommitteeMembers: User[], submittedTime: Date, approvalTime: Date,
     public editableFields: string[], public referredBy: User) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated,
       comments, assignedCommitteeMembers, finalComment, previousCommitteeMembers, submittedTime, approvalTime);

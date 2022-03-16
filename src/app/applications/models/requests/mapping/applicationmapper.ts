@@ -302,7 +302,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
             value => {
               observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
               new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [],
-              new Date(response.approvalTime), new Date(response.submittedTime))))
+              new Date(response.submittedTime), new Date(response.approvalTime))))
               observer.complete();
             });
         },
@@ -343,7 +343,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
             value => {
               observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
                 new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [],
-                new Date(response.approvalTime), new Date(response.submittedTime),
+                new Date(response.submittedTime), new Date(response.approvalTime),
                 response.editableFields, userResponseMapper(usersArray[1]))));
               observer.complete();
             });

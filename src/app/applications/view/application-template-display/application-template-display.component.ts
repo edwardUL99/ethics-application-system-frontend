@@ -135,7 +135,6 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     }
 
     this.form.updateValueAndValidity();
-    console.log(this.form);
     this.detectChanges()
   }
 
