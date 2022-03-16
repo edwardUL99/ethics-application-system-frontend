@@ -2,7 +2,7 @@
     <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
-        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
+        <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div [id]="questionComponent?.componentId + '-checkboxes'">
             <div *ngFor="let checkbox of getCheckboxes()" [ngClass]="checkClass">
                 <input type="checkbox" class="form-check-input" [value]="checkbox?.identifier" (change)="onCheckChange($event)" 

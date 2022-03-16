@@ -82,12 +82,12 @@ export function joinAndWait<T>(sources: Observable<T>[] | T[], sourcesMapper?: (
 }
 
 /**
- * Replace all \n characters in str with <br>
+ * Replace all \\n characters in str with \n
  * @param str the string to replace \n
  */
 export function replaceNewLines(str: string): string {
     if (str && str != null) {
-        return str.replace(/\\n/g, '<br>');
+        return str.replace(/\\n/g, '\n');
     } else {
         return str;
     }
