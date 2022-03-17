@@ -245,7 +245,8 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   }
 
   private loadContainerQuestions(component: ApplicationViewComponent, components: QuestionViewComponent[]) {
-    for (let child of this.loader.getLoadedComponents(component.component.componentId)) {
+    for (let view of this.loader.getLoadedComponents(component.component.componentId)) {
+      const child = view.instance;
       const type = child.component.getType();
 
       if (child.component.isFormElement()) {
@@ -263,7 +264,8 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   getChildQuestionComponents(): QuestionViewComponent[] {
     const components = [];
     
-    for (let child of this.loader.getLoadedComponents(this.component.componentId)) {
+    for (let component of this.loader.getLoadedComponents(this.component.componentId)) {
+      const child = component.instance;
       const type = child.component.getType();
 
       if (type == ComponentType.SECTION) {

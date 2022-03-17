@@ -14,8 +14,8 @@
         <app-field-error [condition]="control?.errors?.['email'] && control?.touched" [error]="'Please enter a valid e-mail address'"></app-field-error>
     </div>
     <ng-template #notEdit>
-        <app-answer-view *ngIf="displayAnswer()"
-            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+        <app-answer-view *ngIf="displayAnswer()" [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"
+         [renderer]="(questionComponent?.questionType == 'date') ? 'date':'same'"></app-answer-view>
     </ng-template>
     <app-comment-display [application]="application" [component]="this"></app-comment-display>
 </div>

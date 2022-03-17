@@ -182,6 +182,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+
+    return display;
   }
 }

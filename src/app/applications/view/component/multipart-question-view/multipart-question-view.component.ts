@@ -97,18 +97,20 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
   }
 
+  private displayPart(part: string) {
+    const question = this.multipartQuestion.parts[part];
+
+    if (!this.multipartQuestion.conditional || !this.edit()) {
+      this.displayedParts[part] = question.question.componentId in this.application?.answers;
+    } else {
+      this.setDisplayedPart(part);
+    }
+  }
+
   ngOnInit(): void {
     this.group = new FormGroup({});
     this.multipartQuestion = this.castComponent();
     this.addToForm();
-
-    for (let key of Object.keys(this.multipartQuestion.parts)) {
-      if (!this.multipartQuestion.conditional || !this.edit()) {
-        this.displayedParts[key] = true;
-      } else {
-        this.setDisplayedPart(key);
-      }
-    }
   }
 
   ngOnDestroy(): void {
@@ -157,6 +159,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
         }
       }
     }
+
+    Object.keys(this.multipartQuestion.parts).forEach(key => this.displayPart(key));
 
     this.detectChanges();
     this.propagateEmits();
@@ -300,7 +304,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   setFromAnswer(answer: Answer): void {
     const subComponents: QuestionViewComponent[] = 
-      this.loader.getLoadedComponents(this.component.componentId).filter(component => component.component.componentId == answer.componentId).map(c => c as QuestionViewComponent);
+      this.loader.getLoadedComponents(this.component.componentId).filter(view => view.instance.component.componentId == answer.componentId).map(c => c.instance as QuestionViewComponent);
     
     if (subComponents.length == 1) {
       subComponents[0].setFromAnswer(answer);

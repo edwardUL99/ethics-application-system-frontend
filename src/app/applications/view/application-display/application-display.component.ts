@@ -26,7 +26,7 @@ import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
-import { mapAnswers } from '../../models/requests/mapping/applicationmapper'
+import { mapAnswers, resolveStatus } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 
 /**
@@ -317,11 +317,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           id: this.application.applicationId
         }
       });
+      this.templateView.reload();
     }
   }
 
   private setAnswer(answer: Answer) {
-    if (answer) {
+    if (answer && !answer.empty()) {
       // set the answer on the application from a question change event
       const componentId = answer.componentId;
       this.application.answers[componentId] = answer;
@@ -470,6 +471,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
     } else if (this.application.status == ApplicationStatus.REFERRED) {
       this.saveReferred((r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+    }
+  }
+
+  getStatus() {
+    if (this.application.status) {
+      return resolveStatus(this.application?.status);
     }
   }
 
