@@ -1,6 +1,6 @@
-import { EventEmitter, OnDestroy } from '@angular/core';
+import { OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { TrackedEventEmitter } from '../../../utils';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
@@ -9,38 +9,12 @@ import { ApplicationTemplateDisplayComponent } from '../application-template-dis
 /**
  * This type represents a callback for when a question change event is fired
  */
-export type QuestionChangeCallback = Function;
+export type QuestionChangeCallback = (e: QuestionChangeEvent) => void;
 
 /**
  * This is a specialised EventEmitter class for registering QuestionChangeCallbacks
  */
-export class QuestionChange extends EventEmitter<QuestionChangeEvent> {
-  /**
-   * List of question change subscriptions
-   */
-  private subscriptions: Subscription[];
-  
-  constructor() {
-    super();
-    this.subscriptions = [];
-  }
-
-  /**
-   * Registers the callback by subscribing to the emitter with the emitted event being passed into the callback
-   * @param callback the callback to register
-   */
-  register(callback: QuestionChangeCallback) {
-    this.subscriptions.push(this.subscribe(callback));
-  }
-
-  /**
-   * Destroy all subscriptions to this question change
-   */
-  destroy() {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.subscriptions.splice(0);
-  }
-}
+export class QuestionChange extends TrackedEventEmitter<QuestionChangeEvent> {}
 
 /**
  * This interface is essentially the ApplicationViewComponent interface but just with the properties required for initialisation
@@ -146,10 +120,15 @@ export class QuestionChangeEvent {
    * The view that emitted the question change event
    */
   view: QuestionViewComponent;
+  /**
+   * Determine if this event should be checked for autosave
+   */
+  autosave: boolean;
 
-  constructor(id: string, view: QuestionViewComponent) {
+  constructor(id: string, view: QuestionViewComponent, autosave: boolean = true) {
     this.id = id;
     this.view = view;
+    this.autosave = autosave;
   }
 }
 
@@ -215,7 +194,7 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   /**
    * Trigger the questionChange to emit
    */
-  emit(): void;
+  emit(autosave: boolean): void;
 
   /**
    * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,

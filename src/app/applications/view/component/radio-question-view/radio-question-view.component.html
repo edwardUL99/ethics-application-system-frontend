@@ -7,7 +7,7 @@
             <div [ngClass]="(questionComponent?.inline) ? '':'col'">
                 <div *ngFor="let radio of getRadios()" [ngClass]="radioClass">
                     <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event)" 
-                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue">
+                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue" [formGroupName]="component?.name">
                     <label class="form-check-label">{{radio?.title}}</label>
                 </div>
             </div>

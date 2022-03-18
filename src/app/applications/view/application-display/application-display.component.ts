@@ -295,9 +295,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         }
       }
     });
-
-    // // TODO this component is being tested and needs improvement but for now it should be ok
-    // this.setApplication(createDraftApplication());
   }
 
   private reload(hotReload: boolean = false) {
@@ -358,6 +355,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         } else {
           section.onAutoSave(error, true);
         }
+
+        this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
       }
 
       // a section requested that it do be autosaved
@@ -373,6 +372,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           } else {
             section.onAutoSave(error, true);
           }
+
+          this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
         }
 
         this.saveDraft(createCallback, updateCallback);
@@ -447,7 +448,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveDraft(createCallback: (response?: CreateDraftApplicationResponse, error?: any) => void,
-    updateCallback: (respponse?: UpdateDraftApplicationResponse, error?: any) => void) {
+    updateCallback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
     
     if (this.newApplication) {
       this.createDraft(createCallback);
@@ -466,11 +467,15 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   save() {
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
+      (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e))
+  }
+
+  private saveCallback(createCallback: (r?: CreateDraftApplicationResponse, e?: any) => void, updateCallback: (r?: UpdateDraftApplicationResponse, e?: any) => void) {
     if (this.application.status == ApplicationStatus.DRAFT) {
-      this.saveDraft((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
-        (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+      this.saveDraft(createCallback, updateCallback);
     } else if (this.application.status == ApplicationStatus.REFERRED) {
-      this.saveReferred((r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+      this.saveReferred(updateCallback);
     }
   }
 
@@ -480,11 +485,28 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
+  private saveBeforeSubmit() {
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => {
+      if (!e) {
+        this.saved = true;
+        this.submit(false);
+      } else {
+        this.saveErrorAlert.displayMessage(e, true)
+      }
+    }, (r?: UpdateDraftApplicationResponse, e?: any) => {
+      if (!e) {
+        this.saved = true;
+        this.submit(false);
+      } else {
+        this.saveErrorAlert.displayMessage(e, true)
+      }
+    });
+  }
+
   submit(confirmSubmission: boolean = true) {
     if (!confirmSubmission || confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
       if (!this.saved) {
-        this.save(); // save any unsaved answers before submitting
-        this.submit(false);
+        this.saveBeforeSubmit(); // save any unsaved answers before submitting
       } else {
         this.applicationService.submitApplication(new SubmitApplicationRequest(this.application.applicationId))
           .subscribe({

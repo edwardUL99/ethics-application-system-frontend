@@ -103,6 +103,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   ngOnInit(): void {
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
+
     QuestionViewUtils.setExistingAnswer(this);
   }
 
@@ -113,14 +114,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   addToForm(): void {
     const edit = this.edit();
+    const newCheckboxGroup = !this.checkboxGroup;
+    this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
-
-    this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
-      this.checkboxes[checkbox.identifier] = checkbox;
-      this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
-    });
+    if (newCheckboxGroup) {
+      this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
+        this.checkboxes[checkbox.identifier] = checkbox;
+        this.selectedCheckboxes[checkbox.identifier] = false;
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
+      });
+    }
 
     if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       if (this.checkboxGroupComponent.required) {
@@ -184,11 +187,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxGroup.get(checkbox).setValue('');
     }
 
-    this.emit();
+    this.emit(true);
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   castComponent() {
@@ -269,12 +272,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     return QuestionViewUtils.display(this);
   }
 
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
-  }
-
   setFromAnswer(answer: Answer): void {
     if (answer.valueType != ValueType.OPTIONS) {
       throw new Error('Invalid answer type for the chekcbox group component');
@@ -288,7 +285,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     this.checkboxGroup.markAsTouched();
 
-    this._emit();
+    this.emit(false);
   }
 
   value(): Answer {

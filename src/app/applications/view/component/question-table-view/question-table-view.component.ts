@@ -5,7 +5,7 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import { LoadedComponentsChange, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
@@ -94,6 +94,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * Output for tracking when components change
+   */
+  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -128,6 +132,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.componentsChange.destroy();
     Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
     this.removeFromForm();
   }
@@ -183,12 +188,13 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
 
     this.detectChanges();
-    this.propagateEmits();
+    this.propagateEmits(false);
+    this.componentsChange.emit(true);
   }
 
-  private propagateEmits() {
+  private propagateEmits(autosave: boolean = true) {
     for (let key of Object.keys(this.matchedComponents)) {
-      this.matchedComponents[key].emit();
+      this.matchedComponents[key].emit(autosave);
     }
   }
 
@@ -221,12 +227,12 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   onInput(emitEvent: boolean = true) {    
     if (emitEvent) {
-      this.emit();
+      this.emit(true);
     }
   }
 
-  emit(): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this));
+  emit(autosave: boolean): void {
+    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this, autosave));
   }
 
   display(): boolean {

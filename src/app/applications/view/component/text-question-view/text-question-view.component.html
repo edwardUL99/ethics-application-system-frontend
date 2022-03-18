@@ -1,4 +1,4 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+<div [ngClass]="'form-group' + (display() ? '':' d-none')" [id]="questionComponent?.componentId" [formGroup]="form">
     <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>

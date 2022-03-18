@@ -3,7 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SectionViewComponent as ISectionViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape, QuestionViewComponent, ApplicationViewComponent } from '../application-view.component';
-import { ComponentHost, QuestionComponentHost } from '../component-host.directive';
+import { ComponentHost, LoadedComponentsChange, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -26,6 +26,58 @@ export interface SectionViewComponentShape extends QuestionViewComponentShape {
  */
 type QuestionAnswered = {
   [key: string]: boolean
+}
+
+function loadContainerQuestions(loader: DynamicComponentLoader, component: ApplicationViewComponent, components: QuestionViewComponent[]) {
+  for (let view of loader.getLoadedComponents(component.component.componentId)) {
+    const child = view.instance;
+    const type = child.component.getType();
+
+    if (child.component.isFormElement()) {
+      components.push(child as QuestionViewComponent);
+    } else if (type == ComponentType.SECTION) {
+      const childSection = child as ISectionViewComponent;
+
+      childSection.getChildQuestionComponents().forEach(component => components.push(component));
+    } else if (type == ComponentType.CONTAINER) {
+      loadContainerQuestions(loader, child, components);
+    }
+  }
+}
+
+function populateSectionChildren(section: ISectionViewComponent, components: QuestionViewComponent[]) {
+  section.getChildQuestionComponents().forEach(component => components.push(component));
+}
+
+function populateOtherChildren(child: ApplicationViewComponent, components: QuestionViewComponent[]) {
+  const host = child as unknown as QuestionComponentHost;
+
+  if (host) {
+    if (typeof(host.getHostedQuestions) === 'function') {
+      host.getHostedQuestions().forEach(component => components.push(component));
+    } else if (child.component.isFormElement()) {
+      components.push(child as QuestionViewComponent);
+    }
+  }
+}
+
+function getChildComponents(loader: DynamicComponentLoader, componentId: string): QuestionViewComponent[] {
+  const components = [];
+  
+  for (let component of loader.getLoadedComponents(componentId)) {
+    const child = component.instance;
+    const type = child.component.getType();
+
+    if (type == ComponentType.SECTION) {
+      populateSectionChildren(component.instance as ISectionViewComponent, components);
+    } else if (type == ComponentType.CONTAINER) {
+      loadContainerQuestions(loader, child, components);
+    } else {
+      populateOtherChildren(child, components);
+    }
+  }
+
+  return components;
 }
 
 @Component({
@@ -84,6 +136,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The output for when the loaded components change
+   */
+  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -113,6 +169,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.componentsChange.destroy();
     this.loader.destroyComponents(this.component.componentId);
   }
 
@@ -147,7 +204,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
       }
     }
 
-    if (answered) {
+    if (answered && this.childQuestions.length > 0) {
       this.template.autoSaveSection(this);
     }
   }
@@ -157,19 +214,23 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
     if (answer) {
       if (Array.isArray(answer)) {
-        answer.forEach(a => {
-          this.answeredQuestions[a.componentId] = !a.empty();
-        });
+        answer.forEach(a => this.answeredQuestions[a.componentId] = !a.empty());
       } else {
         this.answeredQuestions[answer.componentId] = !answer.empty();
       }
     }
 
-    this.checkAllRequiredAnswered();
+    if (event.autosave) {
+      this.checkAllRequiredAnswered();
+    }
   }
 
   private registerQuestionsForAutosave() {
-    if (!this.subSection && this.application.status == ApplicationStatus.DRAFT) { // TODO only autosave for draft 
+    // to call when loaded components change
+    this.childQuestions = [];
+    this.answeredQuestions = {};
+
+    if (!this.subSection && this.application.status == ApplicationStatus.DRAFT) {
       this.childQuestions = this.getChildQuestionComponents().filter(c => {
         if (typeof c.disableAutosave === 'function') {
           return !c.disableAutosave();
@@ -182,27 +243,53 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
         .forEach(component => this.answeredQuestions[component.component.componentId] = true);
 
       for (let child of this.childQuestions) {
-        const callback = (e: QuestionChangeEvent) => this.checkQuestionForAutoSave(e);
-        child.questionChange.register(callback);
+        if (child.component.isFormElement()) {
+          const component = child.castComponent() as QuestionComponent;
 
-        if (child.castComponent().editable) {
-          this.checkQuestionForAutoSave(new QuestionChangeEvent(child.component.componentId, child)); // need to check for autofilled values also
+          if (component && component.autofill && component.editable) {
+            this.checkQuestionForAutoSave(new QuestionChangeEvent(child.component.componentId, child)); // need to check for autofilled values also
+          }
         }
       }
     }
   }
 
+  private checkAutosave(event: QuestionChangeEvent) {
+    const component = event.view;
+
+    let autosaveEnabled: boolean
+    
+    if (typeof component.disableAutosave === 'function') {
+      autosaveEnabled = !component.disableAutosave();
+    } else {
+      autosaveEnabled = true;
+    }
+
+    if (autosaveEnabled) {
+      this.checkQuestionForAutoSave(event);
+    }
+  }
+
   loadComponents() {
     if (this.component && this.viewInitialised()) {
-      const callback = (e: QuestionChangeEvent) => this.propagateQuestionChange(this.questionChange, e);
+      const callback = (e: QuestionChangeEvent) => {
+        this.propagateQuestionChange(this.questionChange, e);
+
+        if (!this.subSection && this.childQuestions) {
+          this.checkAutosave(e);
+        }
+      };
+
       const castedComponent = this.castComponent();
+      const detectChangesList: ComponentRef<ApplicationViewComponent>[] = [];
       
       castedComponent.components.forEach(component => {
         let ref: ComponentRef<ApplicationViewComponent>;
 
         if (component.getType() == ComponentType.SECTION) {
           ref = this.loadComponentSubSection(this.loader, this.component.componentId,
-            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback}); // section is being loaded inside in a section, so, it is a sub-section
+            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback}, true); // section is being loaded inside in a section, so, it is a sub-section
+            detectChangesList.push(ref);
         } else {
           const data: QuestionViewComponentShape = {
             application: this.application,
@@ -212,7 +299,16 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
             template: this.template
           };
 
-          ref = this.loadComponent(this.loader, this.component.componentId, data);
+          ref = this.loadComponent(this.loader, this.component.componentId, data, true);
+          detectChangesList.push(ref);
+
+          if (ref.instance instanceof AbstractComponentHost) {
+            (ref.instance as unknown as ComponentHost).componentsChange.register(e => {
+              if (e) {
+                this.registerQuestionsForAutosave();
+              }
+            })
+          }
         }
 
         if (component.isComposite) {
@@ -220,10 +316,13 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
           this.loader.registerReference(component.componentId, ref);
         }
       });
+
+      this.registerQuestionsForAutosave();
+      detectChangesList.forEach(ref => ref.changeDetectorRef.detectChanges());
     }
 
     this.detectChanges();
-    this.registerQuestionsForAutosave();
+    this.componentsChange.emit(true);
   }
 
   castComponent() {
@@ -244,48 +343,8 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     }
   }
 
-  private loadContainerQuestions(component: ApplicationViewComponent, components: QuestionViewComponent[]) {
-    for (let view of this.loader.getLoadedComponents(component.component.componentId)) {
-      const child = view.instance;
-      const type = child.component.getType();
-
-      if (child.component.isFormElement()) {
-        components.push(child as QuestionViewComponent);
-      } else if (type == ComponentType.SECTION) {
-        const childSection = child as ISectionViewComponent;
-
-        childSection.getChildQuestionComponents().forEach(component => components.push(component));
-      } else if (type == ComponentType.CONTAINER) {
-        this.loadContainerQuestions(child, components);
-      }
-    }
-  }
-
   getChildQuestionComponents(): QuestionViewComponent[] {
-    const components = [];
-    
-    for (let component of this.loader.getLoadedComponents(this.component.componentId)) {
-      const child = component.instance;
-      const type = child.component.getType();
-
-      if (type == ComponentType.SECTION) {
-        const childSection = child as ISectionViewComponent;
-
-        childSection.getChildQuestionComponents().forEach(component => components.push(component));
-      } else if (type == ComponentType.CONTAINER) {
-        this.loadContainerQuestions(child, components);
-      } else {
-        const childQuestionHost = child as unknown as QuestionComponentHost;
-
-        if (typeof(childQuestionHost.getHostedQuestions) === 'function') {
-          childQuestionHost.getHostedQuestions().forEach(component => components.push(component));
-        } else if (child.component.isFormElement()) {
-          components.push(child as QuestionViewComponent);
-        }
-      }
-    }
-
-    return components;
+    return getChildComponents(this.loader, this.component.componentId);
   }
 
   isVisible(): boolean {
