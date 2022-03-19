@@ -9,6 +9,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A custom validator as Validators.required is not working
@@ -74,6 +75,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -83,6 +88,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -133,12 +139,14 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
 
     if (this.edit()) {
       this._addToForm();
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
   removeFromForm(): void {
     this.form.removeControl(this.questionComponent.name);
     this.radioGroup = undefined;
+    this.autosaveContext?.removeQuestion(this);
   }
 
   castComponent() {
@@ -154,7 +162,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   emit(autosave: boolean) {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   private select(checkbox: string) {

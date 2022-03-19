@@ -44,11 +44,6 @@ export class LoadedComponentsChange extends TrackedEventEmitter<boolean> {}
  */
 export interface ComponentHost extends AfterViewInit {
   /**
-   * An emitter that emits true if the loaded components in the component host have changed
-   */
-  componentsChange: LoadedComponentsChange;
-
-  /**
    * Determines if the view is initialised or not
    */
   viewInitialised(): boolean;

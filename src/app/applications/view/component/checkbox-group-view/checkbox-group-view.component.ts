@@ -14,6 +14,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { CheckboxGroupRequired } from '../../../../validators';
 import { AlertComponent } from '../../../../alert/alert.component';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -85,6 +86,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @ViewChild('error')
   error: AlertComponent;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -94,6 +99,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.application = questionData.application;
     this.form = questionData.form;
     this.template = data.template;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -131,6 +137,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       }
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
@@ -141,6 +148,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     this.form.removeControl(this.checkboxGroupComponent.componentId);
     this.checkboxGroup = undefined;
+    this.autosaveContext?.removeQuestion(this);
   }
 
   /**
@@ -191,7 +199,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   emit(autosave: boolean) {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   castComponent() {

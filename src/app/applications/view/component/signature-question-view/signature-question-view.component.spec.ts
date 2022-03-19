@@ -9,6 +9,7 @@ import { createDraftApplication } from '../../../../testing/fakes';
 import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
 import { forwardRef } from '@angular/core';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
+import { AutosaveContext } from '../autosave';
 
 describe('SignatureQuestionViewComponent', () => {
   let component: SignatureQuestionViewComponent;
@@ -60,7 +61,8 @@ describe('SignatureQuestionViewComponent', () => {
     const data: QuestionViewComponentShape = {
       form: form,
       component: questionComponent,
-      application: application
+      application: application,
+      autosaveContext: new AutosaveContext()
     };
 
     component.initialise(data);

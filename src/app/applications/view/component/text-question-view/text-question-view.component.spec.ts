@@ -6,6 +6,7 @@ import { TextQuestionComponent } from '../../../models/components/textquestionco
 import { QuestionViewComponentShape } from '../application-view.component';
 import { TextQuestionViewComponent } from './text-question-view.component';
 import { createDraftApplication } from '../../../../testing/fakes';
+import { AutosaveContext } from '../autosave';
 
 describe('TextQuestionViewComponent', () => {
   let component: TextQuestionViewComponent;
@@ -38,7 +39,8 @@ describe('TextQuestionViewComponent', () => {
     const data: QuestionViewComponentShape = {
       form: form,
       component: questionComponent,
-      application: application
+      application: application,
+      autosaveContext: new AutosaveContext()
     };
 
     component.initialise(data);

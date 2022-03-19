@@ -45,10 +45,6 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    * Determines if the component is visible
    */
   @Input() visible: boolean;
-  /**
-   * Emitter for when loaded components change
-   */
-  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -76,7 +72,6 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
-    this.componentsChange.destroy();
     this.loader.destroyComponents(this.component.componentId);
   }
 
@@ -101,7 +96,8 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
           component: component,
           form: this.form,
           questionChangeCallback: callback,
-          template: this.template
+          template: this.template,
+          autosaveContext: undefined
         };
 
         ref = this.loadComponent(this.loader, this.component.componentId, data);
@@ -114,7 +110,6 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
     }
 
     this.detectChanges();
-    this.componentsChange.emit(true);
   }
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {

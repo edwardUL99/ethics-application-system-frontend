@@ -9,6 +9,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { AutosaveContext } from '../autosave';
 
 @Component({
   selector: 'app-text-question-view',
@@ -53,6 +54,10 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -67,6 +72,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
     }
+
+    this.autosaveContext = questionData.autosaveContext;
   }
 
   ngOnInit(): void {
@@ -104,11 +111,13 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
   addToForm(): void {
     this._addToForm();
+    this.autosaveContext?.registerQuestion(this);
   }
 
   removeFromForm(): void {
     this.control = undefined;
     this.form.removeControl(this.questionComponent.name);
+    this.autosaveContext?.removeQuestion(this);
   }
 
   castComponent() {
@@ -116,7 +125,9 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   emit(autosave: boolean): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   onChange() {
@@ -129,7 +140,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
           this.control.setValue(value, {emitEvent: false});
-          this.emit(true);
+          this.emit(false);
         }
       });
     }

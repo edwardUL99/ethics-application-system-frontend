@@ -11,6 +11,7 @@ import { Application } from '../../../models/applications/application';
 import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -81,9 +82,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    */
   @Input() visible: boolean;
   /**
-   * The event for when components change
+   * The autosave context to pass to children
    */
-  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
+  autosaveContext: AutosaveContext;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -96,6 +97,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -110,7 +112,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
-    this.componentsChange.destroy();
     Object.keys(this.multipartQuestion.parts).forEach(part => this.loader.destroyComponents(this.multipartQuestion.parts[part].question.componentId));
     this.removeFromForm();
   }
@@ -146,7 +147,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           component: part.question,
           form: this.group,
           parent: this,
-          questionChangeCallback: callback
+          questionChangeCallback: callback,
+          autosaveContext: this.autosaveContext
         };
 
         const ref = this.loadComponent(this.loader, part.question.componentId, data);
@@ -176,7 +178,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   private propagateEmits(autosave: boolean = true) {
     for (let key of Object.keys(this.matchedComponents)) {
-      if (this.matchedComponents[key].edit()) {
+      if (this.matchedComponents[key] && this.matchedComponents[key].edit()) {
         this.matchedComponents[key].emit(autosave);
       }
     }
@@ -266,7 +268,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
 
     unloadParts.forEach(part => this.unloadPart(this.multipartQuestion.parts[part]));
-    this.componentsChange.emit(true);
   }
 
   onInput(event: QuestionChangeEvent, part: string, emitEvent: boolean = true) {

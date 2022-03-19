@@ -132,7 +132,8 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         form: this.form,
         subSection: false,
         questionChangeCallback: callback,
-        template: this
+        template: this,
+        autosaveContext: undefined
       };
 
       this.loadComponentSubSection(this.loader, '', data);
@@ -142,7 +143,8 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         form: this.form,
         questionChangeCallback: callback,
         component: component,
-        template: this
+        template: this,
+        autosaveContext: undefined
       };
 
       this.loadComponent(this.loader, '', data);

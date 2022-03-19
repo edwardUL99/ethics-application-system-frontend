@@ -8,6 +8,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { AutosaveContext } from '../autosave';
 
 /**
  * The copied signature
@@ -67,6 +68,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -76,6 +81,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -117,12 +123,14 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   addToForm(): void {
     if (this.edit()) {
       this._addToForm();
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
   removeFromForm(): void {
     this.control = undefined;
     this.form.removeControl(this.questionComponent.name);
+    this.autosaveContext?.removeQuestion(this);
   }
 
   sizeChange() {
@@ -154,7 +162,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   emit(autosave: boolean) {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   drawStarted() {

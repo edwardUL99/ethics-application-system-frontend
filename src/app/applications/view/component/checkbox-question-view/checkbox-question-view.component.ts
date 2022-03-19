@@ -10,6 +10,7 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { CheckboxGroupRequired } from '../../../../validators';
+import { AutosaveContext } from '../autosave';
 
 
 @Component({
@@ -63,6 +64,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -72,6 +77,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -125,6 +131,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
     if (this.edit()) {
       this._addToForm();
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
@@ -134,6 +141,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     });
     this.form.removeControl(this.questionComponent.name);
     this.checkboxGroup = undefined;
+    this.autosaveContext?.removeQuestion(this);
   }
 
   castComponent() {
@@ -141,7 +149,9 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   emit(autosave: boolean) {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   private select(checkbox: string) {

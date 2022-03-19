@@ -11,6 +11,7 @@ import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
 import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A mapping of question component IDs to the question components
@@ -95,9 +96,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    */
   @Input() visible: boolean;
   /**
-   * Output for tracking when components change
+   * Autosave context
    */
-  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
+  autosaveContext: AutosaveContext;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -110,6 +111,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -132,7 +134,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
-    this.componentsChange.destroy();
     Object.keys(this.questionsMapping).forEach(key => this.loader.destroyComponents(key));
     this.removeFromForm();
   }
@@ -180,7 +181,8 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             application: this.application,
             form: this.group,
             parent: this,
-            questionChangeCallback: questionChangeCallback
+            questionChangeCallback: questionChangeCallback,
+            autosaveContext: this.autosaveContext
           };
           this.matchedComponents[key] = this.loadComponent(this.loader, key, data).instance as QuestionViewComponent;
         }
@@ -189,7 +191,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
     this.detectChanges();
     this.propagateEmits(false);
-    this.componentsChange.emit(true);
   }
 
   private propagateEmits(autosave: boolean = true) {

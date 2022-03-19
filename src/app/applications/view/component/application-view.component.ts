@@ -5,6 +5,7 @@ import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
 import { ApplicationTemplateDisplayComponent } from '../application-template-display/application-template-display.component';
+import { AutosaveContext } from './autosave';
 
 /**
  * This type represents a callback for when a question change event is fired
@@ -54,6 +55,13 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
    * An optional parent if one exists
    */
   parent?: QuestionViewComponent;
+
+  /**
+   * This context is passed in by a parent component that supports the autosaving of an application given
+   * that all registered question components are filled in. Register the question component with this component
+   * if you wish the question to be considered for autosave
+   */
+  autosaveContext: AutosaveContext;
 }
 
 /**
@@ -121,7 +129,9 @@ export class QuestionChangeEvent {
    */
   view: QuestionViewComponent;
   /**
-   * Determine if this event should be checked for autosave
+   * Determine if an autosave context should trigger an autosave satisfying (determine if autosave should occur) check.
+   * If false however, the answer will still be saved to the autosave context unless the component emitting the event
+   * implements a disableAutosave method that returns false
    */
   autosave: boolean;
 
@@ -150,6 +160,12 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * the childs respective methods must return true. Be careful to avoid infinite recursion
    */
   parent: QuestionViewComponent;
+  /**
+   * This context is passed in by a parent component that supports the autosaving of an application given
+   * that all registered question components are filled in. Register the question component with this component
+   * if you wish the question to be considered for autosave
+   */
+  autosaveContext: AutosaveContext;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
@@ -220,14 +236,4 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * An optional method to implement and return false if this component should not be counted towards autosave
    */
   disableAutosave?(): boolean;
-}
-
-/**
- * This interface represents a specialisation of the application view component for sections to allow for autosave functionality.
- */
-export interface SectionViewComponent extends ApplicationViewComponent {
-  /**
-   * Get the list of child question view components (should recursively retrieve them from sub sections and containers too)
-   */
-  getChildQuestionComponents(): QuestionViewComponent[];
 }

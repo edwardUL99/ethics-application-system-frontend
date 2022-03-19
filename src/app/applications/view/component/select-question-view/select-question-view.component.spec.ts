@@ -6,6 +6,7 @@ import { Option, SelectQuestionComponent } from '../../../models/components/sele
 import { QuestionViewComponentShape } from '../application-view.component';
 import { SelectQuestionViewComponent } from './select-question-view.component';
 import { createDraftApplication } from '../../../../testing/fakes';
+import { AutosaveContext } from '../autosave';
 
 describe('SelectQuestionViewComponent', () => {
   let component: SelectQuestionViewComponent;
@@ -41,7 +42,8 @@ describe('SelectQuestionViewComponent', () => {
     const data: QuestionViewComponentShape = {
       form: form,
       component: questionComponent,
-      application: application
+      application: application,
+      autosaveContext: new AutosaveContext()
     };
 
     component.initialise(data);

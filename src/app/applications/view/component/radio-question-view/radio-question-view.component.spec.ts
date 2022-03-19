@@ -7,6 +7,7 @@ import { Option } from '../../../models/components/selectquestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { RadioQuestionViewComponent } from './radio-question-view.component';
 import { createDraftApplication } from '../../../../testing/fakes';
+import { AutosaveContext } from '../autosave';
 
 describe('RadioQuestionViewComponent', () => {
   let component: RadioQuestionViewComponent;
@@ -42,7 +43,8 @@ describe('RadioQuestionViewComponent', () => {
     const data: QuestionViewComponentShape = {
       form: form,
       component: questionComponent,
-      application: application
+      application: application,
+      autosaveContext: new AutosaveContext()
     };
 
     component.initialise(data);

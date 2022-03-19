@@ -6,6 +6,7 @@ import { Checkbox, CheckboxGroupComponent } from '../../../models/components/che
 import { QuestionViewComponentShape } from '../application-view.component';
 import { CheckboxGroupViewComponent } from './checkbox-group-view.component';
 import { createDraftApplication } from '../../../../testing/fakes';
+import { AutosaveContext } from '../autosave';
 
 describe('CheckboxGroupViewComponent', () => {
   let component: CheckboxGroupViewComponent;
@@ -40,7 +41,8 @@ describe('CheckboxGroupViewComponent', () => {
     const data: QuestionViewComponentShape = {
       form: form,
       component: questionComponent,
-      application: application
+      application: application,
+      autosaveContext: new AutosaveContext()
     };
 
     component.initialise(data);
