@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Outp
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { ComponentHost } from '../component-host.directive';
+import { ComponentHost, LoadedComponentsChange } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';
@@ -45,6 +45,10 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * Emitter for when loaded components change
+   */
+  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -72,6 +76,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.componentsChange.destroy();
     this.loader.destroyComponents(this.component.componentId);
   }
 
@@ -109,6 +114,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
     }
 
     this.detectChanges();
+    this.componentsChange.emit(true);
   }
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {

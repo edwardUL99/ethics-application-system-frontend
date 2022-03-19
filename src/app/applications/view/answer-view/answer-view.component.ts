@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Answer, ValueType } from '../../models/applications/answer';
 import { QuestionComponent } from '../../models/components/questioncomponent';
+import { Renderers } from './renderers';
 
 /**
  * This component allows an answer to a question to be viewed
@@ -19,10 +20,21 @@ export class AnswerViewComponent implements OnInit {
    * The question being answered
    */
   @Input() question: QuestionComponent;
+  /**
+   * The renderer to use to render the answer
+   */
+  @Input() renderer: string = 'same';
 
   constructor() { }
 
   ngOnInit(): void {
+    let rendererImpl = Renderers[this.renderer];
+
+    if (!rendererImpl) {
+      rendererImpl = Renderers['same'];
+    }
+
+    this.answer = rendererImpl.render(this.answer);
   }
 
   splitAnswerOptions(): string[] {

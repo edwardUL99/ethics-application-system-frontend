@@ -72,10 +72,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   ngOnInit(): void {
     this.questionComponent = this.castComponent();
 
-    if (this.form && !this.form.get(this.questionComponent.name)) {
-      this._addToForm();
-      this.autofill();
-    }
+    this.addToForm();
+    this.autofill();
 
     QuestionViewUtils.setExistingAnswer(this);
   }
@@ -101,8 +99,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       if (!this.form.get(this.questionComponent.name)) {
         this.form.addControl(this.questionComponent.name, this.control);
       }
-
-      this.control.updateValueAndValidity();
     }
   }
 
@@ -119,18 +115,12 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     return this.component as TextQuestionComponent;
   }
 
-  emit(): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean): void {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   onChange() {
-    this.emit();
-  }
-
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+    this.emit(true);
   }
 
   autofill(): void {
@@ -138,7 +128,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
-          this.control.setValue(value);
+          this.control.setValue(value, {emitEvent: false});
+          this.emit(true);
         }
       });
     }
@@ -161,7 +152,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
     this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
-    this._emit();
+    this.emit(false);
   }
 
   value(): Answer {
@@ -182,6 +173,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+
+    return display;
   }
 }

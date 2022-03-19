@@ -130,6 +130,30 @@ class StatusQuery implements SearchQuery {
   }
 }
 
+export class IDQuery implements SearchQuery {
+  /**
+   * The controls created by createControls
+   */
+  private controls: SearchControl[];
+  
+  createControls(fb: FormBuilder): SearchControl[] {
+    if (!this.controls) {
+      const controls = [];
+
+      controls.push(new SearchControl('Application ID:', fb.control('', [Validators.required]), 'text', undefined, 'The ID of the application'));
+      this.controls = controls;
+    }
+
+    return this.controls;
+  }
+
+  constructQuery(): Query {
+    const id = this.controls[0].control.value;
+
+    return new Query(`id:~${id}`);
+  }
+}
+
 /**
  * The queries defined for the applications search
  */
@@ -137,5 +161,6 @@ class StatusQuery implements SearchQuery {
   {label: 'Status', value: 'status', query: new StatusQuery()},
   {label: 'Assigned User', value: 'assigned-user', query: new AssignedUserQuery()},
   {label: 'Submitted Date', value: 'submitted-date', query: new SubmittedDateRangeQuery()},
-  {label: 'Applicant', value: 'user', query: new UserQuery()}
+  {label: 'Applicant', value: 'user', query: new UserQuery()},
+  {label: 'Application ID', value: 'application-id', query: new IDQuery()}
 ];

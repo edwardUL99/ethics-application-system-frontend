@@ -120,13 +120,16 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
-    this.radioGroup = (this.radioGroup) ? this.radioGroup:new FormGroup({});
+    const newRadioGroup = !this.radioGroup;
+    this.radioGroup = (!newRadioGroup) ? this.radioGroup:new FormGroup({});
 
-    this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
-      this.radios[option.value] = checkbox;
-      this.radioGroup.addControl(checkbox.value, new FormControl({vaue: '', disabled: !this.questionComponent.editable}));
-    });
+    if (newRadioGroup) {
+      this.questionComponent.options.forEach(option => {
+        const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
+        this.radios[option.value] = checkbox;
+        this.radioGroup.addControl(checkbox.value, new FormControl({value: '', disabled: !this.questionComponent.editable}));
+      });
+    }
 
     if (this.edit()) {
       this._addToForm();
@@ -150,14 +153,8 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     });
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
-  }
-
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+  emit(autosave: boolean) {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   private select(checkbox: string) {
@@ -178,7 +175,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       this.radioGroup.get(event.target.value).setValue('', {emitEvent: false});
     }
 
-    this.emit();
+    this.emit(true);
   }
 
   display(): boolean {
@@ -202,7 +199,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
 
       this.radioGroup.markAsTouched();
 
-      this._emit();
+      this.emit(false);
     }
   }
 

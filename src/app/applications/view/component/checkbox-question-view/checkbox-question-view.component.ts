@@ -109,16 +109,19 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   addToForm(): void {
-    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
+    const newCheckboxGroup = !this.checkboxGroup;
+    this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
-      this.checkboxes[option.identifier] = checkbox;
-
-      this.selectedCheckboxes[checkbox.identifier] = false;
-
-      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
-    });
+    if (newCheckboxGroup) {
+      this.questionComponent.options.forEach(option => {
+        const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
+        this.checkboxes[option.identifier] = checkbox;
+  
+        this.selectedCheckboxes[checkbox.identifier] = false;
+  
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
+      });
+    }
 
     if (this.edit()) {
       this._addToForm();
@@ -137,8 +140,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     return this.component as CheckboxQuestionComponent;
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   private select(checkbox: string) {
@@ -160,13 +163,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxGroup.get(event.target.value).setValue('', {emitEvent: false});
     }
 
-    this.emit();
-  }
-  
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+    this.emit(true);
   }
 
   display(): boolean {
@@ -190,7 +187,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
       this.checkboxGroup.markAsTouched();
 
-      this._emit();
+      this.emit(false);
     }
   }
 

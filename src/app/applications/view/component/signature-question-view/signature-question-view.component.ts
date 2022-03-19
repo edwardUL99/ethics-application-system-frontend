@@ -153,23 +153,17 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     return this.component as SignatureQuestionComponent;
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   drawStarted() {
     this.control.markAsTouched();
   }
 
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
-  }
-
   signatureEntered(signature: string) {
     this.signature = signature;
-    this.emit();
+    this.emit(true);
   }
 
   display(): boolean {
@@ -193,7 +187,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
 
-    this._emit();
+    this.emit(false);
   }
 
   value(): Answer {

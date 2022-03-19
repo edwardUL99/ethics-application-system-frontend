@@ -1,5 +1,6 @@
 import { AfterViewInit, Input } from '@angular/core';
 import { Directive, ViewContainerRef } from '@angular/core';
+import { TrackedEventEmitter } from '../../../utils';
 import { ComponentType } from '../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
@@ -32,11 +33,21 @@ export class ComponentHostDirective implements AfterViewInit {
 }
 
 /**
+ * An EventEmitter that emits true if the components loaded for a component have changed (i.e. components have been added/removed)
+ */
+export class LoadedComponentsChange extends TrackedEventEmitter<boolean> {}
+
+/**
  * This interface marks a component as a component host and that it needs to load the components.
  * Can be a recursive definition, sub-components can also be component hosts, e.g. containers and sections.
  * Extends the AfterViewInit interface since the loadComponents call should be made from that callback function
  */
 export interface ComponentHost extends AfterViewInit {
+  /**
+   * An emitter that emits true if the loaded components in the component host have changed
+   */
+  componentsChange: LoadedComponentsChange;
+
   /**
    * Determines if the view is initialised or not
    */
@@ -66,7 +77,7 @@ export interface ComponentHost extends AfterViewInit {
    * @param questionChange the question change instance
    * @param e the event being propagated
    */
-  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent);
+  propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent): void;
 }
 
 /** 

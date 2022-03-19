@@ -5,7 +5,7 @@ import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
-import { ComponentHost } from '../component/component-host.directive';
+import { ComponentHost, LoadedComponentsChange } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
@@ -16,10 +16,12 @@ import { ContainerComponent } from '../../models/components/containercomponent';
 import { CompositeComponent } from '../../models/components/compositecomponent';
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 
-/*
-TODO when gathering answers from fields, any non-editable and autofilled fields should be propagated and stored in the answers.
-Test that this happens when you get this far 
-*/
+/**
+ * A type to determine if an autosave event has already been dispatched for the section
+ */
+export type AutosaveDispatched = {
+  [key: string]: boolean;
+}
 
 @Component({
   selector: 'app-application-template-display',
@@ -63,6 +65,14 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * A variable to indicate if the view is initialised or not
    */ 
   private _viewInitialised: boolean = false;
+  /**
+   * An emitter to emit when loaded components change
+   */
+  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
+  /**
+   * Record if the section already has an autosave dispatched
+   */
+  private dispatchedAutosaves: AutosaveDispatched = {};
 
   constructor(private cd: ChangeDetectorRef, private loader: DynamicComponentLoader) {
     super();
@@ -86,6 +96,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.componentsChange.destroy();
     this.loader.destroyComponents();
     setResolver(undefined); // clean up and remove the set autofill resolver
   }
@@ -99,7 +110,16 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   }
 
   autoSaveSection(section: SectionViewComponent) {
-    this.autoSave.emit(section);
+    const id = section.component.componentId;
+
+    if (!this.dispatchedAutosaves[id]) {
+      this.autoSave.emit(section);
+      this.dispatchedAutosaves[id] = true;
+    }
+  }
+
+  markSectionSaved(section: SectionViewComponent) {
+    delete this.dispatchedAutosaves[section.component.componentId];
   }
 
   private _loadComponent(component: ApplicationComponent) {
@@ -178,10 +198,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     component.components.forEach(component => this._loadComponent(component));
   }
 
-  // TODO need to make sure that autosaving still works after this
-
   loadNewContainer(replaced: ReplacedContainer) {
-    // TODO this sometimes throws null
     if (!(replaced.replaced instanceof ContainerComponent) || !(replaced.container instanceof ContainerComponent)) {
       console.warn('Invalid container components passed into loadNewContainer on template display');
     } else {
@@ -193,5 +210,11 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     }
 
     this.application.applicationTemplate = this.templateContext.getCurrentTemplate();
+  }
+
+  reload() {
+    this.questionChange.destroy();
+    this.loader.getLoadedComponents('').forEach(c => c.destroy());
+    this.loadComponents();
   }
 }

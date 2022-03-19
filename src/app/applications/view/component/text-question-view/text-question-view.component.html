@@ -1,4 +1,4 @@
-<div class="form-group" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+<div [ngClass]="'form-group' + (display() ? '':' d-none')" [id]="questionComponent?.componentId" [formGroup]="form">
     <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
@@ -14,8 +14,8 @@
         <app-field-error [condition]="control?.errors?.['email'] && control?.touched" [error]="'Please enter a valid e-mail address'"></app-field-error>
     </div>
     <ng-template #notEdit>
-        <app-answer-view *ngIf="displayAnswer()"
-            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+        <app-answer-view *ngIf="displayAnswer()" [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"
+         [renderer]="(questionComponent?.questionType == 'date') ? 'date':'same'"></app-answer-view>
     </ng-template>
     <app-comment-display [application]="application" [component]="this"></app-comment-display>
 </div>

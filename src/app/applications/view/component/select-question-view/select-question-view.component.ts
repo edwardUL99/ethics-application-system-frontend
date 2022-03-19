@@ -150,17 +150,11 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.unselectOthers(option);
     }
 
-    this.emit();
+    this.emit(true);
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
-  }
-
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+  emit(autosave: boolean) {
+    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
   }
 
   autofill(): void {
@@ -184,7 +178,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     options.forEach(option => this.selected[option] = true);
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
-    this._emit();
+    this.emit(false);
   }
 
   display(): boolean {
