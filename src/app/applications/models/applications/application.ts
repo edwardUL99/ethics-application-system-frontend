@@ -98,7 +98,7 @@ export class Application {
    * @param file the file to attach
    */
   attachFile(file: AttachedFile) {
-    this.attachedFiles[file.componentId] = file;
+    this.attachedFiles.push(file);
   }
 
   /**

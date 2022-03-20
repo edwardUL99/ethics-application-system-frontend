@@ -70,6 +70,7 @@ import { UserSearchComponent } from './users/search/user-search/user-search.comp
 import { UserQueryService } from './users/search/user-query.service';
 import { UserSearchPageComponent } from './users/search/user-search-page/user-search-page.component';
 import { UserProfileComponent } from './users/user-profile/user-profile.component';
+import { FilesService } from './files/files.service';
 
 @NgModule({
   declarations: [
@@ -161,7 +162,8 @@ import { UserProfileComponent } from './users/user-profile/user-profile.componen
     AuthorizationService,
     AuthGuard,
     SearchService,
-    UserQueryService
+    UserQueryService,
+    FilesService
   ],
   bootstrap: [AppComponent]
 })
