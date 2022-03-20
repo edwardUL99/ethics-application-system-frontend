@@ -1,5 +1,5 @@
 import { Application } from "../../applications/application";
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from "../../applications/types";
+import { AnswersMapping, CommentsMapping } from "../../applications/types";
 import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from "../../applications/applicationinit";
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from "../applicationresponse";
 import { catchError, Observable, Observer, throwError } from 'rxjs';
@@ -173,12 +173,12 @@ export function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
  * Map response attached files to attached file instances
  * @param attachedFiles the files to map
  */
-export function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFilesMapping {
-  const mappedAttachedFiles: AttachedFilesMapping = {};
+export function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFile[] {
+  const mappedAttachedFiles: AttachedFile[] = [];
 
   Object.keys(attachedFiles).forEach(key => {
     const attachedFile = attachedFiles[key];
-    mappedAttachedFiles[attachedFile.componentId] = new AttachedFile(attachedFile.id, attachedFile.filename, attachedFile.directory, attachedFile.componentId);
+    mappedAttachedFiles.push(new AttachedFile(attachedFile.id, attachedFile.filename, attachedFile.directory, attachedFile.componentId));
   });
 
   return mappedAttachedFiles;
@@ -222,7 +222,7 @@ export function mapComment(comment: CommentShape): Comment {
  */
 @MapApplicationResponse(ResponseMapperKeys.DRAFT)
 class DraftApplicationResponseMapper implements ApplicationResponseMapper {
-  private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFilesMapping) {
+  private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFile[]) {
     loadUserAndTemplate(observer, response,
       value => {
         observer.next(Application.create(new DraftApplicationInitialiser(response.dbId, response.id, value.user, 
@@ -234,7 +234,7 @@ class DraftApplicationResponseMapper implements ApplicationResponseMapper {
   map(response: DraftApplicationResponse): Observable<Application> {
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
 
       this.loadUserAndTemplate(observer, response, answers, attachedFiles);
     });
@@ -283,7 +283,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
 
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);
@@ -323,7 +323,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
 
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);

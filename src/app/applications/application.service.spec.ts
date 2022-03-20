@@ -214,7 +214,7 @@ describe('ApplicationService', () => {
   });
 
   const updateDraftRequest = () => {
-    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, {}, createApplicationTemplate());
+    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, [], createApplicationTemplate());
   }
 
   it('#updateDraftApplication should update application successfully', (done) => {

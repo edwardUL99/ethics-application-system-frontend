@@ -1,10 +1,11 @@
 import { User } from '../../../users/user';
 import { ApplicationStatus } from './applicationstatus';
 import { ApplicationTemplate } from '../applicationtemplate';
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
+import { AnswersMapping, CommentsMapping } from './types';
 import { Application } from './application';
 import { Comment } from './comment';
 import { AssignedCommitteeMember } from './assignedcommitteemember';
+import { AttachedFile } from './attachedfile';
 
 /*
  * It is easier to work with Application instances in templates as a single class structure,
@@ -52,7 +53,7 @@ export abstract class ApplicationInitialiser {
    */
    constructor(public id: number, public applicationId: string, public user: User,
     public status: ApplicationStatus, public applicationTemplate: ApplicationTemplate,
-    public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping, public lastUpdated: Date) {
+    public answers: AnswersMapping, public attachedFiles: AttachedFile[], public lastUpdated: Date) {
       this.validateStatus(status);
     }
 
@@ -104,7 +105,7 @@ export class DraftApplicationInitialiser extends ApplicationInitialiser {
    * @param lastUpdated the timestamp of when the application was last updated
    */
   constructor(id: number, applicationId: string, user: User,applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date) {
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date) {
     super(id, applicationId, user, ApplicationStatus.DRAFT, applicationTemplate, answers, attachedFiles, lastUpdated);
   }
 
@@ -139,7 +140,7 @@ export class SubmittedApplicationInitialiser extends ApplicationInitialiser {
    */
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date,
     public comments: CommentsMapping, public assignedCommitteeMembers: AssignedCommitteeMember[], public finalComment: Comment,
     public previousCommitteeMembers: User[], public submittedTime: Date, public approvalTime: Date) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated);
@@ -187,7 +188,7 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
    */
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date,
     comments: CommentsMapping, assignedCommitteeMembers: AssignedCommitteeMember[], finalComment: Comment,
     previousCommitteeMembers: User[], submittedTime: Date, approvalTime: Date,
     public editableFields: string[], public referredBy: User) {

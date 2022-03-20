@@ -206,7 +206,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   private generateApplication(context: ApplicationTemplateContext) {
     this.userContext.getUser().subscribe({
       next: user => {
-        this.setApplication(Application.create(new DraftApplicationInitialiser(0, 'N/A', user, context.getCurrentTemplate(), {}, {}, undefined)), false);
+        this.setApplication(Application.create(new DraftApplicationInitialiser(0, 'N/A', user, context.getCurrentTemplate(), {}, [], undefined)), false);
       },
       error: e => this.loadError = e
     });

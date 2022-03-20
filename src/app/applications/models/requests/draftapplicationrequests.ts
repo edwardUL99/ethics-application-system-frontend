@@ -13,13 +13,6 @@ export type AnswersMapping = {
 }
 
 /**
- * Mapping of component IDs to the attached files
- */
-export type AttachedFilesMapping = {
-  [key: string]: AttachedFile;
-}
-
-/**
  * This class represents a request to create a draft application
  */
 export class CreateDraftApplicationRequest {
@@ -43,7 +36,7 @@ export class UpdateDraftApplicationRequest {
    * @param attachedFiles the map of any files that may have been attached
    * @param template the template to update
    */
-  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping, public template: ApplicationTemplate) {}
+  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFile[], public template: ApplicationTemplate) {}
 }
 
 /**

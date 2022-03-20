@@ -186,7 +186,7 @@ export const APPLICATION_ID: string = 'test-application-id';
 
 export function createDraftApplication(): Application {
     return Application.create(new DraftApplicationInitialiser(1, APPLICATION_ID, createUser(), 
-        createApplicationTemplate(), {}, {}, new Date()));
+        createApplicationTemplate(), {}, [], new Date()));
 }
 
 export function createDraftApplicationResponse(): DraftApplicationResponse {
@@ -206,7 +206,7 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
 
 export function createSubmittedApplication(status: ApplicationStatus): Application {
     return Application.create(new SubmittedApplicationInitialiser(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
-    {}, {}, new Date(), {}, [], undefined, [], undefined, undefined));
+    {}, [], new Date(), {}, [], undefined, [], undefined, undefined));
 }
 
 export function createSubmittedApplicationResponse(status: ApplicationStatus): SubmittedApplicationResponse {
@@ -232,7 +232,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
 
 export function createReferredApplication(): Application {
     return Application.create(new ReferredApplicationInitialiser(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
-        createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, undefined, [], undefined));
+        createApplicationTemplate(), {}, [], new Date(), {}, [], undefined, [], undefined, undefined, [], undefined));
 }
 
 export function createReferredApplicationResponse(): ReferredApplicationResponse {
