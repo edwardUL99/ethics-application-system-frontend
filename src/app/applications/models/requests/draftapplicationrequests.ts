@@ -4,6 +4,7 @@ import { AttachedFile } from "../applications/attachedfile";
 import { BaseResponse } from "../../../baseresponse";
 import { ApplicationStatus } from "../applications/applicationstatus";
 import { AnswersMapping as AnswerShapesMapping } from './applicationresponse';
+import { AttachedFileShape } from './shapes';
 
 /**
  * Mapping of component IDs to answers
@@ -78,11 +79,15 @@ export interface CreateDraftApplicationResponse extends BaseResponse {
  */
 export interface UpdateDraftApplicationResponse extends BaseResponse {
   /**
+   * The answers after updating a draft application response
+   */
+  answers: AnswerShapesMapping;
+  /**
    * The timestamp of when the application was last updated
    */
   lastUpdated: string;
   /**
-   * The answers after updating a draft application response
+   * The list of attached files
    */
-  answers: AnswerShapesMapping;
+  attachedFiles: AttachedFileShape[];
 }

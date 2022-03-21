@@ -12,9 +12,8 @@ import { getErrorMessage, joinAndWait } from "../../../../utils";
 import { User } from "../../../../users/user";
 import { ApplicationTemplate } from "../../applicationtemplate";
 import { Comment } from "../../applications/comment";
-import { AssignedCommitteeMemberResponse, CommentShape } from "../shapes";
+import { AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from "../shapes";
 import { AnswersMapping as ResponseAnswersMapping } from "../applicationresponse";
-import { AttachedFilesMapping as ResponseAttachedFilesMapping } from "../applicationresponse";
 import { CommentsMapping as ResponseCommentsMapping } from "../applicationresponse";
 import { ApplicationStatus } from "../../applications/applicationstatus";
 import { UserResponse, userResponseMapper } from "../../../../users/responses/userresponse";
@@ -173,13 +172,9 @@ export function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
  * Map response attached files to attached file instances
  * @param attachedFiles the files to map
  */
-export function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFile[] {
+export function mapAttachedFiles(attachedFiles: AttachedFileShape[]): AttachedFile[] {
   const mappedAttachedFiles: AttachedFile[] = [];
-
-  Object.keys(attachedFiles).forEach(key => {
-    const attachedFile = attachedFiles[key];
-    mappedAttachedFiles.push(new AttachedFile(attachedFile.id, attachedFile.filename, attachedFile.directory, attachedFile.componentId));
-  });
+  attachedFiles.forEach(attached => mappedAttachedFiles.push(new AttachedFile(attached.id, attached.filename, attached.directory, attached.username)));
 
   return mappedAttachedFiles;
 }

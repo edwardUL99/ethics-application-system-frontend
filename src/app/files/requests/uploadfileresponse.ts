@@ -15,7 +15,7 @@ export interface UploadFileResponse extends BaseResponse {
   /**
    * The type of the file uploaded
    */
-  type: String;
+  type: string;
   /**
    * The size of the uploaded file
    */

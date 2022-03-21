@@ -28,6 +28,9 @@ import { ReferApplicationRequest } from '../../models/requests/referapplicationr
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
 import { mapAnswers, resolveStatus } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
+import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
+
+import { Location } from '@angular/common';
 
 /**
  * The default template ID to use
@@ -95,7 +98,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   /**
    * Indicates if this application is a new application
    */
-  private newApplication: boolean = false;
+  newApplication: boolean = false;
   /**
    * A variable indicating if the application is saved
    */
@@ -124,6 +127,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * The user viewing the application
    */
   viewingUser: ViewingUser;
+  /**
+   * The attachments modal for adding attachments
+   */
+  @ViewChild('applicationAttachments')
+  applicationAttachments: AttachmentsComponent;
 
   constructor(private applicationService: ApplicationService, 
     private templateService: ApplicationTemplateService,
@@ -134,7 +142,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private router: Router,
     private fb: FormBuilder,
     private element: ElementRef,
-    private cd: ChangeDetectorRef) {
+    private cd: ChangeDetectorRef,
+    private location: Location) {
     super();
 
     this.assignForm = this.fb.group({
@@ -394,14 +403,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.application.applicationTemplate.databaseId = response.templateId;
   }
 
-  private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any): void {
+  private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any, reload?: boolean): void {
     if (response) {
       this.application.applicationId = response.id;
       this.application.answers = mapAnswers(response.answers);
       this._populateApplication(response);
       this.saved = true;
       this.displaySaveAlert();
-      this.reload(true);
+
+      if (reload) {
+        this.reload(true);
+      }
     } else {
       this.saveError = error;
       this.saveErrorAlert.show();
@@ -469,6 +481,23 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   save() {
     this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
       (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e))
+  }
+
+  saveAndUpdateDisplay(callback: (e?: any) => void) {
+    // save/update the applicate and then update the display which then calls the provided callback
+    const createCallback = (r?: CreateDraftApplicationResponse, e?: any) => {
+      this.createDraftCallback(r, e, false);
+      const url = this.router.createUrlTree([], {relativeTo: this.activatedRoute, queryParams: {id: this.application.applicationId}}).toString()
+      this.location.go(url);
+      callback(e);
+    };
+
+    const updateCallback = (r?: UpdateDraftApplicationResponse, e?: any) => {
+      this.updateDraftCallback(r, e);
+      callback(e);
+    }
+
+    this.saveCallback(createCallback, updateCallback);
   }
 
   private saveCallback(createCallback: (r?: CreateDraftApplicationResponse, e?: any) => void, updateCallback: (r?: UpdateDraftApplicationResponse, e?: any) => void) {
@@ -616,6 +645,15 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     } else {
       this.canReview = !this.viewingUser.applicant && this.viewingUser.reviewer;
       this.isAdmin = this.viewingUser.admin;
+    }
+  }
+
+  attachFile(checkbox: CheckboxGroupViewComponent) {
+    if (checkbox && (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED)) {
+      this.applicationAttachments.attachments.attachFileCallback({
+        next: () => checkbox.onFileAttached('File attached successfully'),
+        error: e => checkbox.onFileAttached(e, true)
+      });
     }
   }
 

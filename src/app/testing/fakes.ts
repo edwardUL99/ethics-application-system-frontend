@@ -199,7 +199,7 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
         status: ApplicationStatus.DRAFT,
         templateId: draft.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString()    
     };
 }
@@ -219,7 +219,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
         status: status,
         templateId: submitted.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString(),
         comments: {},
         assignedCommitteeMembers: [],
@@ -245,7 +245,7 @@ export function createReferredApplicationResponse(): ReferredApplicationResponse
         status: ApplicationStatus.REFERRED,
         templateId: referred.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString(),
         comments: {},
         assignedCommitteeMembers: [],

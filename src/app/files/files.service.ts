@@ -3,9 +3,10 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { UploadFileRequest } from './requests/uploadfilerequest';
 import { UploadFileResponse } from './requests/uploadfileresponse';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { getErrorMessage } from '../utils';
 import { BaseResponse } from '../baseresponse';
+import { DownloadedFile } from './files';
 
 @Injectable()
 export class FilesService {
@@ -36,12 +37,13 @@ export class FilesService {
   }
 
   /**
-   * Get the file
+   * Get the file by downloading it from the server. It resolves the response into a Blob with the mime type set from
+   * the response Content-Type
    * @param filename the name of the file to get
    * @param directory the optional directory the file may be saved under
    * @param username the username of the file owner
    */
-  getFile(filename: string, directory?: string, username?: string): Observable<Blob> {
+  getFile(filename: string, directory?: string, username?: string): Observable<DownloadedFile> {
     const queryParams = {};
 
     if (directory) {
@@ -55,11 +57,13 @@ export class FilesService {
     const url = `/api/files/download/${filename}`;
 
     return this.http.get(url, {
-      responseType: 'blob',
+      responseType: 'blob' as 'json',
+      observe: 'response',
       params: queryParams
     })
     .pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      map(response => DownloadedFile.fromResponse(response))
     );
   }
 

@@ -87,6 +87,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   @ViewChild('error')
   error: AlertComponent;
   /**
+   * An alert for indicating information about the attach-file event
+   */
+  @ViewChild('attachFileAlert')
+  attachFileAlert: AlertComponent;
+  /**
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
@@ -226,8 +231,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     }
   }
 
-  private _attachFile(checkbox: string) {
-    console.log(`Attach file to checkbox ${checkbox}`);
+  private _attachFile() {
+    this.attachFileAlert.alertType = 'alert-primary';
+    this.attachFileAlert.message = 'Attaching file';
+    this.attachFileAlert.show();
+    this.template.attachFileToApplication(this);
   }
 
   private _executeActionBranch(branch: Branch, checkbox: string) {
@@ -236,7 +244,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     if (actionBranch.action == Actions.TERMINATE) {
       this._terminate(actionBranch, checkbox);
     } else if (actionBranch.action == Actions.ATTACH_FILE) {
-      this._attachFile(checkbox);
+      this._attachFile();
     }
   }
 
@@ -319,5 +327,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   displayAnswer(): boolean {
     return true; // no-op
+  }
+
+  onFileAttached(message: string, error?: boolean) {
+    // callback for when a file is attached after the attach-file action
+    this.attachFileAlert.message = message;
+    this.attachFileAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
+    this.attachFileAlert.show();
+
+    if (!error) {
+      setTimeout(() => this.attachFileAlert.hide(), 2000);
+    }
   }
 }

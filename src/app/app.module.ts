@@ -71,6 +71,8 @@ import { UserQueryService } from './users/search/user-query.service';
 import { UserSearchPageComponent } from './users/search/user-search-page/user-search-page.component';
 import { UserProfileComponent } from './users/user-profile/user-profile.component';
 import { FilesService } from './files/files.service';
+import { AttachmentModalComponent } from './applications/view/attachments/attachment-modal/attachment-modal.component';
+import { AttachmentsComponent } from './applications/view/attachments/attachments/attachments.component';
 
 @NgModule({
   declarations: [
@@ -118,7 +120,9 @@ import { FilesService } from './files/files.service';
     SearchControlComponent,
     UserSearchComponent,
     UserSearchPageComponent,
-    UserProfileComponent
+    UserProfileComponent,
+    AttachmentModalComponent,
+    AttachmentsComponent
   ],
   imports: [
     BrowserModule,
