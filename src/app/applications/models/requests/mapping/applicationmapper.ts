@@ -11,7 +11,7 @@ import { ApplicationTemplateService } from '../../../application-template.servic
 import { getErrorMessage, joinAndWait } from "../../../../utils";
 import { User } from "../../../../users/user";
 import { ApplicationTemplate } from "../../applicationtemplate";
-import { Comment } from "../../applications/comment";
+import { ApplicationComments, Comment } from "../../applications/comment";
 import { AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from "../shapes";
 import { AnswersMapping as ResponseAnswersMapping } from "../applicationresponse";
 import { CommentsMapping as ResponseCommentsMapping } from "../applicationresponse";
@@ -183,12 +183,23 @@ export function mapAttachedFiles(attachedFiles: AttachedFileShape[]): AttachedFi
  * Map response comments to comment instances
  * @param comments the comments to map
  */
-export function mapComments(comments: ResponseCommentsMapping): CommentsMapping {
+export function mapComments(comments: CommentShape[]): Comment[] {
+  const mapped = [];
+  
+  comments.forEach(comment => {
+    mapped.push(mapComment(comment));
+  });
+
+  return mapped;
+}
+
+export function mapApplicationComments(comments: ResponseCommentsMapping): CommentsMapping {
   const mappedComments: CommentsMapping = {};
 
   Object.keys(comments).forEach(key => {
-    const comment = comments[key];
-    mappedComments[comment.componentId] = mapComment(comment);
+    const _comments = comments[key];
+    const commentsList = mapComments(_comments.comments);
+    mappedComments[key] = new ApplicationComments(_comments.id, _comments.componentId, commentsList);
   });
 
   return mappedComments;
@@ -279,7 +290,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
       const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
-      const comments: CommentsMapping = mapComments(response.comments);
+      const comments: CommentsMapping = mapApplicationComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);
 
@@ -319,7 +330,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
       const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
-      const comments: CommentsMapping = mapComments(response.comments);
+      const comments: CommentsMapping = mapApplicationComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);
 

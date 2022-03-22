@@ -1,0 +1,31 @@
+<div *ngIf="display">
+  <div *ngIf="createComment || comments" class="p-2 mt-1">
+    <div *ngIf="createComment">
+      <div class="text-end">
+        <button type="button" class="btn btn-outline-primary btn-small" (click)="toggleForm()">Comment</button>
+      </div>
+      <div *ngIf="formDisplayed">
+        <div class="text-end">
+          <button type="button" class="btn-close" (click)="toggleForm(false)"></button>
+        </div>
+        <form [formGroup]="form">
+          <div class="form-group">
+            <label>Comment:</label>
+            <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>
+            <app-field-error [condition]="form.get('comment').errors?.['required'] && form.get('comment').touched" [error]="'This field is required'"></app-field-error>
+            <div class="form-text">
+              Enter the comment to leave on the question
+            </div>
+          </div>
+          <app-alert #addAlert [hidden]="true" [dismissible]="true"></app-alert> 
+          <div class="text-end">
+            <button type="button" class="btn btn-primary" (click)="addComment()">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div *ngIf="comments">
+      <app-comment-display *ngFor="let comment of comments.comments" [comment]="comment" [application]="application" [component]="component" [hostDisplay]="this"></app-comment-display>
+    </div>
+  </div>
+</div>

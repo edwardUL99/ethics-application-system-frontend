@@ -11,6 +11,7 @@ import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { CheckboxGroupRequired } from '../../../../validators';
 import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 
 @Component({
@@ -68,6 +69,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor() {}
 
@@ -78,6 +83,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -228,6 +234,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+    console.log(display);
+    this.visible = display;
+
+    return display;
   }
 }

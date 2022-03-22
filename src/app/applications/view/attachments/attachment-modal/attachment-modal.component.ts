@@ -8,6 +8,7 @@ import { ApplicationStatus } from '../../../models/applications/applicationstatu
 import { AttachedFile } from '../../../models/applications/attachedfile';
 import { ApplicationDisplayComponent } from '../../application-display/application-display.component';
 import { environment } from '../../../../../environments/environment';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 @Component({
   selector: 'app-attachment-modal',
@@ -64,7 +65,7 @@ export class AttachmentModalComponent implements OnInit {
   }
 
   checkStatus(status: string): boolean {
-    return this.application.status == ApplicationStatus[status];
+    return resolveStatus(this.application.status) == ApplicationStatus[status];
   }
 
   getFileFormatsMessage() {

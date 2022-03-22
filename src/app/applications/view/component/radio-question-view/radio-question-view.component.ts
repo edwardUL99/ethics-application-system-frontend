@@ -10,6 +10,7 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
  * A custom validator as Validators.required is not working
@@ -79,6 +80,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
+  /**
+   * The parent template
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor() {}
 
@@ -89,6 +94,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -226,6 +232,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+    this.visible = display;
+
+    return display;
   }
 }

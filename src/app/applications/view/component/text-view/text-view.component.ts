@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextComponent } from '../../../models/components/textcomponent';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { ApplicationViewComponent, ViewComponentShape } from '../application-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 
@@ -19,6 +20,10 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The parent template
+   */
+  template: ApplicationTemplateDisplayComponent;
 
   constructor() { }
 
@@ -27,6 +32,7 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
 
   initialise(data: ViewComponentShape): void {
     this.component = data.component;
+    this.template = data.template;
   }
 
   castComponent() {

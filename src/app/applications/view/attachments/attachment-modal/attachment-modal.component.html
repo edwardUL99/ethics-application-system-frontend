@@ -23,7 +23,7 @@
                 <p class="hover-underline" (click)="downloadFile(file)">{{file.filename}}</p>
               </div>
               <div class="col my-auto text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile(file)">Remove</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile(file)" *ngIf="checkStatus('DRAFT') || checkStatus('REFERRED')">Remove</button>
               </div>
             </div>
           </div>

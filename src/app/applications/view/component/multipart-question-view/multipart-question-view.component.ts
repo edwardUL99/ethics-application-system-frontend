@@ -12,6 +12,7 @@ import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -85,6 +86,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    * The autosave context to pass to children
    */
   autosaveContext: AutosaveContext;
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -98,6 +103,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -148,7 +154,8 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           form: this.group,
           parent: this,
           questionChangeCallback: callback,
-          autosaveContext: this.autosaveContext
+          autosaveContext: this.autosaveContext,
+          template: this.template
         };
 
         const ref = this.loadComponent(this.loader, part.question.componentId, data);

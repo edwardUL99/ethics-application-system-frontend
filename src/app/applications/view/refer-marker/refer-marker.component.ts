@@ -2,7 +2,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
-import { ApplicationComponent } from '../../models/components/applicationcomponent';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
+import { ApplicationViewComponent } from '../component/application-view.component';
 
 @Component({
   selector: 'app-refer-marker',
@@ -17,7 +18,7 @@ export class ReferMarkerComponent implements OnInit {
   /**
    * The application component the marker is attached to
    */
-  @Input() component: ApplicationComponent;
+  @Input() component: ApplicationViewComponent;
   /**
    * The user viewing the application
    */
@@ -30,8 +31,9 @@ export class ReferMarkerComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.display = this.viewingUser?.admin && 
-      [ApplicationStatus.SUBMITTED, ApplicationStatus.REVIEW, ApplicationStatus.REVIEWED].indexOf(this.application.status) != -1;
+    this.display = this.viewingUser?.admin &&
+      this.component.isVisible() &&
+      ApplicationStatus.REFERRED == resolveStatus(this.application.status);
   }
 
   /**
@@ -40,9 +42,9 @@ export class ReferMarkerComponent implements OnInit {
    */
   onChange(event: any) {
     if (event.target.checked) {
-      this.application.editableFields.push(this.component.componentId);
+      this.application.editableFields.push(this.component.component.componentId);
     } else {
-      const index = this.application.editableFields.indexOf(this.component.componentId);
+      const index = this.application.editableFields.indexOf(this.component.component.componentId);
 
       if (index > -1) {
         this.application.editableFields.splice(index, 1);

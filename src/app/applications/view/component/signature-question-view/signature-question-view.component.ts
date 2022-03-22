@@ -9,6 +9,7 @@ import { SignatureFieldComponent } from './signature-field/signature-field.compo
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
  * The copied signature
@@ -72,6 +73,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor() {}
 
@@ -82,6 +87,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -226,6 +232,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+    this.visible = display;
+
+    return display;
   }
 }

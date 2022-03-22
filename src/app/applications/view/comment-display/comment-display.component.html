@@ -1,65 +1,36 @@
 <div *ngIf="display">
-  <div *ngIf="createComment || comment" [ngClass]="(!parentComment) ? 'shadow p-2 mt-2':'tab p-2 mt-2'">
-    <div *ngIf="createComment; else displayComment">
-      <div class="text-end">
-        <button type="button" class="btn btn-outline-primary btn-small" (click)="toggleForm()">Comment</button>
+  <div *ngIf="comment" [ngClass]="(!parentComment) ? 'border p-2 mt-1':'tab p-2 mt-1'">
+    <div class="my-1">
+      <div class="d-flex flex-row">
+        <h6 class="my-auto hover-underline" (click)="navigateUser(userInfo?.user?.username)" style="margin-right: 1%;">{{userInfo?.name}}</h6>
+        <small class="form-text my-auto">{{formatDate(comment?.createdAt)}}</small>
       </div>
-      <div *ngIf="formDisplayed">
-        <div class="text-end">
-          <button type="button" class="btn-close" (click)="toggleForm(false)"></button>
-        </div>
-        <form [formGroup]="form">
+      <div class="mt-1">
+        <p class="text">{{comment?.comment}}</p>
+      </div>
+    </div>
+    <div [id]="component?.component?.componentId + '-subcomments'">
+      <app-comment-display *ngFor="let sub of comment.subComments" [comment]="sub" [parentComment]="this" [application]="application" [component]="component" [hostDisplay]="hostDisplay"></app-comment-display>
+    </div>
+    <div *ngIf="!parentComment && replyComment" class="mt-2">
+      <div class="text-start">
+        <button type="button" class="btn btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
+      </div>
+      <div *ngIf="subCommentFormDisplayed">
+        <form [formGroup]="subCommentForm">
           <div class="form-group">
             <label>Comment:</label>
             <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>
-            <app-field-error [condition]="form.get('comment').errors?.['required'] && form.get('comment').touched" [error]="'This field is required'"></app-field-error>
+            <app-field-error [condition]="subCommentForm.get('comment').errors?.['required'] && subCommentForm.get('comment').touched" [error]="'This field is required'"></app-field-error>
             <div class="form-text">
-              Enter the comment to leave on the question
+              Enter the reply
             </div>
           </div>
-          <app-alert #addAlert [hidden]="true" [dismissible]="true"></app-alert> 
+          <app-alert #addSubAlert [hidden]="true" [dismissible]="true"></app-alert> 
           <div class="text-end">
-            <button type="button" class="btn btn-primary" (click)="addComment()">Add</button>
+            <button type="button" class="btn btn-primary" (click)="addSubComment()" [disabled]="!subCommentForm.valid">Reply</button>
           </div>
         </form>
-      </div>
-    </div>
-    <div *ngIf="comment">
-      <ng-template #displayComment>
-        <div class="my-2">
-          <h6>{{loadUser(comment?.username) | async}}</h6>
-          <small class="form-text">{{formatDate(comment?.createdAt)}}</small>
-          <div class="mt-2">
-            <p class="text">{{comment?.comment}}</p>
-          </div>
-        </div>
-      </ng-template>
-      <div [id]="component?.component?.componentId + '-subcomments'">
-        <app-commend-display *ngFor="let sub of comment.subComments" [comment]="sub" [parentComment]="this" [application]="application" [component]="component"></app-commend-display>
-      </div>
-      <div *ngIf="!parentComment && replyComment" class="mt-2">
-        <div class="text-start">
-          <button type="button" class="btn btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
-        </div>
-        <div *ngIf="subCommentFormDisplayed">
-          <div class="text-end">
-            <button type="button" class="btn btn-outline-primary btn-small" (click)="toggleForm()">Comment</button>
-          </div>
-          <form [formGroup]="subCommentForm">
-            <div class="form-group">
-              <label>Comment:</label>
-              <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>
-              <app-field-error [condition]="subCommentForm.get('comment').errors?.['required'] && subCommentForm.get('comment').touched" [error]="'This field is required'"></app-field-error>
-              <div class="form-text">
-                Enter the comment to leave on the question
-              </div>
-            </div>
-            <app-alert #addSubAlert [hidden]="true" [dismissible]="true"></app-alert> 
-            <div class="text-end">
-              <button type="button" class="btn btn-primary" (click)="addSubComment()" [disabled]="!subCommentForm.valid">Add Comment</button>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   </div>

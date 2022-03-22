@@ -1,6 +1,6 @@
 import { Answer } from './answer';
 import { AttachedFile } from './attachedfile';
-import { Comment } from './comment';
+import { ApplicationComments } from './comment';
 
 /**
  * Mapping of component ID to answer
@@ -13,5 +13,5 @@ export type AnswersMapping = {
  * This type represents a mapping of component ID to a comment
  */
 export type CommentsMapping = {
-  [key: string]: Comment;
+  [key: string]: ApplicationComments;
 }
