@@ -18,4 +18,5 @@
         <app-answer-view *ngIf="displayAnswer()"
             [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     </ng-template>
+    <app-comments-display [application]="application" [component]="this"></app-comments-display>
 </div>

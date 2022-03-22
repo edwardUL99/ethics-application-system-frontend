@@ -14,3 +14,16 @@ export class Comment {
   constructor(public id: number, public username: string, public comment: string,
     public componentId: string, public subComments: Comment[], public createdAt: Date) {}
 }
+
+/**
+ * This class represents the list of comments left on an application component
+ */
+export class ApplicationComments {
+  /**
+   * Create an application comments instance
+   * @param id the database ID of the object
+   * @param componentId the ID of the component the comments are left on
+   * @param comments the comments left
+   */
+  constructor(public id: number, public componentId: string, public comments: Comment[]) {}
+}

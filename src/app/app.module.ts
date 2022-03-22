@@ -73,6 +73,7 @@ import { UserProfileComponent } from './users/user-profile/user-profile.componen
 import { FilesService } from './files/files.service';
 import { AttachmentModalComponent } from './applications/view/attachments/attachment-modal/attachment-modal.component';
 import { AttachmentsComponent } from './applications/view/attachments/attachments/attachments.component';
+import { CommentsDisplayComponent } from './applications/view/comments-display/comments-display.component';
 
 @NgModule({
   declarations: [
@@ -111,6 +112,7 @@ import { AttachmentsComponent } from './applications/view/attachments/attachment
     LoadingComponent,
     ApplicationListComponent,
     ReferMarkerComponent,
+    CommentsDisplayComponent,
     CommentDisplayComponent,
     IndexRedirectComponent,
     HomeComponent,

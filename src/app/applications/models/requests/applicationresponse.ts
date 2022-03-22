@@ -1,6 +1,6 @@
 import { BaseResponse } from '../../../baseresponse';
 import { ApplicationStatus } from '../applications/applicationstatus';
-import { AnswerShape, AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from './shapes';
+import { AnswerShape, ApplicationCommentsShape, AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from './shapes';
 
 /**
  * The mapping of componentID to the answer shape
@@ -56,7 +56,7 @@ export interface DraftApplicationResponse extends ApplicationResponse {}
  * The mapping of component IDs to the comment shapes
  */
 export type CommentsMapping = {
-  [key: string]: CommentShape;
+  [key: string]: ApplicationCommentsShape;
 }
 
 /**
