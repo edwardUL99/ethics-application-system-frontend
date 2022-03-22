@@ -489,6 +489,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       this.createDraftCallback(r, e, false);
       const url = this.router.createUrlTree([], {relativeTo: this.activatedRoute, queryParams: {id: this.application.applicationId}}).toString()
       this.location.go(url);
+      this.newApplication = false;
       callback(e);
     };
 
