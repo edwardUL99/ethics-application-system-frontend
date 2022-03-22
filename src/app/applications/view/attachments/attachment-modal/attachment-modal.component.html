@@ -15,14 +15,14 @@
             {{getFileFormatsMessage()}}
           </div>
           <div>
-            <div class="row m-2 p-2 overflow-auto" *ngFor="let file of application?.attachedFiles">
+            <div class="row m-2 p-2 overflow-auto w-100" *ngFor="let file of application?.attachedFiles">
               <div class="col">
-                <img style="width: 50px; height: 60px;" src="/assets/images/file-icon.png">
+                <img style="width: 40px; height: 50px;" src="/assets/images/file-icon.png">
               </div>
               <div class="col my-auto">
                 <p class="hover-underline" (click)="downloadFile(file)">{{file.filename}}</p>
               </div>
-              <div class="col my-auto">
+              <div class="col my-auto text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile(file)">Remove</button>
               </div>
             </div>
