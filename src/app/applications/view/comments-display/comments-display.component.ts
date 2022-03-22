@@ -1,14 +1,13 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { AlertComponent } from '../../../alert/alert.component';
-import { UserService } from '../../../users/user.service';
 import { ApplicationService } from '../../application.service';
+import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ApplicationComments, Comment } from '../../models/applications/comment';
-import { mapApplicationComments } from '../../models/requests/mapping/applicationmapper';
-import { mapCommentToRequest, RequestComment, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
+import { mapApplicationComments, resolveStatus } from '../../models/requests/mapping/applicationmapper';
+import { mapCommentToRequest, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ApplicationViewComponent } from '../component/application-view.component';
 
 /**
@@ -19,7 +18,7 @@ import { ApplicationViewComponent } from '../component/application-view.componen
   templateUrl: './comments-display.component.html',
   styleUrls: ['./comments-display.component.css']
 })
-export class CommentsDisplayComponent implements OnInit {
+export class CommentsDisplayComponent implements OnInit, OnChanges {
   /**
    * The application the comment is being left on
    */
@@ -57,19 +56,24 @@ export class CommentsDisplayComponent implements OnInit {
    * The comment being rendered
    */
   @Input() comments: ApplicationComments;
+  /**
+   * The user viewing the application
+   */
+  @Input() viewingUser: ViewingUser;
 
   constructor(private fb: FormBuilder,
-    private applicationService: ApplicationService) {
+    private applicationService: ApplicationService, private cd: ChangeDetectorRef) {
       this.form = this.fb.group({
         comment: this.fb.control('', [Validators.required])
       });
     }
 
-  ngOnInit(): void {
-    const viewingUser = this.component.template?.viewingUser;
+  ngOnInit(): void {}
 
-    this.createComment = viewingUser?.reviewer && 
-      !(this.component.component.componentId in this.application.comments);
+  ngOnChanges(): void {
+    this.createComment = this.viewingUser?.reviewer &&
+      (this.component.isVisible()) &&
+      resolveStatus(this.application.status) == ApplicationStatus.REVIEW;
     
     if (!this.comments) {
       this.componentId = this.component.component.componentId;
@@ -78,9 +82,9 @@ export class CommentsDisplayComponent implements OnInit {
       this.componentId = this.comments.componentId;
     }
 
-    if (this.application.status != ApplicationStatus.DRAFT && viewingUser?.reviewer) {
+    if (this.application.status != ApplicationStatus.DRAFT && this.viewingUser?.reviewer) {
       this.display = true;
-    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) == -1) {
+    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
       this.display = true;
     } else {
       this.display = false;
@@ -125,8 +129,9 @@ export class CommentsDisplayComponent implements OnInit {
           this.comments = mapped[this.componentId];
           alerter();
           this.toggleForm(false);
+          this.cd.detectChanges();
         },
-        error: e => this.displayAddAlert(e, true)
+        error: error
       });
   }
 

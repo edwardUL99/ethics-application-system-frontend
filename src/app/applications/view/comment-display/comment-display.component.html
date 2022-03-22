@@ -1,9 +1,11 @@
 <div *ngIf="display">
-  <div *ngIf="comment" [ngClass]="(!parentComment) ? 'shadow p-2 mt-2':'tab p-2 mt-2'">
-    <div class="my-2">
-      <h6>{{loadUser(comment?.username) | async}}</h6>
-      <small class="form-text">{{formatDate(comment?.createdAt)}}</small>
-      <div class="mt-2">
+  <div *ngIf="comment" [ngClass]="(!parentComment) ? 'border p-2 mt-1':'tab p-2 mt-1'">
+    <div class="my-1">
+      <div class="d-flex flex-row">
+        <h6 class="my-auto hover-underline" (click)="navigateUser(userInfo?.user?.username)" style="margin-right: 1%;">{{userInfo?.name}}</h6>
+        <small class="form-text my-auto">{{formatDate(comment?.createdAt)}}</small>
+      </div>
+      <div class="mt-1">
         <p class="text">{{comment?.comment}}</p>
       </div>
     </div>

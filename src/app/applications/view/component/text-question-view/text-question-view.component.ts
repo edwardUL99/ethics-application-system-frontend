@@ -33,7 +33,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   /**
    * The template display component
    */
-  template?: ApplicationTemplateDisplayComponent;
+  @Input() template: ApplicationTemplateDisplayComponent;
   /**
    * The current application object
    */
@@ -185,6 +185,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
   displayAnswer(): boolean {
     const display = this.questionComponent?.componentId in this.application?.answers;
+    this.visible = display;
 
     return display;
   }

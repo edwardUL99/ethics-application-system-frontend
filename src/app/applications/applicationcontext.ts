@@ -119,7 +119,7 @@ export class ApplicationContext {
                 const create = Authorizer.hasPermission(user.role.permissions, permissions.CREATE_APPLICATION);
                 const reviewer = Authorizer.hasPermission(user.role.permissions, permissions.REVIEW_APPLICATIONS);
                 const admin = Authorizer.hasPermission(user.role.permissions, permissions.ADMIN);
-                observer.next(new ViewingUser(user, applicant, create, reviewer, admin));
+                observer.next(new ViewingUser(user, create, applicant, reviewer, admin));
                 observer.complete();
               },
               error: e => {

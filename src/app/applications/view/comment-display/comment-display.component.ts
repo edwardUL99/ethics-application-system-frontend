@@ -1,16 +1,14 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { AlertComponent } from '../../../alert/alert.component';
 import { UserService } from '../../../users/user.service';
-import { ApplicationService } from '../../application.service';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { Comment } from '../../models/applications/comment';
-import { mapComment } from '../../models/requests/mapping/applicationmapper';
-import { RequestComment, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ApplicationViewComponent } from '../component/application-view.component';
 import { CommentsDisplayComponent } from '../comments-display/comments-display.component';
+import { Router } from '@angular/router';
 
 /**
  * This component displays a form to leave a comment 
@@ -62,10 +60,14 @@ export class CommentDisplayComponent implements OnInit {
    * The comment being rendered
    */
   @Input() comment: Comment;
+  /**
+   * The info of the user who created the comment
+   */
+   userInfo: UserInfo;
 
   constructor(private fb: FormBuilder,
-    private applicationService: ApplicationService,
-    private userService: UserService) {
+    private userService: UserService,
+    private router: Router) {
       this.subCommentForm = this.fb.group({
         comment: this.fb.control('', [Validators.required])
       });
@@ -82,11 +84,14 @@ export class CommentDisplayComponent implements OnInit {
     } else {
       this.display = false;
     }
+
+    if (this.display) {
+      this.loadUser(this.comment.username);
+    }
   }
 
-  private displayAddAlert(message: string, error: boolean = false, subComment: boolean = false) {
-    const alert = (subComment) ? this.addSubAlert : this.addAlert;
-    alert.displayMessage(message, error);
+  private displayAddAlert(message: string, error: boolean = false) {
+    this.addSubAlert.displayMessage(message, error);
   }
 
   toggleSubCommentForm(explicit?: boolean) {
@@ -107,24 +112,27 @@ export class CommentDisplayComponent implements OnInit {
     }
   }
 
-  loadUser(user: string): Observable<UserInfo> {
-    return new Observable<UserInfo>(observer => {
-      this.userService.getUser(user)
-        .subscribe({
-          next: response => {
-            observer.next(new UserInfo(response.name, user));
-            observer.complete();
-          },
-          error: () => {
-            observer.next(new UserInfo(undefined, user));
-            observer.complete();
-          }
-        });
-    })
+  loadUser(user: string) {
+    this.userService.getUser(user)
+      .subscribe({
+        next: response => this.userInfo = new UserInfo(response.name, user),
+        error: e => {
+          console.error(e);
+          this.userInfo = new UserInfo(user, user);
+        }
+      });
   }
 
   formatDate(date: Date) {
     return date.toLocaleString();
+  }
+
+  navigateUser(username: string) {
+    this.router.navigate(['profile'], {
+      queryParams: {
+        username: username
+      }
+    });
   }
 }
 

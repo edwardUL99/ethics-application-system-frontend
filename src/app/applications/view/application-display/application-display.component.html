@@ -6,8 +6,8 @@
         <h5 style="color: white">Actions</h5>
         <div class="card shadow p-2">
           <div class="d-inline text-end">
-            <button type="button" class="btm btn-danger ml-2" (click)="deleteApplication(true)">Delete</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
+            <button type="button" class="btn btn-danger ml-2" (click)="deleteApplication(true)">Delete</button>
+            <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('SUBMITTED') || checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEWED')" (click)="referApplication()">Refer to Applicant</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('RESUBMITTED')" (click)="acceptReferred()">Reassign</button>
             <button type="button" class="btn btn-danger ml-2" *ngIf="checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(false)">Reject</button>
@@ -45,15 +45,19 @@
           </div>
         </form>
       </div>
-      <div class="card shadow p-2" *ngIf="isAdmin && (checkStatus('SUBMITTED') || checkStatus('REVIEW'))">
+      <div class="card shadow p-2 my-2" *ngIf="isAdmin && (checkStatus('SUBMITTED') || checkStatus('REVIEW'))">
         <div *ngIf="committeeMembers | async as members">
-          <form [formGroup]="acceptForm">
+          <form [formGroup]="assignForm">
             <div class="form-group">
               <label>Committee Member:</label>
-              <select class="form-select" formControlName="member" [appTooltip]="'Choose the committee member(s) to assign to the application'" multiple>
-                <option></option>
+              <select class="form-select" formControlName="member" [appTooltip]="'Choose the committee member to assign to the application'" *ngIf="committeeMembers.length <= 1; else singleSelect">
                 <option *ngFor="let member of members" [value]="member.username">{{member.name + ' - ' + member.username}}</option>
               </select>
+              <ng-template #singleSelect>
+                <select class="form-select" formControlName="member" [appTooltip]="'Choose the committee member to assign to the application'" size="3" multiple>
+                  <option *ngFor="let member of members" [value]="member.username">{{member.name + ' - ' + member.username}}</option>
+                </select>
+              </ng-template>
               <app-field-error [condition]="assignForm.get('member')?.errors?.['required'] && assignForm.get('member').touched" [error]="'This field is required'"></app-field-error>
               <div class="form-text">
                 Choose the committee member(s) to assign to the application
@@ -88,7 +92,7 @@
       </div>
       <app-center-header [text]="'Application Form'"></app-center-header>
       <app-application-template-display [application]="application" (questionChange)="questionChange($event)" (autoSave)="autoSave($event)"
-      (terminate)="terminateApplication($event)" (attachFile)="attachFile($event)" [viewingUser]="viewingUser"></app-application-template-display>
+      (terminate)="terminateApplication($event)" (attachFile)="attachFile($event)" [viewingUser]="viewingUser" #templateView></app-application-template-display>
       <app-alert #saveAlert [alertType]="'alert-success'" [message]="'Saved'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
       <app-alert #saveErrorAlert [alertType]="'alert-danger'" [message]="saveError" [dismissible]="true" [hidden]="true"></app-alert>
       <div class="card shadow px-3 py-2" *ngIf="showSaveSubmitButton()">

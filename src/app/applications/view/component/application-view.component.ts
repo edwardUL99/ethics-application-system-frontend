@@ -75,7 +75,7 @@ export interface ApplicationViewComponent extends OnDestroy {
   /**
    * The display component the view component is being rendered inside
    */
-  template?: ApplicationTemplateDisplayComponent;
+  template: ApplicationTemplateDisplayComponent;
 
   /**
    * The component being rendered by this view

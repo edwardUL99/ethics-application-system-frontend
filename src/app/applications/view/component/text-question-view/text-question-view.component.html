@@ -1,5 +1,5 @@
 <div [ngClass]="'form-group' + (display() ? '':' d-none')" [id]="questionComponent?.componentId" [formGroup]="form">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
@@ -17,5 +17,5 @@
         <app-answer-view *ngIf="displayAnswer()" [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"
          [renderer]="(questionComponent?.questionType == 'date') ? 'date':'same'"></app-answer-view>
     </ng-template>
-    <app-comments-display [application]="application" [component]="this"></app-comments-display>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser"></app-comments-display>
 </div>
