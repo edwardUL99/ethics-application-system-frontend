@@ -14,6 +14,7 @@ import { Observable } from 'rxjs';
 import { User } from '../../../users/user';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ReactiveFormsModule } from '@angular/forms';
+import { FilesService } from '../../../files/files.service';
 
 describe('ApplicationDisplayComponent', () => {
   let component: ApplicationDisplayComponent;
@@ -35,7 +36,8 @@ describe('ApplicationDisplayComponent', () => {
         AuthService,
         ApplicationContext,
         {provide: UserContext, useValue: userContextSpy},
-        AuthorizationService
+        AuthorizationService,
+        FilesService
       ],
       imports: [
         HttpClientTestingModule,

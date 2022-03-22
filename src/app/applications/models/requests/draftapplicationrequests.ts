@@ -4,19 +4,13 @@ import { AttachedFile } from "../applications/attachedfile";
 import { BaseResponse } from "../../../baseresponse";
 import { ApplicationStatus } from "../applications/applicationstatus";
 import { AnswersMapping as AnswerShapesMapping } from './applicationresponse';
+import { AttachedFileShape } from './shapes';
 
 /**
  * Mapping of component IDs to answers
  */
 export type AnswersMapping = {
   [key: string]: Answer;
-}
-
-/**
- * Mapping of component IDs to the attached files
- */
-export type AttachedFilesMapping = {
-  [key: string]: AttachedFile;
 }
 
 /**
@@ -43,7 +37,7 @@ export class UpdateDraftApplicationRequest {
    * @param attachedFiles the map of any files that may have been attached
    * @param template the template to update
    */
-  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping, public template: ApplicationTemplate) {}
+  constructor(public id: string, public answers: AnswersMapping, public attachedFiles: AttachedFile[], public template: ApplicationTemplate) {}
 }
 
 /**
@@ -85,11 +79,15 @@ export interface CreateDraftApplicationResponse extends BaseResponse {
  */
 export interface UpdateDraftApplicationResponse extends BaseResponse {
   /**
+   * The answers after updating a draft application response
+   */
+  answers: AnswerShapesMapping;
+  /**
    * The timestamp of when the application was last updated
    */
   lastUpdated: string;
   /**
-   * The answers after updating a draft application response
+   * The list of attached files
    */
-  answers: AnswerShapesMapping;
+  attachedFiles: AttachedFileShape[];
 }

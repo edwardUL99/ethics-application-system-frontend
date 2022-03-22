@@ -54,6 +54,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */
   @Output() autoSave: EventEmitter<SectionViewComponent> = new EventEmitter<SectionViewComponent>();
   /**
+   * An event notifying that a checkbox group component has an attach-file branch triggered
+   */
+  @Output() attachFile: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
+  /**
    * An event that indicates that the application being filled out should be terminated
    */
   @Output() terminate: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
@@ -167,6 +171,12 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   terminateApplication(checkbox: CheckboxGroupViewComponent) {
     if (this.application.status == ApplicationStatus.DRAFT) {
       this.terminate.emit(checkbox);
+    }
+  }
+
+  attachFileToApplication(checkbox: CheckboxGroupViewComponent) {
+    if (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED) {
+      this.attachFile.emit(checkbox);
     }
   }
 

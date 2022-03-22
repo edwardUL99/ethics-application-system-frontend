@@ -22,6 +22,7 @@ import { AssignedCommitteeMember } from './models/applications/assignedcommittee
 import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
 import { AssignMembersResponse } from './models/requests/assignmembersresponse';
 import { Role } from '../users/role';
+import { FilesService } from '../files/files.service';
 
 /**
  * A test mapper to return fake values
@@ -47,7 +48,8 @@ describe('ApplicationService', () => {
         HttpClientTestingModule
       ],
       providers: [
-        ApplicationService
+        ApplicationService,
+        FilesService
       ]
     });
     service = TestBed.inject(ApplicationService);
@@ -214,7 +216,7 @@ describe('ApplicationService', () => {
   });
 
   const updateDraftRequest = () => {
-    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, {}, createApplicationTemplate());
+    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, [], createApplicationTemplate());
   }
 
   it('#updateDraftApplication should update application successfully', (done) => {
@@ -222,7 +224,8 @@ describe('ApplicationService', () => {
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
       lastUpdated: new Date().toISOString(),
-      answers: {}
+      answers: {},
+      attachedFiles: []
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
@@ -261,7 +264,8 @@ describe('ApplicationService', () => {
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
       lastUpdated: new Date().toISOString(),
-      answers: {}
+      answers: {},
+      attachedFiles: []
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {

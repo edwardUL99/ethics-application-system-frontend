@@ -73,9 +73,9 @@ export interface AttachedFileShape {
    */
   directory: string;
   /**
-   * The componentID the file is attached to
+   * The username of the user that uploaded the file
    */
-  componentId: string;
+  username: string;
 }
 
 /**

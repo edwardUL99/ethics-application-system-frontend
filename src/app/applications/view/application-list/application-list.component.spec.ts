@@ -9,6 +9,7 @@ import { UserService } from '../../../users/user.service';
 import { UserContext } from '../../../users/usercontext';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ApplicationService } from '../../application.service';
+import { FilesService } from '../../../files/files.service';
 
 describe('ApplicationListComponent', () => {
   let component: ApplicationListComponent;
@@ -25,7 +26,8 @@ describe('ApplicationListComponent', () => {
         UserService,
         {provide: UserContext, useValue: userContextSpy},
         AuthorizationService,
-        ApplicationService
+        ApplicationService,
+        FilesService
       ],
       imports: [
         FormsModule,

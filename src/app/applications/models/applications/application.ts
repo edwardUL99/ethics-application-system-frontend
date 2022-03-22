@@ -4,7 +4,7 @@ import { ApplicationStatus } from './applicationstatus';
 import { AttachedFile } from './attachedfile';
 import { Comment } from './comment';
 import { ApplicationInitialiser } from './applicationinit';
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
+import { AnswersMapping, CommentsMapping } from './types';
 import { AssignedCommitteeMember } from './assignedcommitteemember';
 
 /**
@@ -39,7 +39,7 @@ export class Application {
   /**
    * Any files attached to the application
    */
-  attachedFiles: AttachedFilesMapping = undefined;
+  attachedFiles: AttachedFile[] = undefined;
   /**
    * The timestamp of when the application was last updated
    */
@@ -98,7 +98,7 @@ export class Application {
    * @param file the file to attach
    */
   attachFile(file: AttachedFile) {
-    this.attachedFiles[file.componentId] = file;
+    this.attachedFiles.push(file);
   }
 
   /**
