@@ -1,12 +1,11 @@
 import { ComponentType } from "./applicationcomponent";
 import { QuestionComponent } from "./questioncomponent";
-import { SimpleComponent } from "./simplecomponent";
 
 /**
  * This component represents a table where the columns are the name of the questions being asked and the rows are rows of
  * inputs to answer these questions
  */
-export class QuestionTableComponent extends SimpleComponent {
+export class QuestionTableComponent extends QuestionComponent {
   /**
    * The map of column names to the question components for the column
    */
@@ -24,7 +23,7 @@ export class QuestionTableComponent extends SimpleComponent {
    * @param numRows number of rows in the question table
    */
   constructor(databaseId: number, componentId: string, cells: CellsMapping, numRows: number) {
-    super(databaseId, ComponentType.QUESTION_TABLE, null, componentId);
+    super(databaseId, ComponentType.QUESTION_TABLE, null, componentId, undefined, undefined, false);
     this.cells = cells;
     this.numRows = numRows;
   }

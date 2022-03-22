@@ -8,6 +8,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { AutosaveContext } from '../autosave';
 
 /**
  * The copied signature
@@ -67,6 +68,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -76,6 +81,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -84,15 +90,15 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   ngOnInit(): void {
     this.questionComponent = this.castComponent();
-
-    if (this.form && !this.form.get(this.questionComponent.name)) {
-      this._addToForm();
-    }
+    this.addToForm();
   }
 
   ngAfterViewInit(): void {
     QuestionViewUtils.setExistingAnswer(this);
-    this.resizeSignature();
+
+    if (this.signatureFieldComponent) {
+      this.resizeSignature();
+    }
   }
 
   ngOnDestroy(): void {
@@ -117,16 +123,20 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   addToForm(): void {
     if (this.edit()) {
       this._addToForm();
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
   removeFromForm(): void {
     this.control = undefined;
     this.form.removeControl(this.questionComponent.name);
+    this.autosaveContext?.removeQuestion(this);
   }
 
   sizeChange() {
-    this.resizeSignature();
+    if (this.signatureFieldComponent) {
+      this.resizeSignature();
+    }
   }
 
   private resizeSignature() {
@@ -151,23 +161,19 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     return this.component as SignatureQuestionComponent;
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   drawStarted() {
     this.control.markAsTouched();
   }
 
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
-  }
-
   signatureEntered(signature: string) {
     this.signature = signature;
-    this.emit();
+    this.emit(true);
   }
 
   display(): boolean {
@@ -191,7 +197,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
 
-    this._emit();
+    this.emit(false);
   }
 
   value(): Answer {

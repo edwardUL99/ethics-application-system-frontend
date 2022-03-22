@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
@@ -7,8 +7,11 @@ import { ApplicationTemplateService } from '../../application-template.service';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { ApplicationService } from '../../application.service';
 import { Authorizer } from '../../../users/authorizations';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, Observable, of, Subscription } from 'rxjs';
 import { ApplicationResponse } from '../../models/requests/applicationresponse';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
+import { ApplicationSearchComponent } from '../../search/application-search/application-search.component';
+import { AlertComponent } from '../../../alert/alert.component';
 
 /**
  * A template choice
@@ -51,7 +54,7 @@ interface UserPermissions {
   templateUrl: './application-list.component.html',
   styleUrls: ['./application-list.component.css']
 })
-export class ApplicationListComponent implements OnInit {
+export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * The form to use to create a new application
    */
@@ -86,6 +89,23 @@ export class ApplicationListComponent implements OnInit {
    * The applications subscription
    */
   applications: Observable<ApplicationResponse[]>;
+
+  /**
+   * The search for searching applications
+   */
+  @ViewChild('applicationSearch')
+  applicationSearch: ApplicationSearchComponent;
+
+  /**
+   * The alert for displaying search errors
+   */
+  @ViewChild('searchError')
+  searchError: AlertComponent;
+
+  /**
+   * Subscription to the application search
+   */
+  private applicationSearchSubscription: Subscription;
 
   constructor(private fb: FormBuilder, 
     private templateService: ApplicationTemplateService,
@@ -139,6 +159,39 @@ export class ApplicationListComponent implements OnInit {
 
     this.loadUserPermissions();
     this.displayNewApp = this.activatedRoute.snapshot.queryParams.create !== undefined;
+  }
+
+  ngAfterViewInit(): void {
+    if (this.applicationSearch?.results) {
+      this.applicationSearchSubscription = this.applicationSearch.results.subscribe({
+        next: (results: ApplicationResponse[]) => this.loadApplicationSearchResults(results),
+        error: (e: string) => {
+          this.searchError.message = e;
+          this.searchError.show();
+        }
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.applicationSearchSubscription) {
+      this.applicationSearchSubscription.unsubscribe();
+    }
+  }
+
+  loadApplicationSearchResults(results: ApplicationResponse[]) {
+    this.applications = new Observable<ApplicationResponse[]>(observer => {
+      observer.next(results);
+      observer.complete();
+    });
+  }
+
+  mapStatus(status: string) {
+    return resolveStatus(status);
+  }
+
+  lastUpdated(lastUpdated: string) {
+    return new Date(lastUpdated).toLocaleString();
   }
 
   toggleNewApp() {

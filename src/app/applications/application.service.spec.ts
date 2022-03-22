@@ -22,6 +22,7 @@ import { AssignedCommitteeMember } from './models/applications/assignedcommittee
 import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
 import { AssignMembersResponse } from './models/requests/assignmembersresponse';
 import { Role } from '../users/role';
+import { FilesService } from '../files/files.service';
 
 /**
  * A test mapper to return fake values
@@ -47,7 +48,8 @@ describe('ApplicationService', () => {
         HttpClientTestingModule
       ],
       providers: [
-        ApplicationService
+        ApplicationService,
+        FilesService
       ]
     });
     service = TestBed.inject(ApplicationService);
@@ -133,7 +135,7 @@ describe('ApplicationService', () => {
 
   it('#getUserApplications should get all the users asisgned applications', (done) => {
     const response = createSubmittedApplicationResponse(ApplicationStatus.SUBMITTED);
-    response.assignedCommitteeMembers.push({id: 0, username: USERNAME, finishReview: false});
+    response.assignedCommitteeMembers.push({id: 0, applicationId: APPLICATION_ID, username: USERNAME, finishReview: false});
     const expectedResponse: ApplicationResponse[] = [response];
 
     httpGetSpy.and.returnValue(new Observable<ApplicationResponse[]>(observable => {
@@ -214,7 +216,7 @@ describe('ApplicationService', () => {
   });
 
   const updateDraftRequest = () => {
-    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, {}, createApplicationTemplate());
+    return new UpdateDraftApplicationRequest(APPLICATION_ID, {}, [], createApplicationTemplate());
   }
 
   it('#updateDraftApplication should update application successfully', (done) => {
@@ -222,7 +224,8 @@ describe('ApplicationService', () => {
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
       lastUpdated: new Date().toISOString(),
-      answers: {}
+      answers: {},
+      attachedFiles: []
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
@@ -261,7 +264,8 @@ describe('ApplicationService', () => {
     const response: UpdateDraftApplicationResponse = {
       message: MessageMappings.application_updated,
       lastUpdated: new Date().toISOString(),
-      answers: {}
+      answers: {},
+      attachedFiles: []
     };
 
     httpPutSpy.and.returnValue(new Observable<UpdateDraftApplicationResponse>(observable => {
@@ -376,8 +380,9 @@ describe('ApplicationService', () => {
   it('#assignCommitteeMembers should assign committee member to application', (done) => {
     const application = createSubmittedApplication(ApplicationStatus.SUBMITTED);
     const user = application.user;
-    const assigned = new AssignedCommitteeMember(1, user, false);
-    user.role = new Role(undefined, user.role.name, undefined, undefined, [], undefined);
+    
+    const assigned = new AssignedCommitteeMember(1, APPLICATION_ID, user, false);
+    user.role = new Role(undefined, user.role.name, undefined, undefined, [], undefined, undefined);
 
     const response = createAssignMembersResponse();
 
@@ -461,7 +466,7 @@ describe('ApplicationService', () => {
     const application = createSubmittedApplication(ApplicationStatus.REVIEW);
     application.assignCommitteeMember(application.user);
     const response = createSubmittedApplicationResponse(ApplicationStatus.REVIEW);
-    response.assignedCommitteeMembers.push({id: 1, username: USERNAME, finishReview: true});
+    response.assignedCommitteeMembers.push({id: 1, applicationId: APPLICATION_ID, username: USERNAME, finishReview: true});
     response.lastUpdated = new Date().toISOString();
 
     expect(application.assignedCommitteeMembers[0].finishReview).toBeFalsy();
@@ -484,7 +489,7 @@ describe('ApplicationService', () => {
     const application = createSubmittedApplication(ApplicationStatus.REVIEW);
     application.assignCommitteeMember(application.user);
     const response = createSubmittedApplicationResponse(ApplicationStatus.REVIEW);
-    response.assignedCommitteeMembers.push({id: 1, username: USERNAME, finishReview: true});
+    response.assignedCommitteeMembers.push({id: 1, applicationId: APPLICATION_ID, username: USERNAME, finishReview: true});
     response.lastUpdated = new Date().toISOString();
 
     expect(application.assignedCommitteeMembers[0].finishReview).toBeFalsy();

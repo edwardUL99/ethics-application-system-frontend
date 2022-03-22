@@ -91,9 +91,9 @@ export interface AttachedFileShape {
    */
   directory: string;
   /**
-   * The componentID the file is attached to
+   * The username of the user that uploaded the file
    */
-  componentId: string;
+  username: string;
 }
 
 /**
@@ -105,6 +105,10 @@ export interface AssignedCommitteeMemberResponse {
    * The database ID of the object
    */
   id: number;
+  /**
+   * The ID of the application the user is assigned to
+   */
+  applicationId: string;
   /**
    * The username of the assigned committee member
    */

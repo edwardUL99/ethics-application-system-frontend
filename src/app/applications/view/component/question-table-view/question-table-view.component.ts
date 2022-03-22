@@ -5,12 +5,13 @@ import { ApplicationComponent, ComponentType } from '../../../models/components/
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import {  ComponentHostDirective, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import { LoadedComponentsChange, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
 import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A mapping of question component IDs to the question components
@@ -94,6 +95,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * Autosave context
+   */
+  autosaveContext: AutosaveContext;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -106,6 +111,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -175,7 +181,8 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             application: this.application,
             form: this.group,
             parent: this,
-            questionChangeCallback: questionChangeCallback
+            questionChangeCallback: questionChangeCallback,
+            autosaveContext: this.autosaveContext
           };
           this.matchedComponents[key] = this.loadComponent(this.loader, key, data).instance as QuestionViewComponent;
         }
@@ -183,12 +190,12 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
 
     this.detectChanges();
-    this.propagateEmits();
+    this.propagateEmits(false);
   }
 
-  private propagateEmits() {
+  private propagateEmits(autosave: boolean = true) {
     for (let key of Object.keys(this.matchedComponents)) {
-      this.matchedComponents[key].emit();
+      this.matchedComponents[key].emit(autosave);
     }
   }
 
@@ -221,12 +228,12 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   onInput(emitEvent: boolean = true) {    
     if (emitEvent) {
-      this.emit();
+      this.emit(true);
     }
   }
 
-  emit(): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this));
+  emit(autosave: boolean): void {
+    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this, autosave));
   }
 
   display(): boolean {

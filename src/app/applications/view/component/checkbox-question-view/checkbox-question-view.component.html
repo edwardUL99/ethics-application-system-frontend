@@ -1,12 +1,12 @@
-<div [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+<div [id]="questionComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display()">
     <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
-        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
+        <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div [id]="questionComponent?.componentId + '-checkboxes'">
             <div *ngFor="let checkbox of getCheckboxes()" [ngClass]="checkClass">
                 <input type="checkbox" class="form-check-input" [value]="checkbox?.identifier" (change)="onCheckChange($event)" 
-                [name]="checkbox?.identifier" [checked]="selectedCheckboxes[checkbox?.identifier]">
+                [name]="checkbox?.identifier" [checked]="selectedCheckboxes[checkbox?.identifier]" [formControlName]="checkbox?.identifier">
                 <label class="form-check-label">{{checkbox?.title}}</label>
             </div>
         </div>

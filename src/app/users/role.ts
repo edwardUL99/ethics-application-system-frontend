@@ -13,6 +13,10 @@ export class Role extends Authorization {
      * Indicates if the role is only allowed to be assigned to a single user at a time
      */
     singleUser: boolean;
+    /**
+     * The tag of the role to downgrade to
+     */
+    downgradeTo: string;
 
     /**
      * Construct an instance
@@ -22,11 +26,13 @@ export class Role extends Authorization {
      * @param tag the tag given to this authorization
      * @param permissions the array of permissions belonging to this role
      * @param singleUser true if the role is only allowed to be assigned to a single user
+     * @param downgradeTo the tag of the role to downgrade to if singleUser is true
      */
-    constructor(id: number, name: string, description: string, tag: string, permissions: Permission[], singleUser: boolean) {
+    constructor(id: number, name: string, description: string, tag: string, permissions: Permission[], singleUser: boolean, downgradeTo: string) {
         super(id, name, description, tag);
         this.permissions = new Set(permissions);
         this.singleUser = singleUser;
+        this.downgradeTo = downgradeTo;
     }
 
     equals(other: Authorization): boolean {

@@ -10,6 +10,7 @@ import { ConfirmationRequest } from './confirmationrequest';
 import { ResetPasswordRequest } from './resetpasswordrequest';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '../baseresponse';
+import { UpdateAccountRequest } from './updateaccountrequest';
 
 /**
  * This service gives the ability to create and authenticate user accounts
@@ -33,6 +34,14 @@ export class AuthService {
    */
   register(request: RegistrationRequest): Observable<AccountResponse> {
     return this.http.post<AccountResponse>('/api/auth/register/', request);
+  }
+
+  /**
+   * Update the account
+   * @param request the requets to make to the server
+   */
+  updateAccount(request: UpdateAccountRequest): Observable<BaseResponse> {
+    return this.http.put<BaseResponse>('/api/auth/account/', request);
   }
 
   /**

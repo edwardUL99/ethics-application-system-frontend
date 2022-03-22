@@ -1,12 +1,12 @@
 import { ComponentType } from "./applicationcomponent";
 import { Branch } from "./branch";
-import { SimpleComponent } from "./simplecomponent";
+import { QuestionComponent } from './questioncomponent';
 
 /**
  * This class represents a component that represents a group of checkboxes which each execute a default
  * branch if checked, unless they define their own branch
  */
-export class CheckboxGroupComponent extends SimpleComponent {
+export class CheckboxGroupComponent extends QuestionComponent {
     /**
      * The default branch to execute
      */
@@ -19,10 +19,6 @@ export class CheckboxGroupComponent extends SimpleComponent {
      * True if multiple checkboxes can be chosen in the group
      */
     multiple: boolean;
-    /**
-     * Determines if the component is required or not
-     */
-    required: boolean;
 
     /**
      * Create a CheckboxGroupComponent
@@ -35,11 +31,10 @@ export class CheckboxGroupComponent extends SimpleComponent {
      * @param required determines if the component is required or not
      */
      constructor(databaseId: number, componentId: string, title: string, defaultBranch: Branch, checkboxes: Checkbox[], multiple: boolean, required: boolean) {
-        super(databaseId, ComponentType.CHECKBOX_GROUP, title, componentId);
+        super(databaseId, ComponentType.CHECKBOX_GROUP, title, componentId, undefined, undefined, required);
         this.defaultBranch = defaultBranch;
         this.checkboxes = checkboxes;
         this.multiple = multiple;
-        this.required = required;
     }
 
     /**

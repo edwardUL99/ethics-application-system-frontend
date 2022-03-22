@@ -1,5 +1,5 @@
 import { Application } from "../../applications/application";
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from "../../applications/types";
+import { AnswersMapping, CommentsMapping } from "../../applications/types";
 import { DraftApplicationInitialiser, SubmittedApplicationInitialiser, ReferredApplicationInitialiser } from "../../applications/applicationinit";
 import { ApplicationResponse, DraftApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from "../applicationresponse";
 import { catchError, Observable, Observer, throwError } from 'rxjs';
@@ -12,9 +12,8 @@ import { getErrorMessage, joinAndWait } from "../../../../utils";
 import { User } from "../../../../users/user";
 import { ApplicationTemplate } from "../../applicationtemplate";
 import { ApplicationComments, Comment } from "../../applications/comment";
-import { AssignedCommitteeMemberResponse, CommentShape } from "../shapes";
+import { AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from "../shapes";
 import { AnswersMapping as ResponseAnswersMapping } from "../applicationresponse";
-import { AttachedFilesMapping as ResponseAttachedFilesMapping } from "../applicationresponse";
 import { CommentsMapping as ResponseCommentsMapping } from "../applicationresponse";
 import { ApplicationStatus } from "../../applications/applicationstatus";
 import { UserResponse, userResponseMapper } from "../../../../users/responses/userresponse";
@@ -93,15 +92,29 @@ export function MapApplicationResponse(key: ResponseMapperKeys | ResponseMapperK
   }
 }
 
+export function resolveStatus(key: ApplicationStatus | string): string {
+  const keys = Object.keys(ApplicationStatus);
+
+  for (let k of keys) {
+    if (ApplicationStatus[k] == key) {
+      return key;
+    } else if (k == key) {
+      return ApplicationStatus[k];
+    }
+  }
+
+  throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
+}
+
 /**
  * Get a response mapper for the given key
  * @param key the key for the response mapper or application status that will be mapped to a key
  */
 export function getResponseMapper(key: ResponseMapperKeys | ApplicationStatus): ApplicationResponseMapper {
   if (ResponseMapperKeys[key]) {
-    return _mappers[key];
+    return _mappers[ResponseMapperKeys[key]];
   } else {
-    return _mappers[_statusMapping[ApplicationStatus[key]]];
+    return _mappers[_statusMapping[resolveStatus(key as ApplicationStatus)]];
   }
 }
 
@@ -159,13 +172,9 @@ export function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
  * Map response attached files to attached file instances
  * @param attachedFiles the files to map
  */
-export function mapAttachedFiles(attachedFiles: ResponseAttachedFilesMapping): AttachedFilesMapping {
-  const mappedAttachedFiles: AttachedFilesMapping = {};
-
-  Object.keys(attachedFiles).forEach(key => {
-    const attachedFile = attachedFiles[key];
-    mappedAttachedFiles[attachedFile.componentId] = new AttachedFile(attachedFile.id, attachedFile.filename, attachedFile.directory, attachedFile.componentId);
-  });
+export function mapAttachedFiles(attachedFiles: AttachedFileShape[]): AttachedFile[] {
+  const mappedAttachedFiles: AttachedFile[] = [];
+  attachedFiles.forEach(attached => mappedAttachedFiles.push(new AttachedFile(attached.id, attached.filename, attached.directory, attached.username)));
 
   return mappedAttachedFiles;
 }
@@ -219,7 +228,7 @@ export function mapComment(comment: CommentShape): Comment {
  */
 @MapApplicationResponse(ResponseMapperKeys.DRAFT)
 class DraftApplicationResponseMapper implements ApplicationResponseMapper {
-  private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFilesMapping) {
+  private loadUserAndTemplate(observer: Observer<Application>, response: DraftApplicationResponse, answers: AnswersMapping, attachedFiles: AttachedFile[]) {
     loadUserAndTemplate(observer, response,
       value => {
         observer.next(Application.create(new DraftApplicationInitialiser(response.dbId, response.id, value.user, 
@@ -231,7 +240,7 @@ class DraftApplicationResponseMapper implements ApplicationResponseMapper {
   map(response: DraftApplicationResponse): Observable<Application> {
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
 
       this.loadUserAndTemplate(observer, response, answers, attachedFiles);
     });
@@ -258,7 +267,7 @@ function assignedMemberObservableMapper(v: AssignedCommitteeMemberResponse, user
       .subscribe({
         next: user => {
           const mapped = userResponseMapper(user);
-          observer.next(new AssignedCommitteeMember(v.id, mapped, v.finishReview));
+          observer.next(new AssignedCommitteeMember(v.id, v.applicationId, mapped, v.finishReview));
           observer.complete();
         },
         error: e => {
@@ -280,7 +289,7 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
 
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapApplicationComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);
@@ -298,7 +307,8 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [], new Date(response.approvalTime))))
+              new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [],
+              new Date(response.submittedTime), new Date(response.approvalTime))))
               observer.complete();
             });
         },
@@ -319,7 +329,7 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
 
     return new Observable<Application>(observer => {
       const answers: AnswersMapping = mapAnswers(response.answers);
-      const attachedFiles: AttachedFilesMapping = mapAttachedFiles(response.attachedFiles);
+      const attachedFiles: AttachedFile[] = mapAttachedFiles(response.attachedFiles);
       const comments: CommentsMapping = mapApplicationComments(response.comments);
 
       const finalComment = mapComment(response.finalComment);
@@ -338,7 +348,8 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
-                new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [], new Date(response.approvalTime),
+                new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [],
+                new Date(response.submittedTime), new Date(response.approvalTime),
                 response.editableFields, userResponseMapper(usersArray[1]))));
               observer.complete();
             });

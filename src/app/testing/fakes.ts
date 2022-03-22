@@ -48,7 +48,7 @@ export const DEPARTMENT = 'department';
 export const NAME = 'name';
 
 export const ROLE = new Role(1, 'Applicant', 'This role is the default role allocated to every new user. New committee members are upgraded from this role by the Chair', 'APPLICANT',
-  [new Permission(1, 'Create Application', 'This permission allows a user to create and submit an application', 'CREATE_APPLICATION')], false);
+  [new Permission(1, 'Create Application', 'This permission allows a user to create and submit an application', 'CREATE_APPLICATION')], false, undefined);
 
 
 export function createUserResponse(): UserResponse {
@@ -72,7 +72,8 @@ export function createUserResponse(): UserResponse {
                     description: rolePermission.description,
                     tag: rolePermission.tag
                 }
-            ]
+            ],
+            downgradeTo: ROLE.downgradeTo
         }
     };
 }
@@ -185,7 +186,7 @@ export const APPLICATION_ID: string = 'test-application-id';
 
 export function createDraftApplication(): Application {
     return Application.create(new DraftApplicationInitialiser(1, APPLICATION_ID, createUser(), 
-        createApplicationTemplate(), {}, {}, new Date()));
+        createApplicationTemplate(), {}, [], new Date()));
 }
 
 export function createDraftApplicationResponse(): DraftApplicationResponse {
@@ -198,14 +199,14 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
         status: ApplicationStatus.DRAFT,
         templateId: draft.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString()    
     };
 }
 
 export function createSubmittedApplication(status: ApplicationStatus): Application {
     return Application.create(new SubmittedApplicationInitialiser(2, APPLICATION_ID, createUser(), status, createApplicationTemplate(),
-    {}, {}, new Date(), {}, [], undefined, [], undefined));
+    {}, [], new Date(), {}, [], undefined, [], undefined, undefined));
 }
 
 export function createSubmittedApplicationResponse(status: ApplicationStatus): SubmittedApplicationResponse {
@@ -218,10 +219,11 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
         status: status,
         templateId: submitted.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString(),
         comments: {},
         assignedCommitteeMembers: [],
+        submittedTime: undefined,
         finalComment: undefined,
         previousCommitteeMembers: undefined,
         approvalTime: undefined
@@ -230,7 +232,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
 
 export function createReferredApplication(): Application {
     return Application.create(new ReferredApplicationInitialiser(3, APPLICATION_ID, createUser(), ApplicationStatus.REFERRED,
-        createApplicationTemplate(), {}, {}, new Date(), {}, [], undefined, [], undefined, [], undefined));
+        createApplicationTemplate(), {}, [], new Date(), {}, [], undefined, [], undefined, undefined, [], undefined));
 }
 
 export function createReferredApplicationResponse(): ReferredApplicationResponse {
@@ -243,12 +245,13 @@ export function createReferredApplicationResponse(): ReferredApplicationResponse
         status: ApplicationStatus.REFERRED,
         templateId: referred.applicationTemplate.databaseId,
         answers: {},
-        attachedFiles: {},
+        attachedFiles: [],
         lastUpdated: new Date().toISOString(),
         comments: {},
         assignedCommitteeMembers: [],
         finalComment: undefined,
         previousCommitteeMembers: undefined,
+        submittedTime: undefined,
         approvalTime: undefined,
         editableFields: [],
         referredBy: undefined
@@ -279,7 +282,8 @@ export function createRolesResponse(): GetAuthorizationResponse<RoleResponse> {
                 permissions: [
                     createPermissionsResponse().authorizations[0]
                 ],
-                singleUser: false
+                singleUser: false,
+                downgradeTo: undefined
             }
         ]
     };
@@ -291,6 +295,7 @@ export function createAssignMembersResponse(): AssignMembersResponse {
         members: [
             {
                 id: 1,
+                applicationId: APPLICATION_ID,
                 member: {
                     username: USERNAME,
                     email: EMAIL,

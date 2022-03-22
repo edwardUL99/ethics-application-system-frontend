@@ -84,20 +84,9 @@ export class CommentDisplayComponent implements OnInit {
     }
   }
 
-  private displayAddAlert(message: string, error: boolean = false) {
-    const alert = this.addSubAlert;
-    
-    if (error) {
-      alert.alertType = 'alert-danger';
-      alert.message = message;
-      alert.show();
-    } else {
-      alert.alertType = 'alert-success';
-      alert.message = message;
-      alert.show();
-
-      setTimeout(() => alert.hide(), 2000);
-    }
+  private displayAddAlert(message: string, error: boolean = false, subComment: boolean = false) {
+    const alert = (subComment) ? this.addSubAlert : this.addAlert;
+    alert.displayMessage(message, error);
   }
 
   toggleSubCommentForm(explicit?: boolean) {

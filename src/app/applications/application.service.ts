@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, retry, throwError } from 'rxjs';
+import { catchError, map, Observable, retry, switchMap, throwError } from 'rxjs';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
@@ -9,7 +9,7 @@ import { AcceptResubmittedRequest } from './models/requests/acceptresubmittedreq
 import { ReviewApplicationRequest, ReviewSubmittedApplicationRequest } from './models/requests/reviewapplicationrequest';
 import { ApproveApplicationRequest } from './models/requests/approveapplicationrequest';
 import { ReferApplicationRequest } from './models/requests/referapplicationrequest';
-import { getResponseMapper } from './models/requests/mapping/applicationmapper';
+import { getResponseMapper, mapAttachedFiles } from './models/requests/mapping/applicationmapper';
 import { Application } from './models/applications/application';
 import { FinishReviewRequest } from './models/requests/finishreviewrequest';
 import { AssignReviewerRequest } from './models/requests/assignreviewerequest';
@@ -17,8 +17,13 @@ import { AssignedCommitteeMember } from './models/applications/assignedcommittee
 import { AssignMembersResponse } from './models/requests/assignmembersresponse';
 import { User } from '../users/user';
 import { shortResponseToUserMapper } from '../users/responses/userresponseshortened';
-import { ApplicationStatus } from './models/applications/applicationstatus';
 import { BaseResponse } from '../baseresponse';
+import { FilesService } from '../files/files.service';
+import { UploadFileRequest } from '../files/requests/uploadfilerequest';
+import { DownloadedFile, UploadedFile } from '../files/files';
+import { UploadFileResponse } from '../files/requests/uploadfileresponse';
+import { AttachedFile } from './models/applications/attachedfile';
+import { ApplicationStatus } from './models/applications/applicationstatus';
 
 /**
  * This interface represents options for getting an application
@@ -39,7 +44,7 @@ export interface GetOptions {
  */
 @Injectable()
 export class ApplicationService {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private fileService: FilesService) { }
 
   private handleError(error: HttpErrorResponse) {
     return throwError(() => getErrorMessage(error));
@@ -175,7 +180,7 @@ export class ApplicationService {
             const applicationAssigned = application.assignedCommitteeMembers;
             
             response.members.forEach(assigned => {
-              const assignedMember = new AssignedCommitteeMember(assigned.id, shortResponseToUserMapper(assigned.member), assigned.finishReview);
+              const assignedMember = new AssignedCommitteeMember(assigned.id, assigned.applicationId, shortResponseToUserMapper(assigned.member), assigned.finishReview);
 
               if (!this.containsAssignedMember(applicationAssigned, assignedMember)) {
                 applicationAssigned.push(assignedMember);
@@ -305,5 +310,118 @@ export class ApplicationService {
     .pipe(
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * A mapper for mapping upload file response to an application response
+   * @param response the response to map
+   */
+  private mapUploadResponse(application: Application, response: UploadFileResponse): Observable<Application> {
+    const uploadedFile: UploadedFile = UploadedFile.fromResponse(response);
+    const attachedFile: AttachedFile = new AttachedFile(undefined, uploadedFile.filename, uploadedFile.directory, uploadedFile.username);
+    application.attachFile(attachedFile);
+
+    const request = new UpdateDraftApplicationRequest(application.applicationId, application.answers, application.attachedFiles, application.applicationTemplate);
+    let updateResponse: Observable<UpdateDraftApplicationResponse>;
+
+    if (application.status == ApplicationStatus.DRAFT) {
+      updateResponse = this.updateDraftApplication(request);
+    } else if (application.status == ApplicationStatus.REFERRED) {
+      updateResponse = this.updateReferredApplication(request);
+    } else {
+      throw new Error("Application must be in DRAFT or REFERRED state");
+    }
+
+    return updateResponse.pipe(
+        map(response => {
+          application.lastUpdated = new Date(response.lastUpdated);
+          application.attachedFiles = mapAttachedFiles(response.attachedFiles);
+
+          return application;
+        })
+      );
+  }
+
+  /**
+   * Attach a file to the application
+   * @param application the application to attach the file to
+   * @param file the file/request
+   */
+  attachFile(application: Application, file: File | UploadFileRequest): Observable<Application> {
+    const applicationId = application.applicationId;
+    
+    let request: UploadFileRequest;
+    
+    if (file instanceof File) {
+      request = new UploadFileRequest(file.name, file, applicationId);
+    } else {
+      request = file as UploadFileRequest;
+    }
+    
+    return this.fileService.uploadFile(request)
+      .pipe(
+        switchMap(response => this.mapUploadResponse(application, response))
+      );
+  }
+
+  /**
+   * Download the given attached file
+   * @param file the file to download
+   */
+  downloadAttachedFile(file: AttachedFile): Observable<DownloadedFile> {
+    const filename = file.filename;
+    const directory = file.directory;
+    const username = file.username;
+
+    return this.fileService.getFile(filename, directory, username);
+  }
+
+  /**
+   * A mapper for mapping delete file response to updating the application's attached file record
+   * @param application the application the file is being deleted from
+   * @param file the file being deleted
+   */
+  private mapDeleteAttachedFile(application: Application, file: AttachedFile): Observable<Application> {
+    const attachedFiles = application.attachedFiles;
+    const index = attachedFiles.indexOf(file);
+
+    if (index > -1) {
+      attachedFiles.splice(index, 1);
+    }
+
+    const request = new UpdateDraftApplicationRequest(application.applicationId, application.answers, application.attachedFiles, application.applicationTemplate);
+    let updateResponse: Observable<UpdateDraftApplicationResponse>;
+
+    if (application.status == ApplicationStatus.DRAFT) {
+      updateResponse = this.updateDraftApplication(request);
+    } else if (application.status == ApplicationStatus.REFERRED) {
+      updateResponse = this.updateReferredApplication(request);
+    } else {
+      throw new Error("Application must be in DRAFT or REFERRED state");
+    }
+
+    return updateResponse.pipe(
+        map(response => {
+          application.lastUpdated = new Date(response.lastUpdated);
+
+          return application;
+        })
+      );
+  }
+
+  /**
+   * Delete the given attached file
+   * @param application the application to delete the file of
+   * @param file the file to delete
+   */
+  deleteAttachedFile(application: Application, file: AttachedFile): Observable<Application> {
+    const filename = file.filename;
+    const directory = file.directory;
+    const username = file.username;
+
+    return this.fileService.deleteFile(filename, directory, username)
+      .pipe(
+        switchMap(() => this.mapDeleteAttachedFile(application, file))
+      );
   }
 }

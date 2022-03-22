@@ -16,7 +16,6 @@
             <div class="form-group">
               <label>Application:</label>
               <select class="form-select" formControlName="template" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
-                <option></option>
                 <option *ngFor="let option of templateOptions" [value]="option.value">{{option.label}}</option>
               </select>
               <div class="form-text">
@@ -31,26 +30,35 @@
       </div>
       <div>
         <h4 style="color: white">Search</h4>
-        <div class="card shadow my-3 p-2 text-center">
-          Search will go here
-        </div>
+        <app-application-search #applicationSearch></app-application-search>
+        <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
       </div>
       <div>
         <h4 style="color: white">Applications</h4>
         <div class="card shadow p-2" *ngIf="applications | async as list">
           <div *ngIf="list.length > 0; else noApplications">
-            <div *ngFor="let application of list; let i = index">
-              <hr *ngIf="i > 0" class="my-3">
-              <div class="row">
-                <div class="col">
-                  <h4>{{application.id}}</h4>
-                </div>
-                <div class="col text-center my-auto">
-                  <h6>Status</h6>
-                  <p class="form-text">{{application.status}}</p>
-                </div>
-                <div class="col">
-                  <a class="btn btn-link" [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+            <div class="d-flex flex-row flex-wrap">
+              <div *ngFor="let application of list; let i = index">
+                <!-- <hr *ngIf="i > 0" class="my-3">
+                <div class="row">
+                  <div class="col">
+                    <h4>{{application.id}}</h4>
+                  </div>
+                  <div class="col text-center my-auto">
+                    <h6>Status</h6>
+                    <p class="form-text">{{mapStatus(application.status)}}</p>
+                  </div>
+                  <div class="col">
+                    <a class="btn btn-link" [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+                  </div>
+                </div> -->
+                <div class="card shadow m-2" style="width: 18rem;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{application.id}}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
+                    <p class="card-text">{{lastUpdated(application.lastUpdated)}}</p>
+                    <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+                  </div>
                 </div>
               </div>
             </div>

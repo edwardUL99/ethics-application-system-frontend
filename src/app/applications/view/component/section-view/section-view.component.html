@@ -1,7 +1,7 @@
 <div [ngClass]="sectionClass" [id]="component?.componentId">
     <hr *ngIf="subSection" class="my-2 ml-2">
     <h5>{{component?.title}}</h5>
-    <p [innerHTML]="castComponent()?.description"></p>
+    <p class="render-new-lines">{{castComponent()?.description}}</p>
     <ng-template componentHost [hostId]="component?.componentId"></ng-template>
     <div class="mt-2" *ngIf="!subSection">
         <app-alert #autoSaveAlert [alertType]="'alert-success'" [message]="'Section automatically saved'"

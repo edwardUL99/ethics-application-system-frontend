@@ -10,13 +10,6 @@ export type AnswersMapping = {
 }
 
 /**
- * This mapping maps ID to an attached file
- */
-export type AttachedFilesMapping = {
-  [key: string]: AttachedFileShape
-}
-
-/**
  * This interface represents the base interface for all application responses
  */
 export interface ApplicationResponse extends BaseResponse {
@@ -51,7 +44,7 @@ export interface ApplicationResponse extends BaseResponse {
   /**
    * The map of files attached to the application
    */
-  attachedFiles: AttachedFilesMapping;
+  attachedFiles: AttachedFileShape[];
 }
 
 /**
@@ -85,7 +78,11 @@ export interface SubmittedApplicationResponse extends ApplicationResponse {
   /**
    * An optional value of previous committee members
    */
-  previousCommitteeMembers?: string[]; 
+  previousCommitteeMembers?: string[];
+  /**
+   * The time the application was submitted at
+   */ 
+  submittedTime: string;
   /**
    * The timestamp of when the application was approved
    */

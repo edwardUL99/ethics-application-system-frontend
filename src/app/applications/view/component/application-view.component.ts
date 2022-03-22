@@ -1,46 +1,21 @@
-import { EventEmitter, OnDestroy } from '@angular/core';
+import { OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { TrackedEventEmitter } from '../../../utils';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
 import { ApplicationTemplateDisplayComponent } from '../application-template-display/application-template-display.component';
+import { AutosaveContext } from './autosave';
 
 /**
  * This type represents a callback for when a question change event is fired
  */
-export type QuestionChangeCallback = Function;
+export type QuestionChangeCallback = (e: QuestionChangeEvent) => void;
 
 /**
  * This is a specialised EventEmitter class for registering QuestionChangeCallbacks
  */
-export class QuestionChange extends EventEmitter<QuestionChangeEvent> {
-  /**
-   * List of question change subscriptions
-   */
-  private subscriptions: Subscription[];
-  
-  constructor() {
-    super();
-    this.subscriptions = [];
-  }
-
-  /**
-   * Registers the callback by subscribing to the emitter with the emitted event being passed into the callback
-   * @param callback the callback to register
-   */
-  register(callback: QuestionChangeCallback) {
-    this.subscriptions.push(this.subscribe(callback));
-  }
-
-  /**
-   * Destroy all subscriptions to this question change
-   */
-  destroy() {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.subscriptions.splice(0);
-  }
-}
+export class QuestionChange extends TrackedEventEmitter<QuestionChangeEvent> {}
 
 /**
  * This interface is essentially the ApplicationViewComponent interface but just with the properties required for initialisation
@@ -80,6 +55,13 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
    * An optional parent if one exists
    */
   parent?: QuestionViewComponent;
+
+  /**
+   * This context is passed in by a parent component that supports the autosaving of an application given
+   * that all registered question components are filled in. Register the question component with this component
+   * if you wish the question to be considered for autosave
+   */
+  autosaveContext: AutosaveContext;
 }
 
 /**
@@ -146,10 +128,17 @@ export class QuestionChangeEvent {
    * The view that emitted the question change event
    */
   view: QuestionViewComponent;
+  /**
+   * Determine if an autosave context should trigger an autosave satisfying (determine if autosave should occur) check.
+   * If false however, the answer will still be saved to the autosave context unless the component emitting the event
+   * implements a disableAutosave method that returns false
+   */
+  autosave: boolean;
 
-  constructor(id: string, view: QuestionViewComponent) {
+  constructor(id: string, view: QuestionViewComponent, autosave: boolean = true) {
     this.id = id;
     this.view = view;
+    this.autosave = autosave;
   }
 }
 
@@ -171,6 +160,12 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * the childs respective methods must return true. Be careful to avoid infinite recursion
    */
   parent: QuestionViewComponent;
+  /**
+   * This context is passed in by a parent component that supports the autosaving of an application given
+   * that all registered question components are filled in. Register the question component with this component
+   * if you wish the question to be considered for autosave
+   */
+  autosaveContext: AutosaveContext;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
@@ -215,7 +210,7 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   /**
    * Trigger the questionChange to emit
    */
-  emit(): void;
+  emit(autosave: boolean): void;
 
   /**
    * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,
@@ -241,14 +236,4 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * An optional method to implement and return false if this component should not be counted towards autosave
    */
   disableAutosave?(): boolean;
-}
-
-/**
- * This interface represents a specialisation of the application view component for sections to allow for autosave functionality.
- */
-export interface SectionViewComponent extends ApplicationViewComponent {
-  /**
-   * Get the list of child question view components (should recursively retrieve them from sub sections and containers too)
-   */
-  getChildQuestionComponents(): QuestionViewComponent[];
 }
