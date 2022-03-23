@@ -39,25 +39,14 @@
           <div *ngIf="list.length > 0; else noApplications">
             <div class="d-flex flex-row flex-wrap">
               <div *ngFor="let application of list; let i = index">
-                <!-- <hr *ngIf="i > 0" class="my-3">
-                <div class="row">
-                  <div class="col">
-                    <h4>{{application.id}}</h4>
-                  </div>
-                  <div class="col text-center my-auto">
-                    <h6>Status</h6>
-                    <p class="form-text">{{mapStatus(application.status)}}</p>
-                  </div>
-                  <div class="col">
-                    <a class="btn btn-link" [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
-                  </div>
-                </div> -->
                 <div class="card shadow m-2" style="width: 18rem;">
                   <div class="card-body">
                     <h5 class="card-title">{{application.id}}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
-                    <p class="card-text">{{lastUpdated(application.lastUpdated)}}</p>
                     <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+                  </div>
+                  <div class="card-footer text-muted">
+                    {{lastUpdated(application.lastUpdated)}}
                   </div>
                 </div>
               </div>

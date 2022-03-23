@@ -235,7 +235,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
   displayAnswer(): boolean {
     const display = this.questionComponent?.componentId in this.application?.answers;
-    console.log(display);
     this.visible = display;
 
     return display;

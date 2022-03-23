@@ -21,7 +21,7 @@ import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDr
 import { MessageMappings } from '../../../mappings';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { shortResponseToUserMapper, UserResponseShortened } from '../../../users/responses/userresponseshortened';
+import { UserResponseShortened } from '../../../users/responses/userresponseshortened';
 import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
@@ -31,7 +31,6 @@ import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/che
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
 import { Location } from '@angular/common';
-import { AssignedCommitteeMember } from '../../models/applications/assignedcommitteemember';
 
 /**
  * The default template ID to use
@@ -93,10 +92,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    */
   isAdmin: boolean;
   /**
-   * The form group to assign the form to a committee member
-   */
-  assignForm: FormGroup;
-  /**
    * Indicates if this application is a new application
    */
   newApplication: boolean = false;
@@ -151,10 +146,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private location: Location) {
     super();
 
-    this.assignForm = this.fb.group({
-      member: fb.control('', [Validators.required])
-    });
-
     this.finalCommentForm = this.fb.group({
       comment: fb.control('', [Validators.required]),
       approval: fb.control('')
@@ -206,12 +197,16 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       error: e => this.loadError = e
     });
 
+    this.setCommitteeMembers();
+  }
+
+  private setCommitteeMembers() {
     // returns a list of users that aren't already assigned
     const committeeMembersAssignedMapper = (response: UserResponseShortened[]): UserResponseShortened[] => {
       const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
       return response.filter(user => assignedUsernames.indexOf(user.username) == -1);
     }
-    
+
     this.committeeMembers = this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
       .pipe(
         retry(3),
@@ -603,24 +598,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.actionAlert.displayMessage(message, error);
   }
 
-  assignMembers() {
-    let value = this.assignForm.get('member').value;
-
-    if (value) {
-      if (!Array.isArray(value)) {
-        value = [value];
-      }
-
-      this.applicationService.assignCommitteeMembers(this.application, value)
-        .subscribe({
-          next: response => {
-            this.displayActionAlert('Committee Members Assigned');
-            this.application.assignedCommitteeMembers = response.members.map(a => new AssignedCommitteeMember(a.id, a.applicationId, 
-              shortResponseToUserMapper(a.member), a.finishReview));
-          },
-          error: e => this.actionError = e
-        });
-    }
+  memberUnassigned() {
+    this.reload(true);
   }
 
   private isAssigned(username: string): boolean {
