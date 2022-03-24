@@ -13,6 +13,30 @@ import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { AssignedCommitteeMember } from '../../models/applications/assignedcommitteemember';
 import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
 
+/**
+ * This is a utility class that represents a committee member that can be assigned to the application
+ */
+export class AssignableUser {
+  /**
+   * The shortened response representing the user
+   */
+  user: UserResponseShortened;
+  /**
+   * This value is true if the user was assigned to the application but it had been referred and resubmitted back to the committee
+   */
+  previouslyAssigned: boolean;
+
+  /**
+   * Create an instance
+   * @param user the user information
+   * @param previouslyAssigned true if previosuly assigned to the application, false if not
+   */
+  constructor(user: UserResponseShortened, previouslyAssigned: boolean) {
+    this.user = user;
+    this.previouslyAssigned = previouslyAssigned;
+  }
+}
+
 @Component({
   selector: 'app-assigned-users',
   templateUrl: './assigned-users.component.html',
@@ -28,6 +52,10 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
    */
   @Input() viewingUser: ViewingUser;
   /**
+   * If this is set to true, rather than assigning users to the aplication on Assign clicked, the values are simply emitted
+   */
+  @Input() acceptReferredAssign: boolean;
+  /**
    * Determines if the viewing user is an admin
    */
   isAdmin: boolean;
@@ -41,6 +69,10 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
   @ViewChild('assignAlert')
   assignAlert: AlertComponent;
   /**
+   * Emits list of assigned users if the acceptReferredAssign value is set to true
+   */
+  @Output() assignedUsers: EventEmitter<string[]> = new EventEmitter<string[]>();
+  /**
    * Emits an event when a committee member is unassigned
    */
   @Output() unassigned: EventEmitter<AssignedCommitteeMember> = new EventEmitter<AssignedCommitteeMember>();
@@ -51,7 +83,7 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
   /**
    * The observable retrieving users that can review applications
    */
-  committeeMembers: UserResponseShortened[];
+  committeeMembers: AssignableUser[];
 
   constructor(private router: Router, private applicationService: ApplicationService,
     private fb: FormBuilder,
@@ -77,13 +109,39 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
     }
   }
 
-  private setCommitteeMembers() {
-    // returns a list of users that aren't already assigned
-    const committeeMembersAssignedMapper = (response: UserResponseShortened[]): UserResponseShortened[] => {
-      const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
-      return response.filter(user => assignedUsernames.indexOf(user.username) == -1);
+  /**
+   * Sort function for sorting a list of assignable users
+   * @param a the first user to compare
+   * @param b the user to compare with a
+   */
+  private static sortAssignableUsers(a: AssignableUser, b: AssignableUser): number {
+    if (a.previouslyAssigned && b.previouslyAssigned) {
+      return 0;
+    } else if (a.previouslyAssigned || b.previouslyAssigned) {
+      return 1;
+    } else {
+      return -1;
     }
+  }
 
+  /**
+   * Map each of the users in the response to an assignable user and return the array of mapped results. If the user is already assigned,
+   * they will not be in the result
+   * @param response the response to map
+   */
+  private mapCommitteeMembersToAssignableUser(response: UserResponseShortened[]): AssignableUser[] {
+    const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
+    return response.filter(user => assignedUsernames.indexOf(user.username) == -1)
+      .map(response => {
+        const username = response.username;
+        const previouslyAssigned = this.application.previousCommitteeMembers.filter(member => member.username == username).length > 0;
+
+        return new AssignableUser(response, previouslyAssigned);
+      })
+      .sort(AssignedUsersComponent.sortAssignableUsers);
+  }
+
+  private setCommitteeMembers() {
     this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
       .pipe(
         retry(3),
@@ -91,7 +149,7 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
           this.assignAlert.displayMessage(e, true)
           return of();
         }),
-        map(committeeMembersAssignedMapper)
+        map(this.mapCommitteeMembersToAssignableUser)
       )
       .subscribe({
         next: response => this.committeeMembers = response,
@@ -119,6 +177,19 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
     });
   }
 
+  private assignUsers(users: string[]): void {
+    this.applicationService.assignCommitteeMembers(this.application, users)
+      .subscribe({
+        next: response => {
+          this.assignAlert.displayMessage('Committee Member Assigned successfully');
+          this.application.assignedCommitteeMembers = response.members.map(a => new AssignedCommitteeMember(a.id, a.applicationId, 
+            shortResponseToUserMapper(a.member), a.finishReview));
+          this.setCommitteeMembers();
+        },
+        error: e => this.assignAlert.displayMessage(e, true)
+      });
+  }
+
   assignMember() {
     let value = this.assignForm.get('member').value;
 
@@ -127,16 +198,11 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
         value = [value];
       }
 
-      this.applicationService.assignCommitteeMembers(this.application, value)
-        .subscribe({
-          next: response => {
-            this.assignAlert.displayMessage('Committee Member Assigned successfully');
-            this.application.assignedCommitteeMembers = response.members.map(a => new AssignedCommitteeMember(a.id, a.applicationId, 
-              shortResponseToUserMapper(a.member), a.finishReview));
-            this.setCommitteeMembers();
-          },
-          error: e => this.assignAlert.displayMessage(e, true)
-        });
+      if (this.acceptReferredAssign) {
+        this.assignedUsers.emit(value);
+      } else {
+        this.assignUsers(value);
+      }
     }
   }
 

@@ -31,6 +31,10 @@ import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/che
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
 import { Location } from '@angular/common';
+import { AssignedUsersComponent } from '../assigned-users/assigned-users.component';
+import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
+import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
+import { Comment } from '../../models/applications/comment';
 
 /**
  * The default template ID to use
@@ -129,6 +133,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   @ViewChild('applicationAttachments')
   applicationAttachments: AttachmentsComponent;
   /**
+   * The assigned users component
+   */
+  @ViewChild('assignedUsers')
+  assignedUsers: AssignedUsersComponent;
+  /**
    * Flags if the view has been initialised
    */
   private viewInitialised: boolean = false;
@@ -147,8 +156,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     super();
 
     this.finalCommentForm = this.fb.group({
-      comment: fb.control('', [Validators.required]),
-      approval: fb.control('')
+      comment: fb.control('', [Validators.required])
     });
 
     this.element.nativeElement.addEventListener('click', () => {
@@ -692,15 +700,55 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   acceptReferred() {
-    console.log('Accept referred back')
+    this.assignedUsers.acceptReferredAssign = true;
+    this.assignedUsers.toggleDisplayed(true);
+  }
+
+  acceptAssignedUsers(users: string[]) {
+    this.applicationService.acceptResubmitted(new AcceptResubmittedRequest(this.application.applicationId, users))
+      .subscribe({
+        next: () => {
+          this.displayActionAlert('Referred application accepted by the committee successfully');
+          this.reload(true);
+          this.assignedUsers.acceptReferredAssign = false;
+          this.assignedUsers.toggleDisplayed(false);
+        },
+        error: e => {
+          this.displayActionAlert(e, true);
+          this.assignedUsers.acceptReferredAssign = false;
+        }
+      });
+  }
+
+  private doApproval(approve: boolean, finalComment: Comment) {
+    const request = new ApproveApplicationRequest(this.application.applicationId, approve, finalComment);
+
+    this.applicationService.approveApplication(request)
+      .subscribe({
+        next: () => {
+          this.displayActionAlert((approve) ? 'Application approved successfully' : 'Application rejected successfully');
+          this.reload(true);
+        },
+        error: e => this.displayActionAlert(e, true)
+      });
+  }
+
+  private getFinalComment(): Comment {
+    const value = this.finalCommentForm.get('comment').value;
+
+    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date());
   }
 
   rejectApplication() {
-    console.log('Reject');
+    if (confirm('Are you sure you want to reject the application?')) {
+      this.doApproval(false, this.getFinalComment());
+    }
   }
 
   approveApplication() {
-    console.log('Approve');
+    if (confirm('Are you sure you want to approve the application?')) {
+      this.doApproval(true, this.getFinalComment());
+    }
   }
 
   private permissionsCheck() {

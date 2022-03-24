@@ -12,7 +12,7 @@
     <div [id]="component?.component?.componentId + '-subcomments'">
       <app-comment-display *ngFor="let sub of comment.subComments" [comment]="sub" [parentComment]="this" [application]="application" [component]="component" [hostDisplay]="hostDisplay"></app-comment-display>
     </div>
-    <div *ngIf="!parentComment && replyComment" class="mt-2">
+    <div *ngIf="!approvalComment && !parentComment && replyComment" class="mt-2">
       <div class="text-start">
         <button type="button" class="btn btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
       </div>

@@ -1,6 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { map, Observable } from 'rxjs';
 import { AlertComponent } from '../../../alert/alert.component';
 import { UserService } from '../../../users/user.service';
 import { Application } from '../../models/applications/application';
@@ -35,6 +34,10 @@ export class CommentDisplayComponent implements OnInit {
    * The component view the comment is attached to
    */
   @Input() component: ApplicationViewComponent;
+  /**
+   * Indicates if this comment is an approval comment
+   */
+  @Input() approvalComment: boolean = false;
   /**
    * The alert for adding a sub comment
    */
@@ -74,12 +77,14 @@ export class CommentDisplayComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    const viewingUser = this.component.template?.viewingUser;
+    const viewingUser = this.component?.template?.viewingUser;
     this.replyComment = viewingUser?.reviewer;
 
     if (this.application.status != ApplicationStatus.DRAFT && viewingUser?.reviewer) {
       this.display = true;
     } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) == -1) {
+      this.display = true;
+    } else if (!this.approvalComment) {
       this.display = true;
     } else {
       this.display = false;
