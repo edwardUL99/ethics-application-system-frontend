@@ -75,6 +75,7 @@ import { AttachmentModalComponent } from './applications/view/attachments/attach
 import { AttachmentsComponent } from './applications/view/attachments/attachments/attachments.component';
 import { CommentsDisplayComponent } from './applications/view/comments-display/comments-display.component';
 import { AssignedUsersComponent } from './applications/view/assigned-users/assigned-users.component';
+import { ApplicationResultsComponent } from './applications/search/application-results/application-results.component';
 
 @NgModule({
   declarations: [
@@ -126,7 +127,8 @@ import { AssignedUsersComponent } from './applications/view/assigned-users/assig
     UserProfileComponent,
     AttachmentModalComponent,
     AttachmentsComponent,
-    AssignedUsersComponent
+    AssignedUsersComponent,
+    ApplicationResultsComponent
   ],
   imports: [
     BrowserModule,

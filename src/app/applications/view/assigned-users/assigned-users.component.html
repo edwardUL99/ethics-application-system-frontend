@@ -25,7 +25,7 @@
               <label>Committee Member:</label>
               <select class="form-select" formControlName="member" [appTooltip]="'Choose the committee member to assign to the application'" size="3" multiple>
                 <option *ngFor="let member of members" [value]="member.user.username">
-                  {{member.name + ' - ' + member.username + ((member.previouslyAssigned) ? ' (Previously Assigned)':'')}}</option>
+                  {{member.user.name + ' - ' + member.user.username + ((member.previouslyAssigned) ? ' (Previously Assigned)':'')}}</option>
               </select>
               <app-field-error [condition]="assignForm.get('member')?.errors?.['required'] && assignForm.get('member').touched" [error]="'This field is required'"></app-field-error>
               <div class="form-text">
@@ -38,6 +38,7 @@
           </form>
         </div>
       </div>
+    </div>
     <app-alert [hidden]="true" [dismissible]="true" #assignAlert></app-alert>
   </div>
 </div>

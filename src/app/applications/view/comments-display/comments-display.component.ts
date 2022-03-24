@@ -28,6 +28,10 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
    */
   @Input() component: ApplicationViewComponent;
   /**
+   * Enables comment button to be displayed
+   */
+  @Input() enable: boolean;
+  /**
    * The component ID the comments are attached to
    */
   componentId: string;
@@ -71,9 +75,9 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   ngOnInit(): void {}
 
   ngOnChanges(): void {
-    this.createComment = this.viewingUser?.reviewer &&
-      (this.component.isVisible()) &&
-      resolveStatus(this.application.status) == ApplicationStatus.REVIEW;
+    this.createComment = this.enable &&
+      (this.viewingUser?.reviewer &&
+      resolveStatus(this.application.status) == ApplicationStatus.REVIEW);
     
     if (!this.comments) {
       this.componentId = this.component.component.componentId;

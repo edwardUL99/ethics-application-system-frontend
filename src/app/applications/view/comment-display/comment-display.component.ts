@@ -39,6 +39,10 @@ export class CommentDisplayComponent implements OnInit {
    */
   @Input() approvalComment: boolean = false;
   /**
+   * Display a border around the comment
+   */
+  @Input() border: boolean = true;
+  /**
    * The alert for adding a sub comment
    */
   @ViewChild('addSubAlert')
@@ -84,7 +88,7 @@ export class CommentDisplayComponent implements OnInit {
       this.display = true;
     } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) == -1) {
       this.display = true;
-    } else if (!this.approvalComment) {
+    } else if (this.approvalComment) {
       this.display = true;
     } else {
       this.display = false;

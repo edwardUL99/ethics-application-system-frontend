@@ -94,7 +94,9 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
     }
 
   ngOnInit(): void {
-    this.setCommitteeMembers();
+    if (resolveStatus(this.application.status) == ApplicationStatus.REVIEW) {
+      this.setCommitteeMembers();
+    }
   }
 
   ngOnChanges(): void {
@@ -130,11 +132,12 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
    * @param response the response to map
    */
   private mapCommitteeMembersToAssignableUser(response: UserResponseShortened[]): AssignableUser[] {
-    const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
+    const assignedUsernames: string[] = (this.application.assignedCommitteeMembers) ? 
+      this.application.assignedCommitteeMembers.map(assigned => assigned.user.username) : [];
     return response.filter(user => assignedUsernames.indexOf(user.username) == -1)
       .map(response => {
         const username = response.username;
-        const previouslyAssigned = this.application.previousCommitteeMembers.filter(member => member.username == username).length > 0;
+        const previouslyAssigned = this.application.previousCommitteeMembers && this.application.previousCommitteeMembers.filter(member => member.username == username).length > 0;
 
         return new AssignableUser(response, previouslyAssigned);
       })
@@ -149,11 +152,17 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
           this.assignAlert.displayMessage(e, true)
           return of();
         }),
-        map(this.mapCommitteeMembersToAssignableUser)
+        map(response => this.mapCommitteeMembersToAssignableUser(response))
       )
       .subscribe({
         next: response => this.committeeMembers = response,
-        error: e => this.assignAlert.displayMessage(e, true)
+        error: e => {
+          if (this.assignAlert) {
+            this.assignAlert.displayMessage(e, true);
+          } else {
+            console.log(e);
+          }
+        }
       });
   }
   

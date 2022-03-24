@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
@@ -7,11 +7,7 @@ import { ApplicationTemplateService } from '../../application-template.service';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { ApplicationService } from '../../application.service';
 import { Authorizer } from '../../../users/authorizations';
-import { catchError, Observable, of, Subscription } from 'rxjs';
-import { ApplicationResponse } from '../../models/requests/applicationresponse';
-import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
-import { ApplicationSearchComponent } from '../../search/application-search/application-search.component';
-import { AlertComponent } from '../../../alert/alert.component';
+import { UserPermissions } from '../../userpermissions';
 
 /**
  * A template choice
@@ -29,24 +25,6 @@ interface TemplateOption {
 }
 
 /**
- * An interface representing the different permissions the user viewing the applications page
- */
-interface UserPermissions {
-  /**
-   * Determines if the user can create an application
-   */
-  createApplication: boolean;
-  /**
-   * Determines if the user can review an application
-   */
-  reviewApplication: boolean;
-  /**
-   * Determines if the user has an admin permission
-   */
-  admin: boolean;
-}
-
-/**
  * This component represents a listing of applications with the option to create a new application
  */
 @Component({
@@ -54,7 +32,7 @@ interface UserPermissions {
   templateUrl: './application-list.component.html',
   styleUrls: ['./application-list.component.css']
 })
-export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ApplicationListComponent implements OnInit {
   /**
    * The form to use to create a new application
    */
@@ -85,28 +63,6 @@ export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestro
    */
   userPermissions: UserPermissions;
 
-  /**
-   * The applications subscription
-   */
-  applications: Observable<ApplicationResponse[]>;
-
-  /**
-   * The search for searching applications
-   */
-  @ViewChild('applicationSearch')
-  applicationSearch: ApplicationSearchComponent;
-
-  /**
-   * The alert for displaying search errors
-   */
-  @ViewChild('searchError')
-  searchError: AlertComponent;
-
-  /**
-   * Subscription to the application search
-   */
-  private applicationSearchSubscription: Subscription;
-
   constructor(private fb: FormBuilder, 
     private templateService: ApplicationTemplateService,
     private authorizationService: AuthorizationService,
@@ -130,8 +86,6 @@ export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestro
               reviewApplication: Authorizer.hasPermission(userPermissions, permissions.REVIEW_APPLICATIONS),
               admin: Authorizer.hasPermission(userPermissions, permissions.ADMIN)
             };
-
-            this.applications = this.getApplications();
           },
           error: e => this.error = e
         });
@@ -161,39 +115,6 @@ export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestro
     this.displayNewApp = this.activatedRoute.snapshot.queryParams.create !== undefined;
   }
 
-  ngAfterViewInit(): void {
-    if (this.applicationSearch?.results) {
-      this.applicationSearchSubscription = this.applicationSearch.results.subscribe({
-        next: (results: ApplicationResponse[]) => this.loadApplicationSearchResults(results),
-        error: (e: string) => {
-          this.searchError.message = e;
-          this.searchError.show();
-        }
-      });
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.applicationSearchSubscription) {
-      this.applicationSearchSubscription.unsubscribe();
-    }
-  }
-
-  loadApplicationSearchResults(results: ApplicationResponse[]) {
-    this.applications = new Observable<ApplicationResponse[]>(observer => {
-      observer.next(results);
-      observer.complete();
-    });
-  }
-
-  mapStatus(status: string) {
-    return resolveStatus(status);
-  }
-
-  lastUpdated(lastUpdated: string) {
-    return new Date(lastUpdated).toLocaleString();
-  }
-
   toggleNewApp() {
     this.displayNewApp = !this.displayNewApp;
   }
@@ -219,24 +140,7 @@ export class ApplicationListComponent implements OnInit, AfterViewInit, OnDestro
     });
   }
 
-  getApplications(): Observable<ApplicationResponse[]> {
-    let viewable: boolean;
-
-    if (this.userPermissions) {
-      if (this.userPermissions.admin) {
-        viewable = true;
-      } else if (this.userPermissions.reviewApplication) {
-        viewable = false;
-      } else {
-        viewable = true;
-      }
-
-      return this.applicationService.getUserApplications(viewable).pipe(
-        catchError(e => {
-          this.error = e;
-          return of();
-        })
-      );
-    }
+  unknownError(error: any) {
+    this.error = error;
   }
 }

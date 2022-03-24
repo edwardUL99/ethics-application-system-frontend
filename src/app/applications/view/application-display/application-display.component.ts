@@ -721,12 +721,18 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private doApproval(approve: boolean, finalComment: Comment) {
+    console.log(finalComment);
     const request = new ApproveApplicationRequest(this.application.applicationId, approve, finalComment);
 
     this.applicationService.approveApplication(request)
       .subscribe({
-        next: () => {
+        next: response => {
           this.displayActionAlert((approve) ? 'Application approved successfully' : 'Application rejected successfully');
+          
+          this.application.status = response.status;
+          this.application.lastUpdated = new Date(response.lastUpdated);
+          this.application.approvalTime = new Date(response.lastUpdated);
+          
           this.reload(true);
         },
         error: e => this.displayActionAlert(e, true)

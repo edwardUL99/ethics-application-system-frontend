@@ -28,37 +28,7 @@
           </form>
         </div>
       </div>
-      <div>
-        <h4 style="color: white">Search</h4>
-        <app-application-search #applicationSearch></app-application-search>
-        <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
-      </div>
-      <div>
-        <h4 style="color: white">Applications</h4>
-        <div class="card shadow p-2" *ngIf="applications | async as list">
-          <div *ngIf="list.length > 0; else noApplications">
-            <div class="d-flex flex-row flex-wrap">
-              <div *ngFor="let application of list; let i = index">
-                <div class="card shadow m-2" style="width: 18rem;">
-                  <div class="card-body">
-                    <h5 class="card-title">{{application.id}}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
-                    <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
-                  </div>
-                  <div class="card-footer text-muted">
-                    {{lastUpdated(application.lastUpdated)}}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <ng-template #noApplications>
-            <div class="text-center">
-              There are no applications available to view
-            </div>
-          </ng-template>
-        </div>
-      </div>
+      <app-application-results *ngIf="userPermissions" [permissions]="userPermissions" (error)="unknownError($event)"></app-application-results>
     </div>
   </div>
   <ng-template #displayError>

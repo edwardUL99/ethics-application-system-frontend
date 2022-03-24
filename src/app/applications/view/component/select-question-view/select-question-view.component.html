@@ -16,5 +16,5 @@
         <app-answer-view *ngIf="displayAnswer()"
             [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     </ng-template>
-    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser"></app-comments-display>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

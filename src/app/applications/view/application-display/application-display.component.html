@@ -59,15 +59,26 @@
         <div class="text-start">
           <p class="application-text"><b>Applicant:</b> <span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
           <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
-          <div class="d-inline-flex">
+          <div *ngIf="checkStatus('APPROVED')" class="d-inline-flex">
+            <p *ngIf="application?.approvalTime" class="application-text" style="margin-right: 5px;"><b>Approved At:</b> {{formatDate(application?.approvalTime)}}</p>
+            <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
+          </div>
+          <div *ngIf="checkStatus('REJECTED')" class="d-inline-flex">
+            <p *ngIf="application?.approvalTime" class="application-text" style="margin-right: 5px;"><b>Rejected At:</b> {{formatDate(application?.approvalTime)}}</p>
+            <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
+          </div>
+          <div *ngIf="!checkStatus('APPROVED') && !checkStatus('REJECTED') && !checkStatus('REFERRED')" class="d-inline-flex">
             <p *ngIf="application?.submittedTime" class="application-text" style="margin-right: 5px;"><b>Submitted At:</b> {{formatDate(application?.submittedTime)}}</p>
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
           <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> {{application.referredBy.name}}</p>
         </div>
       </div>
-      <div *ngIf="application?.finalComment">
-        <app-comment-display [comment]="application?.finalComment" [approvalComment]="true"></app-comment-display>
+      <div *ngIf="application?.finalComment" class="mt-3">
+        <h4 style="color: white">Final Comment</h4>
+        <div class="card shadow">
+          <app-comment-display [application]="application" [border]="false" [comment]="application?.finalComment" [approvalComment]="true"></app-comment-display>
+        </div>
       </div>
       <app-center-header [text]="'Application Form'"></app-center-header>
       <app-application-template-display [application]="application" (questionChange)="questionChange($event)" (autoSave)="autoSave($event)"
