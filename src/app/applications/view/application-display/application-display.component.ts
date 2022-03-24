@@ -21,7 +21,7 @@ import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDr
 import { MessageMappings } from '../../../mappings';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { shortResponseToUserMapper, UserResponseShortened } from '../../../users/responses/userresponseshortened';
+import { UserResponseShortened } from '../../../users/responses/userresponseshortened';
 import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
@@ -31,7 +31,10 @@ import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/che
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
 import { Location } from '@angular/common';
-import { AssignedCommitteeMember } from '../../models/applications/assignedcommitteemember';
+import { AssignedUsersComponent } from '../assigned-users/assigned-users.component';
+import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
+import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
+import { Comment } from '../../models/applications/comment';
 
 /**
  * The default template ID to use
@@ -93,10 +96,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    */
   isAdmin: boolean;
   /**
-   * The form group to assign the form to a committee member
-   */
-  assignForm: FormGroup;
-  /**
    * Indicates if this application is a new application
    */
   newApplication: boolean = false;
@@ -134,6 +133,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   @ViewChild('applicationAttachments')
   applicationAttachments: AttachmentsComponent;
   /**
+   * The assigned users component
+   */
+  @ViewChild('assignedUsers')
+  assignedUsers: AssignedUsersComponent;
+  /**
    * Flags if the view has been initialised
    */
   private viewInitialised: boolean = false;
@@ -151,13 +155,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private location: Location) {
     super();
 
-    this.assignForm = this.fb.group({
-      member: fb.control('', [Validators.required])
-    });
-
     this.finalCommentForm = this.fb.group({
-      comment: fb.control('', [Validators.required]),
-      approval: fb.control('')
+      comment: fb.control('', [Validators.required])
     });
 
     this.element.nativeElement.addEventListener('click', () => {
@@ -206,12 +205,16 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       error: e => this.loadError = e
     });
 
+    this.setCommitteeMembers();
+  }
+
+  private setCommitteeMembers() {
     // returns a list of users that aren't already assigned
     const committeeMembersAssignedMapper = (response: UserResponseShortened[]): UserResponseShortened[] => {
       const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
       return response.filter(user => assignedUsernames.indexOf(user.username) == -1);
     }
-    
+
     this.committeeMembers = this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
       .pipe(
         retry(3),
@@ -603,24 +606,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.actionAlert.displayMessage(message, error);
   }
 
-  assignMembers() {
-    let value = this.assignForm.get('member').value;
-
-    if (value) {
-      if (!Array.isArray(value)) {
-        value = [value];
-      }
-
-      this.applicationService.assignCommitteeMembers(this.application, value)
-        .subscribe({
-          next: response => {
-            this.displayActionAlert('Committee Members Assigned');
-            this.application.assignedCommitteeMembers = response.members.map(a => new AssignedCommitteeMember(a.id, a.applicationId, 
-              shortResponseToUserMapper(a.member), a.finishReview));
-          },
-          error: e => this.actionError = e
-        });
-    }
+  memberUnassigned() {
+    this.reload(true);
   }
 
   private isAssigned(username: string): boolean {
@@ -713,15 +700,61 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   acceptReferred() {
-    console.log('Accept referred back')
+    this.assignedUsers.acceptReferredAssign = true;
+    this.assignedUsers.toggleDisplayed(true);
+  }
+
+  acceptAssignedUsers(users: string[]) {
+    this.applicationService.acceptResubmitted(new AcceptResubmittedRequest(this.application.applicationId, users))
+      .subscribe({
+        next: () => {
+          this.displayActionAlert('Referred application accepted by the committee successfully');
+          this.reload(true);
+          this.assignedUsers.acceptReferredAssign = false;
+          this.assignedUsers.toggleDisplayed(false);
+        },
+        error: e => {
+          this.displayActionAlert(e, true);
+          this.assignedUsers.acceptReferredAssign = false;
+        }
+      });
+  }
+
+  private doApproval(approve: boolean, finalComment: Comment) {
+    console.log(finalComment);
+    const request = new ApproveApplicationRequest(this.application.applicationId, approve, finalComment);
+
+    this.applicationService.approveApplication(request)
+      .subscribe({
+        next: response => {
+          this.displayActionAlert((approve) ? 'Application approved successfully' : 'Application rejected successfully');
+          
+          this.application.status = response.status;
+          this.application.lastUpdated = new Date(response.lastUpdated);
+          this.application.approvalTime = new Date(response.lastUpdated);
+          
+          this.reload(true);
+        },
+        error: e => this.displayActionAlert(e, true)
+      });
+  }
+
+  private getFinalComment(): Comment {
+    const value = this.finalCommentForm.get('comment').value;
+
+    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date());
   }
 
   rejectApplication() {
-    console.log('Reject');
+    if (confirm('Are you sure you want to reject the application?')) {
+      this.doApproval(false, this.getFinalComment());
+    }
   }
 
   approveApplication() {
-    console.log('Approve');
+    if (confirm('Are you sure you want to approve the application?')) {
+      this.doApproval(true, this.getFinalComment());
+    }
   }
 
   private permissionsCheck() {

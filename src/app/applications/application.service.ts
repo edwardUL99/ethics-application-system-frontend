@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, retry, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, retry, switchMap, throwError } from 'rxjs';
 import { getErrorMessage } from '../utils';
 import { ApplicationResponse, ReferredApplicationResponse, SubmittedApplicationResponse } from './models/requests/applicationresponse';
 import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from './models/requests/draftapplicationrequests';
@@ -197,7 +197,43 @@ export class ApplicationService {
             observer.complete();
           }
         })
-    })
+    });
+  }
+
+  /**
+   * A mapper for unassigning committee members
+   * @param application the application to map
+   * @param response the response to merge into the application
+   */
+  private unassignMapper(application: Application, response: ApplicationResponse): Observable<Application> {
+    return getResponseMapper(response.status).map(response)
+      .pipe(
+        map(mapped => {
+          application.lastUpdated = mapped.lastUpdated;
+          application.assignedCommitteeMembers = mapped.assignedCommitteeMembers;
+
+          return application;
+        })
+      );
+  }
+
+  /**
+   * Unassign the user from the application
+   * @param application the application to unassign the committee member from
+   * @param username the username of the committee member
+   */
+  unassignCommitteeMember(application: Application, username: string): Observable<Application> {
+    const assigned = application.assignedCommitteeMembers.filter(a => a.user.username == username).length > 0;
+
+    if (assigned) {
+      return this.http.post<ApplicationResponse>(`/api/applications/unassign/${username}?id=${application.applicationId}`, {})
+        .pipe(
+          catchError(this.handleError),
+          switchMap(response => this.unassignMapper(application, response))
+        );
+    } else {
+      return of(application);
+    }
   }
 
   /**

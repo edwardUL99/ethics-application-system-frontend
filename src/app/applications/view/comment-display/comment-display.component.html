@@ -1,5 +1,5 @@
 <div *ngIf="display">
-  <div *ngIf="comment" [ngClass]="(!parentComment) ? 'border p-2 mt-1':'tab p-2 mt-1'">
+  <div *ngIf="comment" [ngClass]="(!parentComment) ?  ((border) ? 'border p-2 mt-1':'p-2 mt-1'):'tab p-2 mt-1'">
     <div class="my-1">
       <div class="d-flex flex-row">
         <h6 class="my-auto hover-underline" (click)="navigateUser(userInfo?.user?.username)" style="margin-right: 1%;">{{userInfo?.name}}</h6>
@@ -12,7 +12,7 @@
     <div [id]="component?.component?.componentId + '-subcomments'">
       <app-comment-display *ngFor="let sub of comment.subComments" [comment]="sub" [parentComment]="this" [application]="application" [component]="component" [hostDisplay]="hostDisplay"></app-comment-display>
     </div>
-    <div *ngIf="!parentComment && replyComment" class="mt-2">
+    <div *ngIf="!approvalComment && !parentComment && replyComment" class="mt-2">
       <div class="text-start">
         <button type="button" class="btn btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
       </div>

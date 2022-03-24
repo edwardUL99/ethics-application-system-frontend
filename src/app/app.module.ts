@@ -74,6 +74,8 @@ import { FilesService } from './files/files.service';
 import { AttachmentModalComponent } from './applications/view/attachments/attachment-modal/attachment-modal.component';
 import { AttachmentsComponent } from './applications/view/attachments/attachments/attachments.component';
 import { CommentsDisplayComponent } from './applications/view/comments-display/comments-display.component';
+import { AssignedUsersComponent } from './applications/view/assigned-users/assigned-users.component';
+import { ApplicationResultsComponent } from './applications/search/application-results/application-results.component';
 
 @NgModule({
   declarations: [
@@ -124,7 +126,9 @@ import { CommentsDisplayComponent } from './applications/view/comments-display/c
     UserSearchPageComponent,
     UserProfileComponent,
     AttachmentModalComponent,
-    AttachmentsComponent
+    AttachmentsComponent,
+    AssignedUsersComponent,
+    ApplicationResultsComponent
   ],
   imports: [
     BrowserModule,

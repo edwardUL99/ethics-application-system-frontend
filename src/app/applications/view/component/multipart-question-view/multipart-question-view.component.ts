@@ -178,7 +178,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     Object.keys(this.displayedParts)
       .filter(key => this.displayedParts[key])
       .forEach(key => this.loadPart(this.multipartQuestion.parts[key]));
-  
+    Object.keys(this.matchedComponents)
+      .forEach(key => this.matchedComponents[key].displayAnswer());
+
+
     this.detectChanges();
     this.propagateEmits(false);
   }
