@@ -26,7 +26,7 @@ import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
-import { mapAnswers, resolveStatus } from '../../models/requests/mapping/applicationmapper'
+import { mapAnswers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
@@ -652,6 +652,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             message = (finishReview) ? 'Application marked as reviewed':'Application moved back to review';
           }
 
+          if (!finishReview) {
+            this.assignedUsers.setCommitteeMembers();
+          }
+
           this.displayActionAlert(message);
           this.reload(true);
         },
@@ -721,7 +725,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private doApproval(approve: boolean, finalComment: Comment) {
-    console.log(finalComment);
     const request = new ApproveApplicationRequest(this.application.applicationId, approve, finalComment);
 
     this.applicationService.approveApplication(request)
@@ -732,6 +735,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           this.application.status = response.status;
           this.application.lastUpdated = new Date(response.lastUpdated);
           this.application.approvalTime = new Date(response.lastUpdated);
+          this.application.finalComment = mapComment(response.finalComment);
           
           this.reload(true);
         },

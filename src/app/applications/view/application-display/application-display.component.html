@@ -64,7 +64,6 @@
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
           <div *ngIf="checkStatus('REJECTED')" class="d-inline-flex">
-            <p *ngIf="application?.approvalTime" class="application-text" style="margin-right: 5px;"><b>Rejected At:</b> {{formatDate(application?.approvalTime)}}</p>
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
           <div *ngIf="!checkStatus('APPROVED') && !checkStatus('REJECTED') && !checkStatus('REFERRED')" class="d-inline-flex">

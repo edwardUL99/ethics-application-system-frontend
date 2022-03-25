@@ -70,7 +70,7 @@ export class CommentDisplayComponent implements OnInit {
   /**
    * The info of the user who created the comment
    */
-   userInfo: UserInfo;
+  userInfo: UserInfo;
 
   constructor(private fb: FormBuilder,
     private userService: UserService,

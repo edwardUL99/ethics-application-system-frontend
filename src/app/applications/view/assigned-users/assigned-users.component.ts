@@ -94,9 +94,7 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
     }
 
   ngOnInit(): void {
-    if (resolveStatus(this.application.status) == ApplicationStatus.REVIEW) {
-      this.setCommitteeMembers();
-    }
+    this.setCommitteeMembers();
   }
 
   ngOnChanges(): void {
@@ -144,26 +142,28 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
       .sort(AssignedUsersComponent.sortAssignableUsers);
   }
 
-  private setCommitteeMembers() {
-    this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
-      .pipe(
-        retry(3),
-        catchError((e) => {
-          this.assignAlert.displayMessage(e, true)
-          return of();
-        }),
-        map(response => this.mapCommitteeMembersToAssignableUser(response))
-      )
-      .subscribe({
-        next: response => this.committeeMembers = response,
-        error: e => {
-          if (this.assignAlert) {
-            this.assignAlert.displayMessage(e, true);
-          } else {
-            console.log(e);
+  setCommitteeMembers() {
+    if (resolveStatus(this.application.status) == ApplicationStatus.REVIEW) {
+      this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
+        .pipe(
+          retry(3),
+          catchError((e) => {
+            this.assignAlert.displayMessage(e, true)
+            return of();
+          }),
+          map(response => this.mapCommitteeMembersToAssignableUser(response))
+        )
+        .subscribe({
+          next: response => this.committeeMembers = response,
+          error: e => {
+            if (this.assignAlert) {
+              this.assignAlert.displayMessage(e, true);
+            } else {
+              console.log(e);
+            }
           }
-        }
-      });
+        });
+    }
   }
   
   unassignUser(assigned: AssignedCommitteeMember) {

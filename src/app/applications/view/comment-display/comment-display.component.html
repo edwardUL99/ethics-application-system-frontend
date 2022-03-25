@@ -2,7 +2,7 @@
   <div *ngIf="comment" [ngClass]="(!parentComment) ?  ((border) ? 'border p-2 mt-1':'p-2 mt-1'):'tab p-2 mt-1'">
     <div class="my-1">
       <div class="d-flex flex-row">
-        <h6 class="my-auto hover-underline" (click)="navigateUser(userInfo?.user?.username)" style="margin-right: 1%;">{{userInfo?.name}}</h6>
+        <h6 class="my-auto hover-underline" (click)="navigateUser(userInfo?.username)" style="margin-right: 1%;">{{userInfo?.name}}</h6>
         <small class="form-text my-auto">{{formatDate(comment?.createdAt)}}</small>
       </div>
       <div class="mt-1">
