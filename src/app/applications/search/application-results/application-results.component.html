@@ -1,10 +1,17 @@
 <div>
   <h4 style="color: white">Search</h4>
-  <app-application-search #applicationSearch></app-application-search>
+  <app-application-search #applicationSearch (reset)="searchReset($event)"></app-application-search>
   <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
 </div>
 <div>
-  <h4 style="color: white">Applications</h4>
+  <div class="row">
+    <div class="col text-start">
+      <h4 style="color: white">Applications</h4>
+    </div>
+    <div class="col text-end">
+      <button type="button" class="btn btn-primary btn-sm" (click)="refresh()">Refresh</button>
+    </div>
+  </div>
   <div class="card shadow p-2" *ngIf="applications | async as list">
     <div *ngIf="list.length > 0; else noApplications">
       <div class="d-flex flex-row flex-wrap">

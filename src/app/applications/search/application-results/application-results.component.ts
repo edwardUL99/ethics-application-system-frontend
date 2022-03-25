@@ -36,6 +36,11 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
   searchError: AlertComponent;
 
   /**
+   * A flag to indicate that listed applications are from a search result
+   */
+  private searchResults: boolean;
+
+  /**
    * Emits when an unknown error occurs
    */
   @Output() error: EventEmitter<any> = new EventEmitter<any>();
@@ -74,7 +79,15 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
     }
   }
 
+  searchReset(reset: boolean) {
+    if (reset) {
+      this.searchResults = false;
+      this.applications = this.getApplications();
+    }
+  }
+
   loadApplicationSearchResults(results: ApplicationResponse[]) {
+    this.searchResults = true;
     this.applications = new Observable<ApplicationResponse[]>(observer => {
       observer.next(results);
       observer.complete();
@@ -87,6 +100,14 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
 
   lastUpdated(lastUpdated: string) {
     return new Date(lastUpdated).toLocaleString();
+  }
+
+  refresh() {
+    if (this.searchResults) {
+      this.applicationSearch.refreshSearch();
+    } else {
+      this.applications = this.getApplications();
+    }
   }
 
   getApplications(): Observable<ApplicationResponse[]> {

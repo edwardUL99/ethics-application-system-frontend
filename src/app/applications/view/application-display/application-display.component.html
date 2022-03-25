@@ -7,7 +7,7 @@
         <div class="card shadow p-2">
           <div class="d-inline text-end">
             <button type="button" class="btn btn-danger ml-2" *ngIf="isAdmin && !newApplication" (click)="deleteApplication(true)">Delete</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="!checkStatus('DRAFT')" (click)="assignedUsers.toggleDisplayed()"
+            <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="assignedUsers.toggleDisplayed()"
              [disabled]="assignedUsers.acceptReferredAssign && assignedUsers.displayed">Assigned Reviewers</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('SUBMITTED') || checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="referApplication()">Refer to Applicant</button>
@@ -53,12 +53,17 @@
       <app-alert *ngIf="actionError" [alertType]="'alert-danger'" [dismissible]="true" [message]="actionError"></app-alert>
       <app-attachments [applicationDisplay]="this" #applicationAttachments></app-attachments>
       <div class="card shadow text-center mt-3 p-3">
-        <div class="text-end">
-          <p><b>Application ID:</b> {{application?.applicationId}}</p>
+        <div class="card-header">
+          {{application?.applicationId}}
         </div>
-        <div class="text-start">
-          <p class="application-text"><b>Applicant:</b> <span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
-          <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
+        <div class="card-body">
+          <div class="">
+            <p class="application-text"><b>Applicant:</b> <span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
+            <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
+            <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> {{application.referredBy.name}}</p>
+          </div>
+        </div>
+        <div class="card-footer text-muted">
           <div *ngIf="checkStatus('APPROVED')" class="d-inline-flex">
             <p *ngIf="application?.approvalTime" class="application-text" style="margin-right: 5px;"><b>Approved At:</b> {{formatDate(application?.approvalTime)}}</p>
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
@@ -70,7 +75,6 @@
             <p *ngIf="application?.submittedTime" class="application-text" style="margin-right: 5px;"><b>Submitted At:</b> {{formatDate(application?.submittedTime)}}</p>
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
-          <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> {{application.referredBy.name}}</p>
         </div>
       </div>
       <div *ngIf="application?.finalComment" class="mt-3">

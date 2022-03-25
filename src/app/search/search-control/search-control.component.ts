@@ -17,6 +17,10 @@ export class SearchControlComponent implements OnInit {
    */
   @Input() queries: Queries;
   /**
+   * Allow a reset event to be emitted by a reset button should the search allow searches to be reset
+   */
+  @Input() allowReset: boolean = false;
+  /**
    * The form group to store the search form
    */
   form: FormGroup;
@@ -28,6 +32,10 @@ export class SearchControlComponent implements OnInit {
    * An output event that sends the constructed query when search is pressed
    */
   @Output() searchPressed: EventEmitter<Query> = new EventEmitter<Query>();
+  /**
+   * If allowReset is true, this is used to emit reset events 
+   */
+  @Output() reset: EventEmitter<boolean> = new EventEmitter<boolean>();
   /**
    * The mapped search queries
    */
@@ -73,5 +81,10 @@ export class SearchControlComponent implements OnInit {
 
   search() {
     this.searchPressed.emit((this.currentQuery) ? this.currentQuery.constructQuery() : undefined);
+  }
+
+  doReset() {
+    this.form.reset();
+    this.reset.emit(true);
   }
 }

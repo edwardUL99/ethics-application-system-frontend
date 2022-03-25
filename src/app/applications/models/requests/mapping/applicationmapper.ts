@@ -92,18 +92,47 @@ export function MapApplicationResponse(key: ResponseMapperKeys | ResponseMapperK
   }
 }
 
-export function resolveStatus(key: ApplicationStatus | string): string {
-  const keys = Object.keys(ApplicationStatus);
+/**
+ * Allows caching of resolved statuses
+ */
+type ResolvedStatusCache = {
+  [key: string]: string;
+}
 
-  for (let k of keys) {
-    if (ApplicationStatus[k] == key) {
-      return key;
-    } else if (k == key) {
-      return ApplicationStatus[k];
+const resolveCache: ResolvedStatusCache = {};
+
+/**
+ * Resolves the status into the label value
+ * @param key the key to resolve
+ * @returns the resolved value
+ */
+export function resolveStatus(key: ApplicationStatus | string): string {
+  const cached = resolveCache[key];
+
+  if (cached) {
+    return cached;
+  } else {
+    const keys = Object.keys(ApplicationStatus);
+    let resolved: string;
+
+    for (let k of keys) {
+      if (ApplicationStatus[k] == key) {
+        resolved = key;
+        break;
+      } else if (k == key) {
+        resolved = ApplicationStatus[k];
+        break;
+      }
+    }
+
+    if (!resolved) {
+      throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
+    } else {
+      resolveCache[key] = resolved;
+
+      return resolved;
     }
   }
-
-  throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
 }
 
 /**

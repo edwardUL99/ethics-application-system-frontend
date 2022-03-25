@@ -24,7 +24,11 @@
         </div>
       </div>
     </div>
-    <div class="text-end">
+    <div *ngIf="!allowReset" class="text-end">
+      <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
+    </div>
+    <div *ngIf="allowReset" class="text-end">
+      <button type="button" class="btn btn-outline-danger" style="margin-right: 1%;" (click)="doReset()">Reset</button>
       <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
     </div>
   </form>
