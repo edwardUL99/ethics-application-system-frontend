@@ -1,3 +1,4 @@
+import { ViewingUser } from '../../applicationcontext';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { QuestionViewComponent } from './application-view.component';
 
@@ -9,8 +10,8 @@ export class QuestionViewUtils {
    * Set the answer of this component from the given application and component if it is draft or 
    * referred and can be edited
    */
-  public static setExistingAnswer(view: QuestionViewComponent) {
-    if (this.edit(view) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
+  public static setExistingAnswer(view: QuestionViewComponent, viewingUser: ViewingUser) {
+    if (this.edit(view, true, viewingUser) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
       view.setFromAnswer(view.application.answers[view.component.componentId]);
     }
   }
@@ -31,11 +32,12 @@ export class QuestionViewUtils {
    * This function includes common code to determine if a view can be edited
    * @param view the view component
    * @param checkParent if parent exists, check if the parent edit() is true and if so, return true straight away
+   * @param viewingUser the viewing user
    * @returns true if it can be edited, false if not
    */
-  public static edit(view: QuestionViewComponent, checkParent: boolean = true): boolean {
+  public static edit(view: QuestionViewComponent, checkParent: boolean = true, viewingUser: ViewingUser): boolean {
     // determine if the question is editable
-    return (checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
-      (view.application.status == ApplicationStatus.REFERRED && view.application.editableFields.indexOf(view.component.componentId) != -1));
+    return (!viewingUser || viewingUser.applicant) && ((checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
+      (view.application.status == ApplicationStatus.REFERRED && view.application.editableFields.indexOf(view.component.componentId) != -1)));
   }
 }

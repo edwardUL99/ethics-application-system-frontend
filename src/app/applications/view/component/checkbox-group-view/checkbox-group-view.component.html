@@ -1,5 +1,5 @@
 <div [id]="checkboxGroupComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this"></app-refer-marker>
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
     <label>{{checkboxGroupComponent?.title}}</label>
     <div [id]="checkboxGroupComponent?.componentId + '-checkboxes'">
         <div *ngFor="let checkbox of checkboxGroupComponent?.checkboxes" class="form-check">

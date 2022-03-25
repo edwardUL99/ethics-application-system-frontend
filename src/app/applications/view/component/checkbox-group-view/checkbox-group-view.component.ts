@@ -115,7 +115,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
 
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -283,7 +283,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   display(): boolean {

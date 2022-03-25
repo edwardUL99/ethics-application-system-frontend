@@ -308,6 +308,17 @@ function assignedMemberObservableMapper(v: AssignedCommitteeMemberResponse, user
 }
 
 /**
+ * Map the response members to assigned members
+ * @param assigned the assigned members to map
+ */
+export function mapAssignedMembers(assigned: AssignedCommitteeMemberResponse[]): Observable<AssignedCommitteeMember[]> {
+  const injector: InjectorService = InjectorService.getInstance();
+  const userService: UserService = injector.inject(UserService);
+  
+  return joinAndWait<any>(assigned, (v: AssignedCommitteeMemberResponse[]) => v.map(v => assignedMemberObservableMapper(v, userService)));
+}
+
+/**
  * This class is used for mapping submitted application responses
  */
 @MapApplicationResponse([ResponseMapperKeys.SUBMITTED, ResponseMapperKeys.RESUBMITTED])

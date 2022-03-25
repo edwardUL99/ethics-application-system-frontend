@@ -100,7 +100,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   ngAfterViewInit(): void {
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
 
     if (this.signatureFieldComponent) {
       this.resizeSignature();
@@ -187,7 +187,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {

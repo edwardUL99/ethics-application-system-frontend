@@ -250,7 +250,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     for (let key of Object.keys(this.matchedComponents)) {
       const component = this.matchedComponents[key];
 
-      if (QuestionViewUtils.edit(component, false)) {
+      if (QuestionViewUtils.edit(component, false, this.template?.viewingUser)) {
         return true;
       }
     }

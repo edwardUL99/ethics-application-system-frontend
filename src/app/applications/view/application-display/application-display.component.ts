@@ -26,7 +26,7 @@ import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
-import { mapAnswers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper'
+import { mapAnswers, mapAssignedMembers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
@@ -35,6 +35,7 @@ import { AssignedUsersComponent } from '../assigned-users/assigned-users.compone
 import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
 import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
 import { Comment } from '../../models/applications/comment';
+import { AssignedCommitteeMember } from '../../models/applications/assignedcommitteemember';
 
 /**
  * The default template ID to use
@@ -691,9 +692,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   referApplication() {
-    this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, this.application.editableFields, this.user.username))
+    const fields = (this.application.editableFields) ? this.application.editableFields : [];
+    this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, fields, this.user.username))
       .subscribe({
         next: response => {
+          this.application.status = response.status;
           this.application.referredBy = this.user;
           this.application.editableFields = response.editableFields;
           this.application.lastUpdated = new Date(response.lastUpdated);
@@ -704,18 +707,25 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   acceptReferred() {
-    this.assignedUsers.acceptReferredAssign = true;
-    this.assignedUsers.toggleDisplayed(true);
+    this.assignedUsers.setAcceptReferred(!this.assignedUsers.displayed);
+    this.assignedUsers.toggleDisplayed(!this.assignedUsers.displayed);
   }
 
   acceptAssignedUsers(users: string[]) {
     this.applicationService.acceptResubmitted(new AcceptResubmittedRequest(this.application.applicationId, users))
       .subscribe({
-        next: () => {
+        next: response => {
           this.displayActionAlert('Referred application accepted by the committee successfully');
-          this.reload(true);
           this.assignedUsers.acceptReferredAssign = false;
           this.assignedUsers.toggleDisplayed(false);
+          this.application.status = response.status;
+          mapAssignedMembers(response.assignedCommitteeMembers)
+            .subscribe({
+              next: response => this.application.assignedCommitteeMembers = response,
+              error: e => console.error(e)
+            });
+          this.application.previousCommitteeMembers = [];
+          this.reload(true);
         },
         error: e => {
           this.displayActionAlert(e, true);

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
@@ -10,7 +10,7 @@ import { ApplicationViewComponent } from '../component/application-view.componen
   templateUrl: './refer-marker.component.html',
   styleUrls: ['./refer-marker.component.css']
 })
-export class ReferMarkerComponent implements OnInit {
+export class ReferMarkerComponent implements OnInit, OnChanges {
   /**
    * The application to add the component to
    */
@@ -24,16 +24,22 @@ export class ReferMarkerComponent implements OnInit {
    */
   @Input() viewingUser: ViewingUser;
   /**
+   * Determine if the component should be enabled
+   */
+  @Input() enable: boolean;
+  /**
    * Determine if the marker should be displayed or not
    */
   display: boolean;
 
   constructor() { }
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
+
+  ngOnChanges() {
     this.display = this.viewingUser?.admin &&
-      this.component.isVisible() &&
-      ApplicationStatus.REFERRED == resolveStatus(this.application.status);
+      this.enable &&
+      ApplicationStatus.REVIEWED == resolveStatus(this.application.status);
   }
 
   /**
@@ -41,6 +47,10 @@ export class ReferMarkerComponent implements OnInit {
    * @param event the event from the chekbox
    */
   onChange(event: any) {
+    if (!this.application.editableFields) {
+      this.application.editableFields = [];
+    }
+
     if (event.target.checked) {
       this.application.editableFields.push(this.component.component.componentId);
     } else {

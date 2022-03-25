@@ -95,7 +95,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
 
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -187,7 +187,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {

@@ -89,16 +89,27 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
     private fb: FormBuilder,
     private authorizationService: AuthorizationService) {
       this.assignForm = this.fb.group({
-        member: fb.control('', [Validators.required])
+        member: fb.control('')
       });
     }
 
   ngOnInit(): void {
+    this.setAcceptReferred(this.acceptReferredAssign);
     this.setCommitteeMembers();
   }
 
   ngOnChanges(): void {
     this.isAdmin = this.viewingUser?.admin;
+  } 
+
+  setAcceptReferred(acceptReferred: boolean) {
+    this.acceptReferredAssign = acceptReferred;
+
+    if (this.acceptReferredAssign) {
+      this.assignForm.get('member').removeValidators(Validators.required);
+    } else {
+      this.assignForm.get('member').addValidators(Validators.required);
+    }
   }
 
   toggleDisplayed(explicit?: boolean) {
@@ -143,7 +154,9 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
   }
 
   setCommitteeMembers() {
-    if (resolveStatus(this.application.status) == ApplicationStatus.REVIEW) {
+    const resolved = resolveStatus(this.application.status);
+
+    if (resolved == ApplicationStatus.REVIEW || resolved == ApplicationStatus.RESUBMITTED) {
       this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
         .pipe(
           retry(3),
@@ -202,8 +215,10 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
   assignMember() {
     let value = this.assignForm.get('member').value;
 
-    if (value) {
-      if (!Array.isArray(value)) {
+    if (value || value == '') {
+      if (value == '') {
+        value = [];
+      } else if (!Array.isArray(value)) {
         value = [value];
       }
 

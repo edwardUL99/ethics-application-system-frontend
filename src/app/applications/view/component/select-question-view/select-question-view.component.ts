@@ -106,7 +106,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -204,7 +204,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   value(): Answer {

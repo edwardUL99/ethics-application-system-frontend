@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div *ngIf="isAdmin && checkStatus('REVIEW')">
+    <div *ngIf="isAdmin && (checkStatus('REVIEW') || checkStatus('RESUBMITTED'))">
       <div *ngIf="committeeMembers as members">
         <div class="p-2 my-2">
           <h6>Assign Committee Member</h6>

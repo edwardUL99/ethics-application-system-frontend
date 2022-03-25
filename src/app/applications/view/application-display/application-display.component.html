@@ -1,7 +1,7 @@
 <div>
   <app-navbar></app-navbar> 
   <div *ngIf="!loadError; else displayError">
-    <div *ngIf="application; else loading" class="container">
+    <div *ngIf="application && viewingUser; else loading" class="container">
       <div *ngIf="isAdmin || canReview; else notAdmin" class="mt-5">
         <h5 style="color: white">Actions</h5>
         <div class="card shadow p-2">
@@ -54,7 +54,7 @@
       <app-attachments [applicationDisplay]="this" #applicationAttachments></app-attachments>
       <div class="card shadow text-center mt-3 p-3">
         <div class="card-header">
-          {{application?.applicationId}}
+         <h4>{{application?.applicationId}}</h4>
         </div>
         <div class="card-body">
           <div class="">

@@ -1,5 +1,5 @@
 <div [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this"></app-refer-marker>
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
