@@ -8,6 +8,7 @@ import { Comment } from '../../models/applications/comment';
 import { ApplicationViewComponent } from '../component/application-view.component';
 import { CommentsDisplayComponent } from '../comments-display/comments-display.component';
 import { Router } from '@angular/router';
+import { ViewingUser } from '../../applicationcontext';
 
 /**
  * This component displays a form to leave a comment 
@@ -71,31 +72,49 @@ export class CommentDisplayComponent implements OnInit {
    * The info of the user who created the comment
    */
   userInfo: UserInfo;
+  /**
+   * Determines if comment is shared with applicant
+   */
+  sharedApplicant: boolean;
+  /**
+   * User viewing the application
+   */
+  viewingUser: ViewingUser;
 
   constructor(private fb: FormBuilder,
     private userService: UserService,
     private router: Router) {
-      this.subCommentForm = this.fb.group({
-        comment: this.fb.control('', [Validators.required])
-      });
-    }
+    this.subCommentForm = this.fb.group({
+      comment: this.fb.control('', [Validators.required])
+    });
+  }
 
-  ngOnInit(): void {
-    const viewingUser = this.component?.template?.viewingUser;
-    this.replyComment = viewingUser?.reviewer;
-
+  private initDisplay(viewingUser: ViewingUser) {
     if (this.application.status != ApplicationStatus.DRAFT && viewingUser?.reviewer) {
       this.display = true;
-    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) == -1) {
+    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
       this.display = true;
     } else if (this.approvalComment) {
       this.display = true;
     } else {
       this.display = false;
     }
+  }
+
+  ngOnInit(): void {
+    this.viewingUser = this.component?.template?.viewingUser;
+    this.replyComment = this.viewingUser?.reviewer;
+
+    this.initDisplay(this.viewingUser);
 
     if (this.display) {
       this.loadUser(this.comment.username);
+    }
+
+    if (this.parentComment) {
+      this.sharedApplicant = this.parentComment.comment.sharedApplicant;
+    } else {
+      this.sharedApplicant = this.comment.sharedApplicant;
     }
   }
 

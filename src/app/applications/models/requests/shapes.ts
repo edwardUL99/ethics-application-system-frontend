@@ -51,6 +51,10 @@ export interface CommentShape {
    */
   subComments: CommentShape[];
   /**
+   * True if shared with applicants
+   */
+  sharedApplicant: boolean;
+  /**
    * The timestamp of when the comment was created
    */
   createdAt: string;

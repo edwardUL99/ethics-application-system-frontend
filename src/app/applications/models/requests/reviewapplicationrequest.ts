@@ -36,8 +36,10 @@ export class RequestComment {
    * @param componentId the componentID the comment is attached to
    * @param subComments the comments left on this comment
    * @param createdAt the timestamp in ISO format of when the comment was created
+   * @param sharedApplicant determines if comment is shared with applicant
    */
-  constructor(public id: number, public username: string, public comment: string, public componentId: string, public subComments: RequestComment[], public createdAt: string) {}
+  constructor(public id: number, public username: string, public comment: string, public componentId: string, 
+    public subComments: RequestComment[], public createdAt: string, public sharedApplicant?: boolean) {}
 }
 
 /**
@@ -50,7 +52,8 @@ export function mapCommentToRequest(comment: Comment): RequestComment {
     comment: comment.comment,
     componentId: comment.componentId,
     subComments: [],
-    createdAt: comment.createdAt.toISOString()
+    createdAt: comment.createdAt.toISOString(),
+    sharedApplicant: comment.sharedApplicant
   };
 
   for (let sub of comment.subComments) {

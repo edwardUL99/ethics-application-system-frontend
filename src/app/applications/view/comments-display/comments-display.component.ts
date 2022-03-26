@@ -68,7 +68,8 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   constructor(private fb: FormBuilder,
     private applicationService: ApplicationService, private cd: ChangeDetectorRef) {
       this.form = this.fb.group({
-        comment: this.fb.control('', [Validators.required])
+        comment: this.fb.control('', [Validators.required]),
+        sharedApplicant: this.fb.control('')
       });
     }
 
@@ -141,11 +142,17 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
 
   addComment() {
     const value = this.form.get('comment').value;
+    let shared = this.form.get('sharedApplicant').value;
+
+    if (shared == undefined) {
+      shared = false;
+    }
+
     const componentId = this.component.component.componentId;
 
     if (value) {
       let requestComments = [];
-      requestComments.push(new Comment(undefined, this.component.template.viewingUser.user.username, value, componentId, [], new Date()));
+      requestComments.push(new Comment(undefined, this.component.template.viewingUser.user.username, value, componentId, [], new Date(), shared));
       this.updateComments(requestComments, () => this.displayAddAlert('Comment added successfully'), (e: any) => this.displayAddAlert(e, true));
     }
   }

@@ -6,7 +6,10 @@
         <small class="form-text my-auto">{{formatDate(comment?.createdAt)}}</small>
       </div>
       <div class="mt-1">
-        <p class="text">{{comment?.comment}}</p>
+        <p class="render-new-lines">{{comment?.comment}}</p>
+        <small class="form-text" *ngIf="sharedApplicant && viewingUser?.reviewer" [appTooltip]="'Comment is visible to the applicant'">
+          Shared
+        </small>
       </div>
     </div>
     <div [id]="component?.component?.componentId + '-subcomments'">
@@ -18,6 +21,9 @@
       </div>
       <div *ngIf="subCommentFormDisplayed">
         <form [formGroup]="subCommentForm">
+          <small class="form-text" *ngIf="sharedApplicant">
+            This comment is shared with the applicant, any replies will be visible to them
+          </small>
           <div class="form-group">
             <label>Comment:</label>
             <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>

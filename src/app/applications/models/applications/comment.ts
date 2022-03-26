@@ -10,9 +10,10 @@ export class Comment {
    * @param componentId the componentID the comment is attached to
    * @param subComments the list of sub comments on this comment
    * @param createdAt the timestam of when the comment was created
+   * @param sharedApplicant true if shared with applicants
    */
   constructor(public id: number, public username: string, public comment: string,
-    public componentId: string, public subComments: Comment[], public createdAt: Date) {}
+    public componentId: string, public subComments: Comment[], public createdAt: Date, public sharedApplicant: boolean = false) {}
 }
 
 /**

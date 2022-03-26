@@ -240,7 +240,7 @@ export function mapApplicationComments(comments: ResponseCommentsMapping): Comme
  */
 export function mapComment(comment: CommentShape): Comment {
   if (comment) {
-    const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt));
+    const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt), comment.sharedApplicant);
 
     for (let sub of comment.subComments) {
       newComment.subComments.push(mapComment(sub));

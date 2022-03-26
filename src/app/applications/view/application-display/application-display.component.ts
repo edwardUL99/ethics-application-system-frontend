@@ -701,6 +701,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           this.application.editableFields = response.editableFields;
           this.application.lastUpdated = new Date(response.lastUpdated);
           this.displayActionAlert('Application referred to applicant');
+          this.reload(true);
         },
         error: e => this.actionError = e
       });
@@ -756,7 +757,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   private getFinalComment(): Comment {
     const value = this.finalCommentForm.get('comment').value;
 
-    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date());
+    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
   }
 
   rejectApplication() {
