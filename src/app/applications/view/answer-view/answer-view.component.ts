@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Answer, ValueType } from '../../models/applications/answer';
 import { QuestionComponent } from '../../models/components/questioncomponent';
 import { Renderers } from './renderers';
@@ -11,7 +11,7 @@ import { Renderers } from './renderers';
   templateUrl: './answer-view.component.html',
   styleUrls: ['./answer-view.component.css']
 })
-export class AnswerViewComponent implements OnInit {
+export class AnswerViewComponent implements OnInit, AfterViewInit {
   /**
    * The answer to render
    */
@@ -24,6 +24,16 @@ export class AnswerViewComponent implements OnInit {
    * The renderer to use to render the answer
    */
   @Input() renderer: string = 'same';
+  /**
+   * The container containing the image
+   */
+  @ViewChild('imgContainer')
+  imgContainer: ElementRef;
+  /**
+   * The img canvas
+   */
+  @ViewChild('imgCanvas')
+  imgCanvas: ElementRef;
 
   constructor() { }
 
@@ -35,6 +45,48 @@ export class AnswerViewComponent implements OnInit {
     }
 
     this.answer = rendererImpl.render(this.answer);
+  }
+
+  ngAfterViewInit(): void {
+    if (this.answer.valueType == ValueType.IMAGE && this.imgCanvas) {
+      this.resize();
+
+      window.onresize = () => {
+        this.resize();   
+      }
+    }
+  }
+
+  private scaleAndDraw(image: any) {
+    const canvas = this.imgCanvas.nativeElement;
+    const ctx = canvas.getContext('2d');
+    const wrh = image.width / image.height;
+    let newWidth = canvas.width;
+    let newHeight = newWidth / wrh;
+    
+    if (newHeight > canvas.height) {
+      newHeight = canvas.height;
+      newWidth = newHeight * wrh;
+    }
+    
+    let xOffset = newWidth < canvas.width ? ((canvas.width - newWidth) / 2) : 0;
+    let yOffset = newHeight < canvas.height ? ((canvas.height - newHeight) / 2) : 0;
+
+    ctx.drawImage(image, xOffset, yOffset, newWidth, newHeight);
+  }
+
+  resize() {
+    this.imgCanvas.nativeElement.width = this.imgContainer.nativeElement.offsetWidth
+    this.imgCanvas.nativeElement.height = 100;   
+    this.drawImage();
+  }
+
+  drawImage() {
+    if (this.answer.valueType == ValueType.IMAGE && this.imgCanvas) {
+      const image = new Image();
+      image.onload = () => this.scaleAndDraw(image);
+      image.src = this.answer.value;
+    }
   }
 
   splitAnswerOptions(): string[] {
