@@ -644,7 +644,16 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         next: response => {
           this.application.status = response.status;
           this.application.lastUpdated = new Date(response.lastUpdated);
-
+          
+          response.assignedCommitteeMembers.forEach(a => {
+            for (let assigned of this.application.assignedCommitteeMembers) {
+              if (a.username == assigned.user.username) {
+                assigned.finishReview = a.finishReview;
+                break;
+              }
+            }  
+          });
+          
           let message: string;
 
           if (startReview) {
@@ -662,6 +671,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         },
         error: e => this.actionError = e
       });
+    }
+  }
+
+  displayReviewButton() {
+    if (this.viewingUser?.admin) {
+      return true;
+    } else if (this.viewingUser?.reviewer) {
+      const found = this.application.assignedCommitteeMembers.find(u => u.user.username == this.viewingUser.user.username);
+      return found && !found.finishReview;
+    } else {
+      return false;
     }
   }
 

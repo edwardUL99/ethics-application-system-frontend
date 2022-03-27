@@ -76,9 +76,10 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   ngOnInit(): void {}
 
   ngOnChanges(): void {
+    const status = resolveStatus(this.application.status);
     this.createComment = this.enable &&
       (this.viewingUser?.reviewer &&
-      resolveStatus(this.application.status) == ApplicationStatus.REVIEW);
+      (status == ApplicationStatus.REVIEW) || status == ApplicationStatus.REVIEWED);
     
     if (!this.comments) {
       this.componentId = this.component.component.componentId;
