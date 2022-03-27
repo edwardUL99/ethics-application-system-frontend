@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, ValidatorFn, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, ValidationErrors } from '@angular/forms';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
@@ -12,22 +12,21 @@ import { AutosaveContext } from '../autosave';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
- * A type that holds the selected options
- */
-export type SelectedOptions = {
-  [key: string]: boolean
-}
-
-/**
  * This function returns a validator that validates the value chosen by select
  * @returns the validator function
  */
 export function SelectValidator(): ValidatorFn {
   return (c: FormControl): ValidationErrors | null => {
     const value = c.value;
-
-    if (value.length == 1 && value == '') {
-      return {required: true};
+    
+    if (Array.isArray(value)) {
+      if (value.length == 0 || (value.length == 1 && value[0] == '')) {
+        return {required: true};
+      }
+    } else {
+      if (value == '') {
+        return {required: true};
+      }
     }
 
     return null;
@@ -65,10 +64,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * The form control representing the select question
    */
   control: FormControl;
-  /**
-   * The mapping of selected options
-   */
-  selected: SelectedOptions = {};
   /**
    * The question change event emitter
    */
@@ -119,13 +114,9 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
       const validator = SelectValidator();
-      if (this.questionComponent.required && !this.control.hasValidator(Validators.required) 
-        && !this.control.hasValidator(validator)) {
-        this.control.addValidators(Validators.required);
+      if (this.questionComponent.required && !this.control.hasValidator(validator)) {
         this.control.addValidators(validator);
       }
-
-      this.questionComponent.options.forEach(option => this.selected[option.value] = false);
       
       if (!this.form.get(this.questionComponent.name)) {
         this.form.addControl(this.questionComponent.name, this.control);
@@ -145,26 +136,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     return this.component as SelectQuestionComponent;
   }
 
-  /**
-   * Unselect all options except for the provided one
-   * @param option the option to leave selected
-   */
-  private unselectOthers(option: string) {
-    Object.keys(this.selected).forEach(key => {
-      if (option != key) {
-        this.selected[key] = false;
-      }
-    })
-  }
-
-  onChange(event: any) {
-    const option = event.value;
-    this.selected[option] = true;
-
-    if (!this.questionComponent.multiple) {
-      this.unselectOthers(option);
-    }
-
+  onChange() {
     this.emit(true);
   }
 
@@ -193,7 +165,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     }
 
     const options = answer.value.split(',');
-    options.forEach(option => this.selected[option] = true);
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
     this.emit(false);

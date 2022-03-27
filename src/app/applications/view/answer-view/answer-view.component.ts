@@ -57,6 +57,10 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
     }
   }
 
+  displayLabel() {
+    return 'label' in this.question;
+  }
+
   private scaleAndDraw(image: any) {
     const canvas = this.imgCanvas.nativeElement;
     const ctx = canvas.getContext('2d');

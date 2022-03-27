@@ -2,6 +2,7 @@
   <div class="my-auto">
     <h6>{{question?.title}}</h6>
     <div class="form-text render-new-lines">{{question?.description}}</div>
+    <label *ngIf="displayLabel()">{{question?.label}}</label>
   </div>
   <div>
     <div class="border p-2 d-flex h-100" style="font-size: 18px;">

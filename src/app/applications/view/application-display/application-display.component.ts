@@ -35,7 +35,6 @@ import { AssignedUsersComponent } from '../assigned-users/assigned-users.compone
 import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
 import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
 import { Comment } from '../../models/applications/comment';
-import { AssignedCommitteeMember } from '../../models/applications/assignedcommitteemember';
 
 /**
  * The default template ID to use
@@ -243,7 +242,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       next: user => {
         this.setApplication(Application.create(new DraftApplicationInitialiser(0, 'N/A', user, context.getCurrentTemplate(), {}, [], undefined)), false);
         this.getViewingUser(this.newApplication);
-        this.cd.detectChanges();
       },
       error: e => this.loadError = e
     });
@@ -301,6 +299,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       next: user => {
         this.viewingUser = user;
         this.permissionsCheck();
+        this.cd.detectChanges();
       },
       error: e => this.loadError = e
     });
@@ -507,7 +506,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   save() {
-    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e, true),
       (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e))
   }
 

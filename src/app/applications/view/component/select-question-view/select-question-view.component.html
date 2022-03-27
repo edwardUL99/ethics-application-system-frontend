@@ -3,14 +3,17 @@
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
-        <select [multiple]="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
+        <select *ngIf="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
         (change)="onChange($event)" class="form-select">
             <option *ngIf="!questionComponent?.multiple" selected></option>
             <option *ngFor="let option of questionComponent?.options" [value]="option.value">{{option.label}}</option>
         </select>
-        <div *ngIf="control?.errors">
-            <app-field-error [condition]="control.errors?.['required']" [message]="'You must select an option'"></app-field-error>
-        </div>
+        <select *ngIf="!questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
+        (change)="onChange($event)" class="form-select">
+            <option *ngIf="!questionComponent?.multiple" selected></option>
+            <option *ngFor="let option of questionComponent?.options" [value]="option.value">{{option.label}}</option>
+        </select>
+        <app-field-error [condition]="control?.errors?.['required'] && control?.touched" [error]="'You must select an option'"></app-field-error>
     </div>
     <ng-template #notEdit>
         <app-answer-view *ngIf="displayAnswer()"
