@@ -24,6 +24,17 @@
         </div>
       </div>
     </div>
+    <div class="my-2 row w-25" *ngIf="groupOptions">
+      <form [formGroup]="groupForm">
+        <div class="form-group">
+          <label>Group By</label>
+          <select class="form-select" name="group-by" (change)="groupByChange($event)" formControlName="groupBy">
+            <option></option>
+            <option *ngFor="let option of groupOptions" [value]="option.value">{{option.label}}</option>
+          </select>
+        </div>
+      </form>
+    </div>
     <div *ngIf="!allowReset" class="text-end">
       <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
     </div>

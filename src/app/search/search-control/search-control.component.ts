@@ -1,6 +1,14 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { GroupBy, Grouper, GroupOption } from '../grouping';
 import { Query, SearchControl, SearchQueries, SearchQuery, Queries } from '../searchcomponent';
+
+/**
+ * Map of registered groupers
+ */
+type RegisteredGroupers = {
+  [key: string]: Grouper<any>;
+};
 
 /**
  * A component for rendering search controls. It takes the list of defined queries, and then based on the selected query,
@@ -21,9 +29,21 @@ export class SearchControlComponent implements OnInit {
    */
   @Input() allowReset: boolean = false;
   /**
+   * If the search is to enable grouping, the groupOptions array can be passed in
+   */
+  @Input() groupOptions: GroupOption[];
+  /**
+   * Array of registered groupers
+   */
+  private groupers: RegisteredGroupers = {};
+  /**
    * The form group to store the search form
    */
   form: FormGroup;
+  /**
+   * The group by form
+   */
+  groupForm: FormGroup;
   /**
    * The form array to manipulate
    */
@@ -36,6 +56,10 @@ export class SearchControlComponent implements OnInit {
    * If allowReset is true, this is used to emit reset events 
    */
   @Output() reset: EventEmitter<boolean> = new EventEmitter<boolean>();
+  /**
+   * Emits that a grouping of results is requested
+   */
+  @Output() groupRequested: EventEmitter<GroupBy<any>> = new EventEmitter<GroupBy<any>>();
   /**
    * The mapped search queries
    */
@@ -51,16 +75,26 @@ export class SearchControlComponent implements OnInit {
 
   constructor(private fb: FormBuilder) {
     this.controls = this.fb.array([]);
-      this.form = this.fb.group({
-        query: this.fb.control('', Validators.required),
-        controls: this.controls
-      });
+    this.form = this.fb.group({
+      query: this.fb.control('', Validators.required),
+      controls: this.controls
+    });
+
+    this.groupForm = this.fb.group({
+      groupBy: this.fb.control('')
+    });
   }
 
   ngOnInit(): void {
     this.queries.forEach(q => this.mappedSearchQueries[q.value] = q.query);
     this.onQueryChange({target: {value: this.queries[0].value}});
     this.form.get('query').setValue(this.queries[0].value);
+    
+    if (this.groupOptions) {
+      this.groupOptions.forEach(option => {
+        this.groupers[option.value] = option.grouper;
+      })
+    }
   }
 
   onQueryChange(event: any) {
@@ -80,11 +114,24 @@ export class SearchControlComponent implements OnInit {
   }
 
   search() {
+    this.groupForm.reset();
     this.searchPressed.emit((this.currentQuery) ? this.currentQuery.constructQuery() : undefined);
   }
 
   doReset() {
     this.form.reset();
+    this.groupForm.reset();
     this.reset.emit(true);
+  }
+
+  groupByChange(event: any) {
+    const value = event.target.value;
+
+    if (!value) {
+      this.groupRequested.emit(undefined);
+    } else {
+      const groupBy = new GroupBy(this.groupers[value]);
+      this.groupRequested.emit(groupBy);
+    }
   }
 }
