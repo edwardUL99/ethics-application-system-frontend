@@ -1,6 +1,7 @@
 import { EventEmitter } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { SearchEndpoints } from './search-endpoints';
+import { GroupBy } from '../search/grouping';
 
 /**
  * This interface represents a component that holds a SearchControlComponent and can consume the query from that component, search
@@ -16,11 +17,14 @@ export interface SearchComponent<T> {
    * The list of query definitions for SearchQueryImplementations to pass into the the SearchControlComponent
    */
   queries: Queries;
-
   /**
    * The emitter to emit the events to the parent component
    */
   results: EventEmitter<T[]>;
+  /**
+   * When a group by is requested, this emits the group by object that the client can use to group a list of already retrieved applications
+   */
+  groupBy?: EventEmitter<GroupBy<T>>;
 
   /**
    * This method takes a Query constructed from the search and sends the search request, emitting the results
