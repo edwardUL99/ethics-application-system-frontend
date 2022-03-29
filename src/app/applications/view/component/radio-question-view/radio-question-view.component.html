@@ -1,13 +1,13 @@
 <div [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="questionComponent"></app-refer-marker>
+    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
     <div *ngIf="edit(); else notEdit">
         <label>{{questionComponent?.title}}</label>
-        <div class="form-text" [innerHTML]="questionComponent?.description"></div>
+        <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div [id]="questionComponent?.componentId + '-radios'" class="row">
             <div [ngClass]="(questionComponent?.inline) ? '':'col'">
                 <div *ngFor="let radio of getRadios()" [ngClass]="radioClass">
                     <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event)" 
-                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue">
+                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue" [formGroupName]="component?.name">
                     <label class="form-check-label">{{radio?.title}}</label>
                 </div>
             </div>
@@ -18,4 +18,5 @@
         <app-answer-view *ngIf="displayAnswer()"
             [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     </ng-template>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

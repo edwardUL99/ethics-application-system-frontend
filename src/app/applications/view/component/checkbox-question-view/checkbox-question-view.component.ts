@@ -10,6 +10,8 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { CheckboxGroupRequired } from '../../../../validators';
+import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 
 @Component({
@@ -63,6 +65,14 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor() {}
 
@@ -72,6 +82,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -82,15 +94,8 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.questionComponent = this.castComponent();
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
-    this.questionComponent.options.forEach(option => {
-      const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
-      this.checkboxes[option.identifier] = checkbox;
 
-      this.selectedCheckboxes[checkbox.identifier] = false;
-      this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
-    });
-
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -106,8 +111,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   private _addToForm(): void {
-    this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
-
     if (this.questionComponent.required) {
       this.checkboxGroup.addValidators(CheckboxGroupRequired());
     }
@@ -118,8 +121,23 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   addToForm(): void {
+    const newCheckboxGroup = !this.checkboxGroup;
+    this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
+
+    if (newCheckboxGroup) {
+      this.questionComponent.options.forEach(option => {
+        const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
+        this.checkboxes[option.identifier] = checkbox;
+  
+        this.selectedCheckboxes[checkbox.identifier] = false;
+  
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !this.questionComponent.editable}));
+      });
+    }
+
     if (this.edit()) {
       this._addToForm();
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
@@ -129,14 +147,17 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     });
     this.form.removeControl(this.questionComponent.name);
     this.checkboxGroup = undefined;
+    this.autosaveContext?.removeQuestion(this);
   }
 
   castComponent() {
     return this.component as CheckboxQuestionComponent;
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   private select(checkbox: string) {
@@ -158,13 +179,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxGroup.get(event.target.value).setValue('', {emitEvent: false});
     }
 
-    this.emit();
-  }
-  
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+    this.emit(true);
   }
 
   display(): boolean {
@@ -172,7 +187,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {
@@ -188,7 +203,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
       this.checkboxGroup.markAsTouched();
 
-      this._emit();
+      this.emit(false);
     }
   }
 
@@ -219,6 +234,9 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+    this.visible = display;
+
+    return display;
   }
 }

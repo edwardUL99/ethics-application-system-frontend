@@ -14,6 +14,7 @@ import { ComponentViewRegistration } from '../registered.components';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { CheckboxGroupRequired } from '../../../../validators';
 import { AlertComponent } from '../../../../alert/alert.component';
+import { AutosaveContext } from '../autosave';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -85,6 +86,15 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @ViewChild('error')
   error: AlertComponent;
+  /**
+   * An alert for indicating information about the attach-file event
+   */
+  @ViewChild('attachFileAlert')
+  attachFileAlert: AlertComponent;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
 
   constructor() {}
 
@@ -94,6 +104,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.application = questionData.application;
     this.form = questionData.form;
     this.template = data.template;
+    this.autosaveContext = questionData.autosaveContext;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -103,7 +114,8 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   ngOnInit(): void {
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
-    QuestionViewUtils.setExistingAnswer(this);
+
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -113,21 +125,24 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   addToForm(): void {
     const edit = this.edit();
+    const newCheckboxGroup = !this.checkboxGroup;
+    this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
-      this.checkboxGroup = (this.checkboxGroup) ? this.checkboxGroup:new FormGroup({});
-
+    if (newCheckboxGroup) {
       this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
         this.checkboxes[checkbox.identifier] = checkbox;
         this.selectedCheckboxes[checkbox.identifier] = false;
         this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
       });
+    }
 
+    if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       if (this.checkboxGroupComponent.required) {
         this.checkboxGroup.addValidators(CheckboxGroupRequired());
       }
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
@@ -138,6 +153,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     this.form.removeControl(this.checkboxGroupComponent.componentId);
     this.checkboxGroup = undefined;
+    this.autosaveContext?.removeQuestion(this);
   }
 
   /**
@@ -184,11 +200,13 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxGroup.get(checkbox).setValue('');
     }
 
-    this.emit();
+    this.emit(true);
   }
 
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
+  emit(autosave: boolean) {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   castComponent() {
@@ -196,8 +214,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   displayError(msg: string) {
-    this.error.message = msg;
-    this.error.show();
+    this.error.displayMessage(msg, true);
   }
 
   private _terminate(actionBranch: ActionBranch, checkbox: string) {
@@ -214,8 +231,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     }
   }
 
-  private _attachFile(checkbox: string) {
-    console.log(`Attach file to checkbox ${checkbox}`);
+  private _attachFile() {
+    this.attachFileAlert.alertType = 'alert-primary';
+    this.attachFileAlert.message = 'Attaching file';
+    this.attachFileAlert.show();
+    this.template.attachFileToApplication(this);
   }
 
   private _executeActionBranch(branch: Branch, checkbox: string) {
@@ -224,7 +244,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     if (actionBranch.action == Actions.TERMINATE) {
       this._terminate(actionBranch, checkbox);
     } else if (actionBranch.action == Actions.ATTACH_FILE) {
-      this._attachFile(checkbox);
+      this._attachFile();
     }
   }
 
@@ -263,17 +283,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   display(): boolean {
     return QuestionViewUtils.display(this);
-  }
-
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
   }
 
   setFromAnswer(answer: Answer): void {
@@ -289,7 +303,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     this.checkboxGroup.markAsTouched();
 
-    this._emit();
+    this.emit(false);
   }
 
   value(): Answer {
@@ -313,5 +327,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
   displayAnswer(): boolean {
     return true; // no-op
+  }
+
+  onFileAttached(message: string, error?: boolean) {
+    // callback for when a file is attached after the attach-file action
+    this.attachFileAlert.message = message;
+    this.attachFileAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
+    this.attachFileAlert.show();
+
+    if (!error) {
+      setTimeout(() => this.attachFileAlert.hide(), 2000);
+    }
   }
 }

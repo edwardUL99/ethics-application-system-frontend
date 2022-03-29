@@ -1,11 +1,11 @@
 <div>
-  <div *ngIf="application" class="">
+  <div>
     <div class="card shadow text-center my-2 p-2">
       <div class="mb-2">
         <h3>{{template?.name}}</h3>
       </div>
       <div class="mb-2">
-        <p style="color: lightgrey" [innerHTML]="template?.description"></p>
+        <p style="color: grey;" class="render-new-lines">{{template?.description}}</p>
       </div>
       <div class="mb-2">
         <p><b>Version:</b> {{template?.version}}</p>

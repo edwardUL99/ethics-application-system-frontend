@@ -1,0 +1,67 @@
+<div>
+  <h4 style="color: white">Search</h4>
+  <app-application-search #applicationSearch (reset)="searchReset($event)" (groupBy)="doGroup($event)"></app-application-search>
+  <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
+</div>
+<div>
+  <div class="row">
+    <div class="col text-start">
+      <h4 style="color: white">Applications</h4>
+    </div>
+    <div class="col text-end">
+      <button type="button" class="btn btn-primary btn-sm" (click)="refresh()">Refresh</button>
+    </div>
+  </div>
+  <div class="card shadow p-2" *ngIf="applications">
+    <div *ngIf="!grouped">
+      <div *ngIf="applications.length > 0; else noApplications">
+        <div class="d-flex flex-row flex-wrap">
+          <div *ngFor="let application of applications">
+            <div class="card shadow m-2" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title">{{application.id}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
+                <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+              </div>
+              <div class="card-footer text-muted">
+                {{lastUpdated(application.lastUpdated)}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ng-template #noApplications>
+        <div class="text-center">
+          There are no applications available to view
+        </div>
+      </ng-template>
+    </div>
+    <div *ngIf="grouped">
+      <div *ngIf="grouped.hasValues(); else noGroupValues">
+        <div *ngFor="let item of grouped.grouped | keyvalue: grouped.groupSort" class="my-2">
+          <h5 style="color: grey">{{item.key}}</h5>
+          <div class="d-flex flex-row flex-wrap">
+            <div *ngFor="let application of item.value">
+              <div class="card shadow m-2" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">{{application.id}}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">{{mapStatus(application.status)}}</h6>
+                  <a [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
+                </div>
+                <div class="card-footer text-muted">
+                  {{lastUpdated(application.lastUpdated)}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr>
+        </div>
+      </div>
+      <ng-template #noGroupValues>
+        <div class="text-center">
+          There are no applications available to view
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

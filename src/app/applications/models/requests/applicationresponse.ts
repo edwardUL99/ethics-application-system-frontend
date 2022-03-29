@@ -1,19 +1,12 @@
 import { BaseResponse } from '../../../baseresponse';
 import { ApplicationStatus } from '../applications/applicationstatus';
-import { AnswerShape, AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from './shapes';
+import { AnswerShape, ApplicationCommentsShape, AssignedCommitteeMemberResponse, AttachedFileShape, CommentShape } from './shapes';
 
 /**
  * The mapping of componentID to the answer shape
  */
 export type AnswersMapping = {
   [key: string]: AnswerShape
-}
-
-/**
- * This mapping maps ID to an attached file
- */
-export type AttachedFilesMapping = {
-  [key: string]: AttachedFileShape
 }
 
 /**
@@ -51,7 +44,7 @@ export interface ApplicationResponse extends BaseResponse {
   /**
    * The map of files attached to the application
    */
-  attachedFiles: AttachedFilesMapping;
+  attachedFiles: AttachedFileShape[];
 }
 
 /**
@@ -63,7 +56,7 @@ export interface DraftApplicationResponse extends ApplicationResponse {}
  * The mapping of component IDs to the comment shapes
  */
 export type CommentsMapping = {
-  [key: string]: CommentShape;
+  [key: string]: ApplicationCommentsShape;
 }
 
 /**
@@ -85,7 +78,11 @@ export interface SubmittedApplicationResponse extends ApplicationResponse {
   /**
    * An optional value of previous committee members
    */
-  previousCommitteeMembers?: string[]; 
+  previousCommitteeMembers?: string[];
+  /**
+   * The time the application was submitted at
+   */ 
+  submittedTime: string;
   /**
    * The timestamp of when the application was approved
    */

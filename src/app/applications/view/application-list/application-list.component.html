@@ -16,7 +16,6 @@
             <div class="form-group">
               <label>Application:</label>
               <select class="form-select" formControlName="template" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
-                <option></option>
                 <option *ngFor="let option of templateOptions" [value]="option.value">{{option.label}}</option>
               </select>
               <div class="form-text">
@@ -29,39 +28,7 @@
           </form>
         </div>
       </div>
-      <div>
-        <h4 style="color: white">Search</h4>
-        <div class="card shadow my-3 p-2 text-center">
-          Search will go here
-        </div>
-      </div>
-      <div>
-        <h4 style="color: white">Applications</h4>
-        <div class="card shadow p-2" *ngIf="applications | async as list">
-          <div *ngIf="list.length > 0; else noApplications">
-            <div *ngFor="let application of list; let i = index">
-              <hr *ngIf="i > 0" class="my-3">
-              <div class="row">
-                <div class="col">
-                  <h4>{{application.id}}</h4>
-                </div>
-                <div class="col text-center my-auto">
-                  <h6>Status</h6>
-                  <p class="form-text">{{application.status}}</p>
-                </div>
-                <div class="col">
-                  <a class="btn btn-link" [routerLink]="['/application']" [queryParams]="{id: application.id}">Open</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <ng-template #noApplications>
-            <div class="text-center">
-              There are no applications available to view
-            </div>
-          </ng-template>
-        </div>
-      </div>
+      <app-application-results *ngIf="userPermissions" [permissions]="userPermissions" (error)="unknownError($event)"></app-application-results>
     </div>
   </div>
   <ng-template #displayError>

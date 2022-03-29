@@ -1,0 +1,46 @@
+<div>
+  <form [formGroup]="form" *ngIf="queries">
+    <div class="form-group row" *ngIf="queries.length > 1">
+      <label class="col-1 col-form-label">Search By:</label>
+      <div class="col-2">
+        <select class="form-select" name="query" formControlName="query" (change)="onQueryChange($event)" [appTooltip]="'Choose the attribute to search by'">
+          <option *ngFor="let query of queries" [value]="query.value">{{query.label}}</option>
+        </select>
+      </div>
+    </div>
+    <div formArrayName="controls" class="my-2 row">
+      <div *ngFor="let searchControl of searchControls; let i = index" class="form-group col">
+        <label>{{searchControl.label}}</label>
+        <div *ngIf="searchControl.options; else option">
+          <select class="form-select" [name]="'searchControl-' + i" [formControlName]="i">
+            <option *ngFor="let option of searchControl.options" [value]="option.value">{{option.label}}</option>
+          </select>
+        </div>
+        <ng-template #option>
+          <input class="form-control" [type]="searchControl.type" [name]="'searchControl-' + i" [formControlName]="i" [placeholder]="searchControl.placeholder">
+        </ng-template>
+        <div class="form-text" *ngIf="searchControl.description">
+          {{searchControl.description}}
+        </div>
+      </div>
+    </div>
+    <div class="my-2 row w-25" *ngIf="groupOptions">
+      <form [formGroup]="groupForm">
+        <div class="form-group">
+          <label>Group By</label>
+          <select class="form-select" name="group-by" (change)="groupByChange($event)" formControlName="groupBy">
+            <option></option>
+            <option *ngFor="let option of groupOptions" [value]="option.value">{{option.label}}</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div *ngIf="!allowReset" class="text-end">
+      <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
+    </div>
+    <div *ngIf="allowReset" class="text-end">
+      <button type="button" class="btn btn-outline-danger" style="margin-right: 1%;" (click)="doReset()">Reset</button>
+      <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
+    </div>
+  </form>
+</div>

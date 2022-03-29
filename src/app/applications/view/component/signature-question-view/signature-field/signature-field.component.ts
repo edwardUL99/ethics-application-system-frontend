@@ -1,6 +1,6 @@
 import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor }  from '@angular/forms';
-import { NgSignaturePadOptions, SignaturePadComponent } from '@almothafar/angular-signature-pad';
+import { SignaturePadComponent } from '@almothafar/angular-signature-pad';
 
 @Component({
     selector: 'signature-field',

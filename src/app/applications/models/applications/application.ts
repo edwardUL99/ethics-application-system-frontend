@@ -2,9 +2,9 @@ import { User } from '../../../users/user';
 import { ApplicationTemplate } from '../applicationtemplate';
 import { ApplicationStatus } from './applicationstatus';
 import { AttachedFile } from './attachedfile';
-import { Comment } from './comment';
+import { ApplicationComments, Comment } from './comment';
 import { ApplicationInitialiser } from './applicationinit';
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
+import { AnswersMapping, CommentsMapping } from './types';
 import { AssignedCommitteeMember } from './assignedcommitteemember';
 
 /**
@@ -39,7 +39,7 @@ export class Application {
   /**
    * Any files attached to the application
    */
-  attachedFiles: AttachedFilesMapping = undefined;
+  attachedFiles: AttachedFile[] = undefined;
   /**
    * The timestamp of when the application was last updated
    */
@@ -60,6 +60,10 @@ export class Application {
    * The list of any committee members that were previously assigned to the application but it was referred
    */
   previousCommitteeMembers: User[] = undefined;
+  /**
+   * The time the application was submitted at
+   */
+  submittedTime: Date = undefined;
   /**
    * The timestamp of when the application was approved if approval is granted
    */
@@ -94,7 +98,7 @@ export class Application {
    * @param file the file to attach
    */
   attachFile(file: AttachedFile) {
-    this.attachedFiles[file.componentId] = file;
+    this.attachedFiles.push(file);
   }
 
   /**
@@ -102,7 +106,7 @@ export class Application {
    * @param user the user to assign
    */
    assignCommitteeMember(user: User) {
-    this.assignedCommitteeMembers.push(new AssignedCommitteeMember(undefined, user, false));
+    this.assignedCommitteeMembers.push(new AssignedCommitteeMember(undefined, this.applicationId, user, false));
   }
 
   /**
@@ -110,6 +114,12 @@ export class Application {
    * @param comment the comment to add
    */
   addComment(comment: Comment) {
-    this.comments[comment.componentId] = comment;
+    const comments = this.comments[comment.componentId];
+
+    if (comments) {
+      comments.comments.push(comment);
+    } else {
+      this.comments[comment.componentId] = new ApplicationComments(undefined, comment.componentId, [comment]);
+    }
   }
 }

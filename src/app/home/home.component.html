@@ -4,9 +4,14 @@
     <app-center-header [text]="'Research Ethics'"></app-center-header>
     <app-alert [message]="error" [alertType]="'alert-danger'" [hidden]="!error" [dismissible]="true"></app-alert>
     <div class="card p-2 text-center">
-      <p class="welcome-text">Welcome to the Education and Health Sciences Research Ethics Web Page. Research is important. It is one of the "raison d'etres" of a university.  
-      A university's infrastructure's purpose is to facilitate research, indeed to promote it. 
-      Yet there is also a need to safeguard those who are the subject of such research.</p>
+      <p class="welcome-text">Welcome to the Faculty of Science and Engineering Research Ethics Web Application System.
+        The aim of our committee is to ensure that research is conducted according to best practice and in accordance with ethical standards in research. 
+        Our first priority is to safeguard the health, welfare, dignity and rights of human participants and the researchers undertaking the work in order 
+        to minimise risk to these parties as well as the University of Limerick itself.
+        <br>
+        It should be noted that <b>our REC facilitates, not hinders, valuable research</b> and to protect you the researcher from unjustified criticism 
+        and/or legal action
+      </p>
       <div class="text-center mt-3 d-flex align-self-center">
         <button type="button" class="btn btn-primary" style="margin-right: 50px" (click)="goToApplications()">View Applications</button>
         <button *ngIf="createApplication" type="button" class="btn btn-primary" (click)="goToApplications(true)">Create Application</button>

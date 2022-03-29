@@ -51,9 +51,31 @@ export interface CommentShape {
    */
   subComments: CommentShape[];
   /**
+   * True if shared with applicants
+   */
+  sharedApplicant: boolean;
+  /**
    * The timestamp of when the comment was created
    */
   createdAt: string;
+}
+
+/**
+ * This interface represents the shape of the application comments
+ */
+export interface ApplicationCommentsShape {
+  /**
+   * The database ID
+   */
+  id: number;
+  /**
+   * The component ID of the component the comments are attached to
+   */
+  componentId: string;
+  /**
+   * The comments attached to the component
+   */
+  comments: CommentShape[];
 }
 
 /**
@@ -73,9 +95,9 @@ export interface AttachedFileShape {
    */
   directory: string;
   /**
-   * The componentID the file is attached to
+   * The username of the user that uploaded the file
    */
-  componentId: string;
+  username: string;
 }
 
 /**
@@ -87,6 +109,10 @@ export interface AssignedCommitteeMemberResponse {
    * The database ID of the object
    */
   id: number;
+  /**
+   * The ID of the application the user is assigned to
+   */
+  applicationId: string;
   /**
    * The username of the assigned committee member
    */

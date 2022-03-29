@@ -4,6 +4,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { NavbarComponent } from './navbar.component';
 import { UserService } from '../users/user.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { AuthService } from '../authentication/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '../users/user';
@@ -14,7 +15,7 @@ describe('NavbarComponent', () => {
   let fixture: ComponentFixture<NavbarComponent>;
 
   beforeEach(() => {
-    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser', 'getUsername', 'getName']);
+    const userContextSpy = jasmine.createSpyObj('UserContext', ['getUser', 'getUsername', 'getName', 'subscribeToUpdates']);
     userContextSpy.getUser.and.returnValue(new Observable<User>(observer => {
       observer.next(createUser());
       observer.complete();
@@ -29,7 +30,8 @@ describe('NavbarComponent', () => {
         NgbModal
       ],
       imports: [
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        RouterTestingModule
       ]
     })
     .compileComponents();

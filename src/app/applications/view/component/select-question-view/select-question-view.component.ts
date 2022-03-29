@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, ValidatorFn, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, ValidationErrors } from '@angular/forms';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
@@ -8,13 +8,8 @@ import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
-
-/**
- * A type that holds the selected options
- */
-export type SelectedOptions = {
-  [key: string]: boolean
-}
+import { AutosaveContext } from '../autosave';
+import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 
 /**
  * This function returns a validator that validates the value chosen by select
@@ -23,9 +18,15 @@ export type SelectedOptions = {
 export function SelectValidator(): ValidatorFn {
   return (c: FormControl): ValidationErrors | null => {
     const value = c.value;
-
-    if (value.length == 1 && value == '') {
-      return {required: true};
+    
+    if (Array.isArray(value)) {
+      if (value.length == 0 || (value.length == 1 && value[0] == '')) {
+        return {required: true};
+      }
+    } else {
+      if (value == '') {
+        return {required: true};
+      }
     }
 
     return null;
@@ -64,10 +65,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   control: FormControl;
   /**
-   * The mapping of selected options
-   */
-  selected: SelectedOptions = {};
-  /**
    * The question change event emitter
    */
   @Output() questionChange: QuestionChange = new QuestionChange();
@@ -75,6 +72,14 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * Determines if the component is visible
    */
   @Input() visible: boolean;
+  /**
+   * The context for autosaving
+   */
+  autosaveContext: AutosaveContext;
+  /**
+   * The parent template component
+   */
+  @Input() template: ApplicationTemplateDisplayComponent;
 
   constructor() {}
 
@@ -84,6 +89,8 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.parent = questionData.parent;
     this.application = data.application;
     this.form = questionData.form;
+    this.autosaveContext = questionData.autosaveContext;
+    this.template = questionData.template;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -94,7 +101,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
-    QuestionViewUtils.setExistingAnswer(this);
+    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -107,60 +114,36 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
       const validator = SelectValidator();
-      if (this.questionComponent.required && !this.control.hasValidator(Validators.required) 
-        && !this.control.hasValidator(validator)) {
-        this.control.addValidators(Validators.required);
+      if (this.questionComponent.required && !this.control.hasValidator(validator)) {
         this.control.addValidators(validator);
       }
-
-      this.questionComponent.options.forEach(option => this.selected[option.value] = false);
       
       if (!this.form.get(this.questionComponent.name)) {
         this.form.addControl(this.questionComponent.name, this.control);
       }
+
+      this.autosaveContext?.registerQuestion(this);
     }
   }
 
   removeFromForm(): void {
     this.control = undefined;
     this.form.removeControl(this.questionComponent.name);
+    this.autosaveContext?.removeQuestion(this);
   }
 
   castComponent() {
     return this.component as SelectQuestionComponent;
   }
 
-  /**
-   * Unselect all options except for the provided one
-   * @param option the option to leave selected
-   */
-  private unselectOthers(option: string) {
-    Object.keys(this.selected).forEach(key => {
-      if (option != key) {
-        this.selected[key] = false;
-      }
-    })
+  onChange() {
+    this.emit(true);
   }
 
-  onChange(event: any) {
-    const option = event.value;
-    this.selected[option] = true;
-
-    if (!this.questionComponent.multiple) {
-      this.unselectOthers(option);
-    }
-
-    this.emit();
-  }
-
-  emit() {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this));
-  }
-
-  private _emit() {
-    if (!this.parent) {
-      this.emit();
-    }
+  emit(autosave: boolean) {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    this.questionChange.emit(e);
+    this.autosaveContext?.notifyQuestionChange(e);
   }
 
   autofill(): void {
@@ -169,7 +152,8 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value) {
-          this.control.setValue((Array.isArray(value)) ? value : [value]);
+          this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
+          this.emit(false);
         }
       });
     }
@@ -181,10 +165,9 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     }
 
     const options = answer.value.split(',');
-    options.forEach(option => this.selected[option] = true);
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
-    this._emit();
+    this.emit(false);
   }
 
   display(): boolean {
@@ -192,7 +175,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this);
+    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
   }
 
   value(): Answer {
@@ -221,6 +204,9 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   displayAnswer(): boolean {
-    return this.questionComponent?.componentId in this.application?.answers;
+    const display = this.questionComponent?.componentId in this.application?.answers;
+    this.visible = display;
+
+    return display;
   }
 }

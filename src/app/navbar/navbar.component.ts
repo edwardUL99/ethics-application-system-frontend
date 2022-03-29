@@ -3,6 +3,7 @@ import { UserContext } from '../users/usercontext';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 /**
  * This component represents a navbar used throughout the application
@@ -21,10 +22,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Use this to indicate if profile should be shown
    */
   @Input() displayProfile = false;
-  /**
-   * The name of the url to be active
-   */
-  @Input() active = '';
   /**
    * This determines if the navbar should be "sticky"
    */
@@ -45,8 +42,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * The subscription for retrieving a user
    */
   private userSubscription: Subscription;
+  /**
+   * A subscription to the user context
+   */
+  private contextSubscription: Subscription;
 
-  constructor(private userContext: UserContext, private modalService: NgbModal) { }
+  constructor(private userContext: UserContext, private modalService: NgbModal, private router: Router) {
+    this.contextSubscription = this.userContext.subscribeToUpdates({
+      next: () => {
+        this.username = this.userContext.getUsername();
+        this.name = this.userContext.getName();
+      },
+    });
+  }
 
   ngOnInit() {
     if (!this.hideLinks) {
@@ -79,6 +87,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
+
+    if (this.contextSubscription) {
+      this.contextSubscription.unsubscribe();
+    }
   }
 
   private openError() {
@@ -89,4 +101,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.redirectText = 'Go to login';
   }
 
+  navigateToProfile() {
+    this.router.navigate(['profile']);
+  }
 }

@@ -1,0 +1,30 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container my-3">
+    <h4 style="color: white">User Search</h4>
+    <app-user-search #userSearch></app-user-search>
+    <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
+    <div *ngIf="users">
+      <div *ngIf="users.length == 0; else usersFound" class="card py-3 my-2 text-center">
+        <p class="my-auto">No users found</p>
+      </div>
+      <ng-template #usersFound>
+        <div class="my-4">
+          <h4 style="color: white">Results</h4>
+          <div class="card p-3 m-2">
+            <div class="d-flex flex-row flex-wrap">
+              <div *ngFor="let user of users" class="card shadow" style="width: 18rem; margin-right: 2%">
+                <div class="card-body">
+                  <h5 class="card-title">{{user.name}}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">{{user.role?.name}}</h6>
+                  <p class="card-text">{{user.department}}</p>
+                  <a [routerLink]="['/profile']" [queryParams]="{username: user.username}">View Profile</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

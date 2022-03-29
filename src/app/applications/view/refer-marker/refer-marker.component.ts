@@ -1,15 +1,16 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
-import { ApplicationComponent } from '../../models/components/applicationcomponent';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
+import { ApplicationViewComponent } from '../component/application-view.component';
 
 @Component({
   selector: 'app-refer-marker',
   templateUrl: './refer-marker.component.html',
   styleUrls: ['./refer-marker.component.css']
 })
-export class ReferMarkerComponent implements OnInit {
+export class ReferMarkerComponent implements OnInit, OnChanges {
   /**
    * The application to add the component to
    */
@@ -17,11 +18,15 @@ export class ReferMarkerComponent implements OnInit {
   /**
    * The application component the marker is attached to
    */
-  @Input() component: ApplicationComponent;
+  @Input() component: ApplicationViewComponent;
   /**
    * The user viewing the application
    */
   @Input() viewingUser: ViewingUser;
+  /**
+   * Determine if the component should be enabled
+   */
+  @Input() enable: boolean;
   /**
    * Determine if the marker should be displayed or not
    */
@@ -29,9 +34,12 @@ export class ReferMarkerComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit(): void {
-    this.display = this.viewingUser?.admin && 
-      [ApplicationStatus.SUBMITTED, ApplicationStatus.REVIEW, ApplicationStatus.REVIEWED].indexOf(this.application.status) != -1;
+  ngOnInit(): void {}
+
+  ngOnChanges() {
+    this.display = this.viewingUser?.admin &&
+      this.enable &&
+      ApplicationStatus.REVIEWED == resolveStatus(this.application.status);
   }
 
   /**
@@ -39,10 +47,14 @@ export class ReferMarkerComponent implements OnInit {
    * @param event the event from the chekbox
    */
   onChange(event: any) {
+    if (!this.application.editableFields) {
+      this.application.editableFields = [];
+    }
+
     if (event.target.checked) {
-      this.application.editableFields.push(this.component.componentId);
+      this.application.editableFields.push(this.component.component.componentId);
     } else {
-      const index = this.application.editableFields.indexOf(this.component.componentId);
+      const index = this.application.editableFields.indexOf(this.component.component.componentId);
 
       if (index > -1) {
         this.application.editableFields.splice(index, 1);

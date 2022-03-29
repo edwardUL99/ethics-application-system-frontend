@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -12,7 +12,7 @@ import { QuestionChangeEvent } from '../component/application-view.component';
 import { SectionViewComponent } from '../component/section-view/section-view.component';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../../users/user';
-import { catchError, Observable, of, retry, take} from 'rxjs';
+import { catchError, map, Observable, of, retry, take} from 'rxjs';
 import { CanDeactivateComponent } from '../../../pending-changes/pendingchangesguard';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { Answer } from '../../models/applications/answer';
@@ -26,13 +26,15 @@ import { getErrorMessage } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
-import { mapAnswers } from '../../models/requests/mapping/applicationmapper'
+import { mapAnswers, mapAssignedMembers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper'
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
+import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
-/**
- * The interval to display alerts for
- */
-const ALERT_INTERVAL = 2000;
+import { Location } from '@angular/common';
+import { AssignedUsersComponent } from '../assigned-users/assigned-users.component';
+import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
+import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
+import { Comment } from '../../models/applications/comment';
 
 /**
  * The default template ID to use
@@ -44,7 +46,7 @@ export const DEFAULT_TEMPLATE = environment.default_template_id;
   templateUrl: './application-display.component.html',
   styleUrls: ['./application-display.component.css']
 })
-export class ApplicationDisplayComponent extends CanDeactivateComponent implements OnInit, OnDestroy {
+export class ApplicationDisplayComponent extends CanDeactivateComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   /**
    * The application being displayed
    */
@@ -64,7 +66,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   /**
    * The template view
    */
-  @ViewChild(ApplicationTemplateDisplayComponent)
+  @ViewChild('templateView')
   templateView: ApplicationTemplateDisplayComponent;
   /**
    * The alert to display a message saying the application has been saved
@@ -94,13 +96,9 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    */
   isAdmin: boolean;
   /**
-   * The form group to assign the form to a committee member
-   */
-  assignForm: FormGroup;
-  /**
    * Indicates if this application is a new application
    */
-  private newApplication: boolean = false;
+  newApplication: boolean = false;
   /**
    * A variable indicating if the application is saved
    */
@@ -129,6 +127,20 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * The user viewing the application
    */
   viewingUser: ViewingUser;
+  /**
+   * The attachments modal for adding attachments
+   */
+  @ViewChild('applicationAttachments')
+  applicationAttachments: AttachmentsComponent;
+  /**
+   * The assigned users component
+   */
+  @ViewChild('assignedUsers')
+  assignedUsers: AssignedUsersComponent;
+  /**
+   * Flags if the view has been initialised
+   */
+  private viewInitialised: boolean = false;
 
   constructor(private applicationService: ApplicationService, 
     private templateService: ApplicationTemplateService,
@@ -139,16 +151,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private router: Router,
     private fb: FormBuilder,
     private element: ElementRef,
-    private cd: ChangeDetectorRef) {
+    private cd: ChangeDetectorRef,
+    private location: Location) {
     super();
 
-    this.assignForm = this.fb.group({
-      member: fb.control('', [Validators.required])
-    });
-
     this.finalCommentForm = this.fb.group({
-      comment: fb.control('', [Validators.required]),
-      approval: fb.control('')
+      comment: fb.control('', [Validators.required])
     });
 
     this.element.nativeElement.addEventListener('click', () => {
@@ -160,6 +168,28 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   ngOnInit(): void {
     this.applicationContext.disableAutosave = true;
     this.load();
+  }
+
+  ngAfterViewInit(): void {
+    this.viewInitialised = true;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
+    if (this.viewInitialised && this.templateView) {
+      this.templateView.viewingUser = this.viewingUser;
+    }
+  }
+
+  // TODO where else user's names or usernames are added, allow clicking to go to their user profile
+  navigateToUser(username: string) {
+    if (username) {
+      this.router.navigate(['profile'], {
+        queryParams: {
+          username: username
+        }
+      });
+    }
   }
 
   private load() {
@@ -175,13 +205,24 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       error: e => this.loadError = e
     });
 
+    this.setCommitteeMembers();
+  }
+
+  private setCommitteeMembers() {
+    // returns a list of users that aren't already assigned
+    const committeeMembersAssignedMapper = (response: UserResponseShortened[]): UserResponseShortened[] => {
+      const assignedUsernames: string[] = this.application.assignedCommitteeMembers.map(assigned => assigned.user.username);
+      return response.filter(user => assignedUsernames.indexOf(user.username) == -1);
+    }
+
     this.committeeMembers = this.authorizationService.userService.getAllUsers('REVIEW_APPLICATIONS')
       .pipe(
         retry(3),
         catchError((e) => {
           this.actionError = getErrorMessage(e);
           return of();
-        })
+        }),
+        map(committeeMembersAssignedMapper)
       );
   }
 
@@ -194,13 +235,13 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     this.application = application;
     this.applicationContext.setApplication(this.application);
-    this.cd.detectChanges();
   }
 
   private generateApplication(context: ApplicationTemplateContext) {
     this.userContext.getUser().subscribe({
       next: user => {
-        this.setApplication(Application.create(new DraftApplicationInitialiser(0, 'N/A', user, context.getCurrentTemplate(), {}, {}, undefined)), false);
+        this.setApplication(Application.create(new DraftApplicationInitialiser(0, 'N/A', user, context.getCurrentTemplate(), {}, [], undefined)), false);
+        this.getViewingUser(this.newApplication);
       },
       error: e => this.loadError = e
     });
@@ -245,13 +286,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     ApplicationTemplateContext.getInstance().clear(); // TODO decide if this is necessary, but it maybe as container replacement may modify the template for the next createApplication
   }
 
-  getLastUpdatedDate() {
-    let lastUpdated = this.application?.lastUpdated;
-
-    if (!lastUpdated) {
+  formatDate(date: Date) {
+    if (!date) {
       return 'N/A';
     } else {
-      return lastUpdated.toLocaleString();
+      return date.toLocaleString();
     }
   }
 
@@ -260,6 +299,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       next: user => {
         this.viewingUser = user;
         this.permissionsCheck();
+        this.cd.detectChanges();
       },
       error: e => this.loadError = e
     });
@@ -271,7 +311,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         this.loadError = 'You need to specify an id parameter in the URL'
       } else {
         if (params.new !== undefined) {
-          this.getViewingUser(true);
           this.createNewApplication(params.new);
         } else {
           this.applicationService.getApplication({id: params.id})
@@ -282,6 +321,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
                   next: v => {
                     this.setApplication(v);
                     this.getViewingUser(false);
+                    this.cd.detectChanges();
                   },
                   error: e => this.loadError = e
                 });
@@ -291,9 +331,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         }
       }
     });
-
-    // // TODO this component is being tested and needs improvement but for now it should be ok
-    // this.setApplication(createDraftApplication());
   }
 
   private reload(hotReload: boolean = false) {
@@ -313,11 +350,12 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           id: this.application.applicationId
         }
       });
+      this.templateView.reload();
     }
   }
 
   private setAnswer(answer: Answer) {
-    if (answer) {
+    if (answer && !answer.empty()) {
       // set the answer on the application from a question change event
       const componentId = answer.componentId;
       this.application.answers[componentId] = answer;
@@ -353,6 +391,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         } else {
           section.onAutoSave(error, true);
         }
+
+        this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
       }
 
       // a section requested that it do be autosaved
@@ -368,6 +408,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
           } else {
             section.onAutoSave(error, true);
           }
+
+          this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
         }
 
         this.saveDraft(createCallback, updateCallback);
@@ -378,9 +420,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private displaySaveAlert() {
-    this.saveAlert.show();
-    this.saveAlert.message = MessageMappings.application_updated;
-    setTimeout(() => this.saveAlert.hide(), ALERT_INTERVAL);
+    this.saveAlert.displayMessage(MessageMappings.application_updated);
   }
 
   private _populateApplication(response?: CreateDraftApplicationResponse) {
@@ -390,14 +430,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.application.applicationTemplate.databaseId = response.templateId;
   }
 
-  private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any): void {
+  private createDraftCallback(response?: CreateDraftApplicationResponse, error?: any, reload?: boolean): void {
     if (response) {
       this.application.applicationId = response.id;
       this.application.answers = mapAnswers(response.answers);
       this._populateApplication(response);
       this.saved = true;
       this.displaySaveAlert();
-      this.reload(true);
+
+      if (reload) {
+        this.reload(true);
+      }
     } else {
       this.saveError = error;
       this.saveErrorAlert.show();
@@ -444,7 +487,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveDraft(createCallback: (response?: CreateDraftApplicationResponse, error?: any) => void,
-    updateCallback: (respponse?: UpdateDraftApplicationResponse, error?: any) => void) {
+    updateCallback: (response?: UpdateDraftApplicationResponse, error?: any) => void) {
     
     if (this.newApplication) {
       this.createDraft(createCallback);
@@ -463,33 +506,76 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   save() {
-    if (this.application.status == ApplicationStatus.DRAFT) {
-      this.saveDraft((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e),
-        (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
-    } else if (this.application.status == ApplicationStatus.REFERRED) {
-      this.saveReferred((r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e));
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => this.createDraftCallback(r, e, true),
+      (r?: UpdateDraftApplicationResponse, e?: any) => this.updateDraftCallback(r, e))
+  }
+
+  saveAndUpdateDisplay(callback: (e?: any) => void) {
+    // save/update the applicate and then update the display which then calls the provided callback
+    const createCallback = (r?: CreateDraftApplicationResponse, e?: any) => {
+      this.createDraftCallback(r, e, false);
+      const url = this.router.createUrlTree([], {relativeTo: this.activatedRoute, queryParams: {id: this.application.applicationId}}).toString()
+      this.location.go(url);
+      this.newApplication = false;
+      callback(e);
+    };
+
+    const updateCallback = (r?: UpdateDraftApplicationResponse, e?: any) => {
+      this.updateDraftCallback(r, e);
+      callback(e);
     }
+
+    this.saveCallback(createCallback, updateCallback);
+  }
+
+  private saveCallback(createCallback: (r?: CreateDraftApplicationResponse, e?: any) => void, updateCallback: (r?: UpdateDraftApplicationResponse, e?: any) => void) {
+    if (this.application.status == ApplicationStatus.DRAFT) {
+      this.saveDraft(createCallback, updateCallback);
+    } else if (this.application.status == ApplicationStatus.REFERRED) {
+      this.saveReferred(updateCallback);
+    }
+  }
+
+  getStatus() {
+    if (this.application.status) {
+      return resolveStatus(this.application?.status);
+    }
+  }
+
+  private saveBeforeSubmit() {
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => {
+      if (!e) {
+        this.saved = true;
+        this.submit(false);
+      } else {
+        this.saveErrorAlert.displayMessage(e, true)
+      }
+    }, (r?: UpdateDraftApplicationResponse, e?: any) => {
+      if (!e) {
+        this.saved = true;
+        this.submit(false);
+      } else {
+        this.saveErrorAlert.displayMessage(e, true)
+      }
+    });
   }
 
   submit(confirmSubmission: boolean = true) {
     if (!confirmSubmission || confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
       if (!this.saved) {
-        this.save(); // save any unsaved answers before submitting
-        this.submit(false);
+        this.saveBeforeSubmit(); // save any unsaved answers before submitting
       } else {
         this.applicationService.submitApplication(new SubmitApplicationRequest(this.application.applicationId))
           .subscribe({
             next: response => {
               this.application.status = response.status;
               this.application.lastUpdated = new Date(response.lastUpdated);
+              this.application.submittedTime = new Date(response.submittedTime);
               this.application.id = response.dbId;
               this.application.answers = mapAnswers(response.answers);
               this.reload(true);
             },
-            error: e => {
-              this.saveErrorAlert.message = e;
-              this.saveErrorAlert.show();
-            }
+            error: e => this.saveErrorAlert.displayMessage(e, true)
           });
       }
     }
@@ -508,7 +594,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   checkStatus(status: string): boolean {
-    return this.application.status == ApplicationStatus[status];
+    return resolveStatus(this.application.status) == ApplicationStatus[status];
   }
 
   /**
@@ -517,36 +603,36 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * @param error if the message is an error
    */
   private displayActionAlert(message: string, error: boolean = false) {
-    this.actionAlert.message = message;
-    this.actionAlert.alertType = (error) ? 'alert-danger' : 'alert-success';
-    this.actionAlert.show();
-    
-    if (!error) {
-      setTimeout(() => {
-        this.actionAlert.hide();
-        this.actionAlert.message = '';
-      }, ALERT_INTERVAL);
-    }
+    this.actionAlert.displayMessage(message, error);
   }
 
-  assignMembers() {
-    const value = this.assignForm.get('member').value;
-
-    if (value) {
-      this.applicationService.assignCommitteeMembers(this.application, value)
-        .subscribe({
-          next: () => this.displayActionAlert('Committee Members Assigned'),
-          error: e => this.actionError = e
-        });
-    }
+  memberUnassigned() {
+    this.reload(true);
   }
 
-  markReviewed() {
+  private isAssigned(username: string): boolean {
+    return this.application.assignedCommitteeMembers
+      .filter(assigned => assigned.user.username == username)
+      .length > 0;
+  }
+
+  private markReviewedAdmin(checkAssigned?: boolean) {
+    // an admin can mark the whole application as reviewed
+    if (checkAssigned && this.isAssigned(this.viewingUser.user.username)) {
+      if (confirm('You are assigned to the application. Click Ok if you want to mark your review as finished or Cancel if you want to finish the review process')) {
+        this.markReviewedAssigned();
+      } else {
+        this.markReviewedAdmin(false);
+      }
+    } else {
+      const resolvedStatus = resolveStatus(this.application.status);
+
     let finishReview: boolean;
+    let startReview: boolean = resolvedStatus == ApplicationStatus.SUBMITTED;
 
-    if (this.application.status == ApplicationStatus.REVIEW) {
+    if (resolvedStatus == ApplicationStatus.REVIEW) {
       finishReview = true;
-    } else if (this.application.status == ApplicationStatus.REVIEWED) {
+    } else if (resolvedStatus == ApplicationStatus.REVIEWED || resolvedStatus == ApplicationStatus.SUBMITTED) {
       finishReview = false;
     } else {
       return; // not correct status for marking as review
@@ -557,36 +643,152 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         next: response => {
           this.application.status = response.status;
           this.application.lastUpdated = new Date(response.lastUpdated);
+          
+          response.assignedCommitteeMembers.forEach(a => {
+            for (let assigned of this.application.assignedCommitteeMembers) {
+              if (a.username == assigned.user.username) {
+                assigned.finishReview = a.finishReview;
+                break;
+              }
+            }  
+          });
+          
+          let message: string;
 
-          this.displayActionAlert((finishReview) ? 'Application marked as reviewed':'Application moved back to review');
+          if (startReview) {
+            message = 'Application moved to review';
+          } else {
+            message = (finishReview) ? 'Application marked as reviewed':'Application moved back to review';
+          }
+
+          if (!finishReview) {
+            this.assignedUsers.setCommitteeMembers();
+          }
+
+          this.displayActionAlert(message);
+          this.reload(true);
         },
         error: e => this.actionError = e
       });
+    }
+  }
+
+  displayReviewButton() {
+    if (this.viewingUser?.admin) {
+      return true;
+    } else if (this.viewingUser?.reviewer) {
+      const found = this.application.assignedCommitteeMembers.find(u => u.user.username == this.viewingUser.user.username);
+      return found && !found.finishReview;
+    } else {
+      return false;
+    }
+  }
+
+  private markReviewedAssigned() {
+    // mark your own review as finished rather than whole application (for assigned members)
+    if (confirm('Please confirm that you are finished your review')) {
+      this.applicationService.finishMemberReview(this.application, this.viewingUser.user.username)
+        .subscribe({
+          next: () => {
+            this.displayActionAlert('You have successfuly finished your review');
+            this.reload(true);
+          },
+          error: e => this.actionError = e
+        });
+    }
+  }
+
+  markReviewed() {
+    const resolvedStatus = resolveStatus(this.application.status);
+
+    if (this.isAdmin) {
+      this.markReviewedAdmin();
+    } else {
+      if (resolvedStatus == ApplicationStatus.REVIEW) {
+        this.markReviewedAssigned();
+      }
+    }
   }
 
   referApplication() {
-    this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, this.application.editableFields, this.user.username))
+    const fields = (this.application.editableFields) ? this.application.editableFields : [];
+    this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, fields, this.user.username))
       .subscribe({
         next: response => {
+          this.application.status = response.status;
           this.application.referredBy = this.user;
           this.application.editableFields = response.editableFields;
           this.application.lastUpdated = new Date(response.lastUpdated);
           this.displayActionAlert('Application referred to applicant');
+          this.reload(true);
         },
         error: e => this.actionError = e
       });
   }
 
   acceptReferred() {
-    console.log('Accept referred back')
+    this.assignedUsers.setAcceptReferred(!this.assignedUsers.displayed);
+    this.assignedUsers.toggleDisplayed(!this.assignedUsers.displayed);
+  }
+
+  acceptAssignedUsers(users: string[]) {
+    this.applicationService.acceptResubmitted(new AcceptResubmittedRequest(this.application.applicationId, users))
+      .subscribe({
+        next: response => {
+          this.displayActionAlert('Referred application accepted by the committee successfully');
+          this.assignedUsers.acceptReferredAssign = false;
+          this.assignedUsers.toggleDisplayed(false);
+          this.application.status = response.status;
+          mapAssignedMembers(response.assignedCommitteeMembers)
+            .subscribe({
+              next: response => this.application.assignedCommitteeMembers = response,
+              error: e => console.error(e)
+            });
+          this.application.previousCommitteeMembers = [];
+          this.reload(true);
+        },
+        error: e => {
+          this.displayActionAlert(e, true);
+          this.assignedUsers.acceptReferredAssign = false;
+        }
+      });
+  }
+
+  private doApproval(approve: boolean, finalComment: Comment) {
+    const request = new ApproveApplicationRequest(this.application.applicationId, approve, finalComment);
+
+    this.applicationService.approveApplication(request)
+      .subscribe({
+        next: response => {
+          this.displayActionAlert((approve) ? 'Application approved successfully' : 'Application rejected successfully');
+          
+          this.application.status = response.status;
+          this.application.lastUpdated = new Date(response.lastUpdated);
+          this.application.approvalTime = new Date(response.lastUpdated);
+          this.application.finalComment = mapComment(response.finalComment);
+          
+          this.reload(true);
+        },
+        error: e => this.displayActionAlert(e, true)
+      });
+  }
+
+  private getFinalComment(): Comment {
+    const value = this.finalCommentForm.get('comment').value;
+
+    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
   }
 
   rejectApplication() {
-    console.log('Reject');
+    if (confirm('Are you sure you want to reject the application?')) {
+      this.doApproval(false, this.getFinalComment());
+    }
   }
 
   approveApplication() {
-    console.log('Approve');
+    if (confirm('Are you sure you want to approve the application?')) {
+      this.doApproval(true, this.getFinalComment());
+    }
   }
 
   private permissionsCheck() {
@@ -596,6 +798,15 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     } else {
       this.canReview = !this.viewingUser.applicant && this.viewingUser.reviewer;
       this.isAdmin = this.viewingUser.admin;
+    }
+  }
+
+  attachFile(checkbox: CheckboxGroupViewComponent) {
+    if (checkbox && (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED)) {
+      this.applicationAttachments.attachments.attachFileCallback({
+        next: () => checkbox.onFileAttached('File attached successfully'),
+        error: e => checkbox.onFileAttached(e, true)
+      });
     }
   }
 

@@ -7,8 +7,7 @@ import { ApplicationTemplateService } from '../../application-template.service';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { ApplicationService } from '../../application.service';
 import { Authorizer } from '../../../users/authorizations';
-import { catchError, Observable, of } from 'rxjs';
-import { ApplicationResponse } from '../../models/requests/applicationresponse';
+import { UserPermissions } from '../../userpermissions';
 
 /**
  * A template choice
@@ -23,24 +22,6 @@ interface TemplateOption {
    * The template name
    */
   label: string;
-}
-
-/**
- * An interface representing the different permissions the user viewing the applications page
- */
-interface UserPermissions {
-  /**
-   * Determines if the user can create an application
-   */
-  createApplication: boolean;
-  /**
-   * Determines if the user can review an application
-   */
-  reviewApplication: boolean;
-  /**
-   * Determines if the user has an admin permission
-   */
-  admin: boolean;
 }
 
 /**
@@ -82,11 +63,6 @@ export class ApplicationListComponent implements OnInit {
    */
   userPermissions: UserPermissions;
 
-  /**
-   * The applications subscription
-   */
-  applications: Observable<ApplicationResponse[]>;
-
   constructor(private fb: FormBuilder, 
     private templateService: ApplicationTemplateService,
     private authorizationService: AuthorizationService,
@@ -110,8 +86,6 @@ export class ApplicationListComponent implements OnInit {
               reviewApplication: Authorizer.hasPermission(userPermissions, permissions.REVIEW_APPLICATIONS),
               admin: Authorizer.hasPermission(userPermissions, permissions.ADMIN)
             };
-
-            this.applications = this.getApplications();
           },
           error: e => this.error = e
         });
@@ -166,24 +140,7 @@ export class ApplicationListComponent implements OnInit {
     });
   }
 
-  getApplications(): Observable<ApplicationResponse[]> {
-    let viewable: boolean;
-
-    if (this.userPermissions) {
-      if (this.userPermissions.admin) {
-        viewable = true;
-      } else if (this.userPermissions.reviewApplication) {
-        viewable = false;
-      } else {
-        viewable = true;
-      }
-
-      return this.applicationService.getUserApplications(viewable).pipe(
-        catchError(e => {
-          this.error = e;
-          return of();
-        })
-      );
-    }
+  unknownError(error: any) {
+    this.error = error;
   }
 }

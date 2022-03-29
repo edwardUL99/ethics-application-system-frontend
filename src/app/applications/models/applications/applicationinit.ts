@@ -1,10 +1,11 @@
 import { User } from '../../../users/user';
 import { ApplicationStatus } from './applicationstatus';
 import { ApplicationTemplate } from '../applicationtemplate';
-import { AnswersMapping, AttachedFilesMapping, CommentsMapping } from './types';
+import { AnswersMapping, CommentsMapping } from './types';
 import { Application } from './application';
 import { Comment } from './comment';
 import { AssignedCommitteeMember } from './assignedcommitteemember';
+import { AttachedFile } from './attachedfile';
 
 /*
  * It is easier to work with Application instances in templates as a single class structure,
@@ -24,7 +25,7 @@ const allowedKeys: AllowedKeys = {};
 
 const baseKeys: string[] = ['id', 'applicationId', 'user', 'applicationTemplate', 'answers', 'attachedFiles', 'lastUpdated', 'status'];
 const submittedKeys: string[] = [...baseKeys];
-submittedKeys.push('comments', 'assignedCommitteeMembers', 'finalComment', 'previousCommitteeMembers', 'approvalTime');
+submittedKeys.push('comments', 'assignedCommitteeMembers', 'finalComment', 'previousCommitteeMembers', 'submittedTime', 'approvalTime');
 const referredKeys: string[] = [...submittedKeys];
 referredKeys.push('editableFields', 'referredBy');
 
@@ -52,7 +53,7 @@ export abstract class ApplicationInitialiser {
    */
    constructor(public id: number, public applicationId: string, public user: User,
     public status: ApplicationStatus, public applicationTemplate: ApplicationTemplate,
-    public answers: AnswersMapping, public attachedFiles: AttachedFilesMapping, public lastUpdated: Date) {
+    public answers: AnswersMapping, public attachedFiles: AttachedFile[], public lastUpdated: Date) {
       this.validateStatus(status);
     }
 
@@ -104,7 +105,7 @@ export class DraftApplicationInitialiser extends ApplicationInitialiser {
    * @param lastUpdated the timestamp of when the application was last updated
    */
   constructor(id: number, applicationId: string, user: User,applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date) {
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date) {
     super(id, applicationId, user, ApplicationStatus.DRAFT, applicationTemplate, answers, attachedFiles, lastUpdated);
   }
 
@@ -134,13 +135,14 @@ export class SubmittedApplicationInitialiser extends ApplicationInitialiser {
    * @param finalComment the last comment left on the application
    * @param previousCommitteeMembers the list of any committee members that were previously assigned to the application but it was referred
    * and resubmitted
+   * @param submittedTime the time the application was submitted at
    * @param approvalTime the timestamp of when the application was approved if approval is granted
    */
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date,
     public comments: CommentsMapping, public assignedCommitteeMembers: AssignedCommitteeMember[], public finalComment: Comment,
-    public previousCommitteeMembers: User[], public approvalTime: Date) {
+    public previousCommitteeMembers: User[], public submittedTime: Date, public approvalTime: Date) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated);
   }
   
@@ -179,18 +181,19 @@ export class ReferredApplicationInitialiser extends SubmittedApplicationInitiali
    * @param finalComment the last comment left on the application
    * @param previousCommitteeMembers the list of any committee members that were previously assigned to the application but it was referred
    * and resubmitted
+   * @param submittedTime the time the application was submitted at
    * @param approvalTime the timestamp of when the application was approved if approval is granted
    * @param editableFields the list of field IDs that can be edited
    * @param referredBy the user that referred the application
    */
   constructor(id: number, applicationId: string, user: User,
     status: ApplicationStatus, applicationTemplate: ApplicationTemplate,
-    answers: AnswersMapping, attachedFiles: AttachedFilesMapping, lastUpdated: Date,
+    answers: AnswersMapping, attachedFiles: AttachedFile[], lastUpdated: Date,
     comments: CommentsMapping, assignedCommitteeMembers: AssignedCommitteeMember[], finalComment: Comment,
-    previousCommitteeMembers: User[], approvalTime: Date,
+    previousCommitteeMembers: User[], submittedTime: Date, approvalTime: Date,
     public editableFields: string[], public referredBy: User) {
     super(id, applicationId, user, status, applicationTemplate, answers, attachedFiles, lastUpdated,
-      comments, assignedCommitteeMembers, finalComment, previousCommitteeMembers, approvalTime);
+      comments, assignedCommitteeMembers, finalComment, previousCommitteeMembers, submittedTime, approvalTime);
   }
 
   protected validateStatus(status: ApplicationStatus): void {

@@ -1,0 +1,3 @@
+<div class="card p-3 my-2 shadow" *ngIf="queries">
+  <app-search-control [queries]="queries" (searchPressed)="search($event)"></app-search-control>
+</div>

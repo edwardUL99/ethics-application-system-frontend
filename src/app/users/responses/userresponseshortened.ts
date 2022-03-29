@@ -36,7 +36,7 @@ export interface UserResponseShortened extends BaseResponse {
  */
 export function shortResponseToUserMapper(response: UserResponseShortened): User {
     const account: Account = new Account(response.username, response.email, undefined, true);
-    const role: Role = new Role(undefined, response.role, undefined, undefined, [], undefined);
+    const role: Role = new Role(undefined, response.role, undefined, undefined, [], undefined, undefined);
 
     return new User(response.username, response.name, account, response.department, role);
 }

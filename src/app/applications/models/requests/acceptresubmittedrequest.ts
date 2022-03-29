@@ -6,7 +6,7 @@ export class AcceptResubmittedRequest {
   /**
    * Create a request instance
    * @param id the application ID
-   * @param committeeMembsers the list of committee member usernames to assign to the application
+   * @param committeeMembers the list of committee member usernames to assign to the application
    */
-  constructor(public id: string, public committeeMembsers: string[]) {}
+  constructor(public id: string, public committeeMembers: string[]) {}
 }
