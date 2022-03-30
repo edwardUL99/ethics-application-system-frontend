@@ -13,8 +13,9 @@ export interface Grouper<T> {
    * Get the group key for the given value. Return undefined if the value should be excluded from
    * grouping
    * @param value the value to get the group key for
+   * @returns the key or an array of keys. If an array of keys, the application will be added to the list for each key
    */
-  getGroup(value: T): string;
+  getGroup(value: T): string | string[];
 
   /**
    * Get the group sort function to pass into angulars keyvalue
@@ -103,7 +104,15 @@ export class GroupBy<T> {
    * @param grouped the grouped object to add the value to
    */
   private _group(value: T, grouped: Grouped<T>) {
-    grouped.addValue(this.grouper.getGroup(value), value);
+    const group = this.grouper.getGroup(value);
+
+    if (group) {
+      if (Array.isArray(group)) {
+        group.forEach(g => grouped.addValue(g, value));
+      } else {
+        grouped.addValue(group, value);
+      }
+    }
   }
 
   private _getGroupSort() {

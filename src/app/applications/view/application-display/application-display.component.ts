@@ -403,8 +403,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             this.application.answers = mapAnswers(response.answers);
             this._populateApplication(response);
             section.onAutoSave(saveMessage);
-            this.saved = true;
             this.reload();
+            this.saved = true;
           } else {
             section.onAutoSave(error, true);
           }
@@ -435,12 +435,13 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       this.application.applicationId = response.id;
       this.application.answers = mapAnswers(response.answers);
       this._populateApplication(response);
-      this.saved = true;
       this.displaySaveAlert();
 
       if (reload) {
         this.reload(true);
       }
+
+      this.saved = true;
     } else {
       this.saveError = error;
       this.saveErrorAlert.show();
@@ -711,19 +712,21 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   referApplication() {
-    const fields = (this.application.editableFields) ? this.application.editableFields : [];
-    this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, fields, this.user.username))
-      .subscribe({
-        next: response => {
-          this.application.status = response.status;
-          this.application.referredBy = this.user;
-          this.application.editableFields = response.editableFields;
-          this.application.lastUpdated = new Date(response.lastUpdated);
-          this.displayActionAlert('Application referred to applicant');
-          this.reload(true);
-        },
-        error: e => this.actionError = e
-      });
+    if (confirm('Are you sure you want to refer the application back to the applicant?')) {
+      const fields = (this.application.editableFields) ? this.application.editableFields : [];
+      this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, fields, this.user.username))
+        .subscribe({
+          next: response => {
+            this.application.status = response.status;
+            this.application.referredBy = this.user;
+            this.application.editableFields = response.editableFields;
+            this.application.lastUpdated = new Date(response.lastUpdated);
+            this.displayActionAlert('Application referred to applicant');
+            this.reload(true);
+          },
+          error: e => this.actionError = e
+        });
+    }
   }
 
   acceptReferred() {

@@ -118,9 +118,17 @@ export class SearchControlComponent implements OnInit {
     this.searchPressed.emit((this.currentQuery) ? this.currentQuery.constructQuery() : undefined);
   }
 
+  private resetValue() {
+    const queries = this.queries.map(spec => spec.query);
+    const index = queries.indexOf(this.currentQuery);
+
+    this.form.get('query').setValue(this.queries[index].value);
+  }
+
   doReset() {
     this.form.reset();
     this.groupForm.reset();
+    this.resetValue();
     this.reset.emit(true);
   }
 

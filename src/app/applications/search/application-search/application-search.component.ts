@@ -84,6 +84,25 @@ class ApplicationStatusGrouper implements Grouper<ApplicationResponse> {
   }
 }
 
+/**
+ * Groups applications by assigned committee member
+ */
+class ApplicationAssignedGrouper implements Grouper<ApplicationResponse> {
+  getGroup(value: ApplicationResponse): string | string[] {
+    if ('assignedCommitteeMembers' in value) {
+      const assigned = (value as SubmittedApplicationResponse).assignedCommitteeMembers;
+      
+      if (!assigned || assigned.length == 0) {
+        return 'Unassigned';
+      } else {
+        return assigned.map(a => a.username);
+      }
+    } else {
+      return undefined;
+    }
+  }
+}
+
 @Component({
   selector: 'app-application-search',
   templateUrl: './application-search.component.html',
@@ -122,7 +141,8 @@ export class ApplicationSearchComponent implements OnInit, SearchComponent<Appli
   constructor(private searchService: SearchService) {
     this.groupOptions = [
       {label: 'Month Submitted', value: 'month-submitted', grouper: new ApplicationSubmittedDateGrouper()},
-      {label: 'Status', value: 'status', grouper: new ApplicationStatusGrouper()}
+      {label: 'Status', value: 'status', grouper: new ApplicationStatusGrouper()},
+      {label: 'Assigned Committee Member', value: 'assigned', grouper: new ApplicationAssignedGrouper()}
     ];
   }
 
