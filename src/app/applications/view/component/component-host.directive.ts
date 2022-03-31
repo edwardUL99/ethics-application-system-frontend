@@ -2,7 +2,7 @@ import { AfterViewInit, Input } from '@angular/core';
 import { Directive, ViewContainerRef } from '@angular/core';
 import { TrackedEventEmitter } from '../../../utils';
 import { ComponentType } from '../../models/components/applicationcomponent';
-import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
 
 /**

@@ -13,6 +13,7 @@ import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { AutofillNotifier } from '../../../autofill/autofillnotifier';
 
 /**
  * A mapping of question component IDs to the question components
@@ -190,7 +191,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             questionChangeCallback: questionChangeCallback,
             autosaveContext: this.autosaveContext
           };
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, data).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.template.autofillNotifier, data).instance as QuestionViewComponent;
         }
       }
     }

@@ -1,23 +1,45 @@
-import { ViewComponentShape } from './application-view.component';
+import { ApplicationViewComponent, QuestionViewComponent, ViewComponentShape } from './application-view.component';
 import { SectionViewComponentShape } from './section-view/section-view.component';
 import { DynamicComponentLoader } from './dynamiccomponents';
+import { AutofillNotifier } from '../../autofill/autofillnotifier';
 
 /**
  * This class represents the base class that all component hosts should extend from
  */
 export class AbstractComponentHost {
   /**
+   * Register the autofill if the component implements it
+   * @param autofillNotifier the notifier to register with
+   * @param component the component to attach
+   */
+  private _registerAutofill(autofillNotifier: AutofillNotifier, component: ApplicationViewComponent) {
+    if (typeof((component as any).autofill) === 'function') {
+      const questionComponent = component as QuestionViewComponent;
+
+      if (questionComponent.castComponent().autofill) {
+        if (typeof(questionComponent.registerAutofill) === 'function') {
+          questionComponent.registerAutofill(autofillNotifier);
+        } else {
+          throw new Error('The component supports autofill but does not implement registerAutofill');
+        }
+      }
+    }
+  }
+
+  /**
    * Load the individual sub-component
    * @param loader the loader to load the components with
    * @param componentHost the component host to load the components into
+   * @param autofillNotifier the notifier to notify if autofill events occurred and the component supports it
    * @param data the data to initialise the component with
    * @param delayChangeDetect pass this value to delay change detection. If true, the change detection must be called manually
    */
-  protected loadComponent(loader: DynamicComponentLoader, componentHost: string, data: ViewComponentShape, delayChangeDetect?: boolean) {
+  protected loadComponent(loader: DynamicComponentLoader, componentHost: string, autofillNotifier: AutofillNotifier, data: ViewComponentShape, delayChangeDetect?: boolean) {
     const componentRef = loader.loadComponent(componentHost, data.component.getType());
 
     componentRef.instance.initialise(data);
     componentRef.instance.setVisible(true);
+    this._registerAutofill(autofillNotifier, componentRef.instance);
 
     if (!delayChangeDetect) {
       componentRef.changeDetectorRef.detectChanges();

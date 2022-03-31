@@ -1,5 +1,4 @@
 import { Answer } from './answer';
-import { AttachedFile } from './attachedfile';
 import { ApplicationComments } from './comment';
 
 /**

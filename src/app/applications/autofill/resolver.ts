@@ -12,6 +12,17 @@ import { Config } from './config';
 let _resolver: AutofillResolver; 
 
 /**
+ * Converts values to an autofill friendly version
+ */
+export interface Converter {
+  /**
+   * Convert the value
+   * @param value the value to convert
+   */
+  convert(value: any): any;
+}
+
+/**
  * This class is used to resolve autofill query strings. Resolves paths as so:
  * key.property.property1... etc.
  * 
@@ -67,7 +78,7 @@ export class AutofillResolver {
     }
 
     if (key in this.proxies) {
-      delete this.proxies;
+      delete this.proxies[key];
     }
   }
 

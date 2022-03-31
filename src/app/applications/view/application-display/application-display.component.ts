@@ -35,6 +35,9 @@ import { AssignedUsersComponent } from '../assigned-users/assigned-users.compone
 import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmittedrequest';
 import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
 import { Comment } from '../../models/applications/comment';
+import { PatchAnswersRequest } from '../../models/requests/patchanswerrequest';
+import { AnswersMapping } from '../../models/requests/applicationresponse';
+import { AnswersMapping as ApplicationAnswers } from '../../models/applications/types';
 
 /**
  * The default template ID to use
@@ -141,6 +144,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * Flags if the view has been initialised
    */
   private viewInitialised: boolean = false;
+  /**
+   * A callback to retry an action
+   */
+  actionRetryCallback: () => void;
 
   constructor(private applicationService: ApplicationService, 
     private templateService: ApplicationTemplateService,
@@ -701,6 +708,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   markReviewed() {
     const resolvedStatus = resolveStatus(this.application.status);
+    this.hideActionRetry();
 
     if (this.isAdmin) {
       this.markReviewedAdmin();
@@ -713,6 +721,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   referApplication() {
     if (confirm('Are you sure you want to refer the application back to the applicant?')) {
+      this.hideActionRetry();
       const fields = (this.application.editableFields) ? this.application.editableFields : [];
       this.applicationService.referApplication(new ReferApplicationRequest(this.application.applicationId, fields, this.user.username))
         .subscribe({
@@ -730,6 +739,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   acceptReferred() {
+    this.actionRetryCallback = undefined;
     this.assignedUsers.setAcceptReferred(!this.assignedUsers.displayed);
     this.assignedUsers.toggleDisplayed(!this.assignedUsers.displayed);
   }
@@ -784,12 +794,14 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   rejectApplication() {
     if (confirm('Are you sure you want to reject the application?')) {
+      this.hideActionRetry();
       this.doApproval(false, this.getFinalComment());
     }
   }
 
   approveApplication() {
     if (confirm('Are you sure you want to approve the application?')) {
+      this.hideActionRetry();
       this.doApproval(true, this.getFinalComment());
     }
   }
@@ -835,12 +847,38 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
   deleteApplication(admin: boolean) {
     if (confirm('Are you sure you want to delete the application. All changes will be lost and cannot be reversed')) {
+      this.hideActionRetry();
       this.saved = true;
       this.applicationService.deleteApplication(this.application.applicationId, admin)
         .subscribe({
           next: () => this.router.navigate(['applications']),
           error: e => this.displayActionAlert(e, true)
         });
+    }
+  }
+
+  private hideActionRetry() {
+    this.actionRetryCallback = undefined;
+    this.actionAlert.hide();
+  }
+
+  autofillNotified(answers: ApplicationAnswers) {
+    // notify of an autofill event
+    if (answers && Object.keys(answers).length > 0 && this.application.status != ApplicationStatus.DRAFT) {
+      this.applicationService.patchAnswers(new PatchAnswersRequest(this.application.applicationId, answers))
+        .subscribe({
+          next: response => {
+            this.application.answers = mapAnswers(response.answers);
+            this.application.lastUpdated = new Date(response.lastUpdated);
+            this.reload(true);
+            this.saved = true;
+            this.hideActionRetry();
+          },
+          error: e => {
+            this.displayActionAlert('Failed to update application due to error: ' + e, true);
+            this.actionRetryCallback = () => this.autofillNotified(answers);
+          }
+        })
     }
   }
 }

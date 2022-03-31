@@ -100,7 +100,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
           autosaveContext: undefined
         };
 
-        ref = this.loadComponent(this.loader, this.component.componentId, data);
+        ref = this.loadComponent(this.loader, this.component.componentId, this.template.autofillNotifier, data);
 
         if (component.isComposite) {
           // register a composite component so that it can be deleted after all its children if a container is replace in the template display
