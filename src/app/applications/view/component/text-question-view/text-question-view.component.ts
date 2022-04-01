@@ -142,17 +142,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.emit(true);
   }
 
-  private parseAutofillValue(value: any): string {
-    // parse for text-question
-    if (value instanceof Date) {
-      let str = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getUTCDate()}`
-
-      return str;
-    } else {
-      return value;
-    }
-  }
-
   autofill(): void {
     if (this.questionComponent.autofill) {
       if (!this.autofillNotifier) {
@@ -162,7 +151,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
         if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
-          value = this.parseAutofillValue(value);
           this.control.setValue(value, {emitEvent: false});
           this.emit(false);
           this.autofillNotifier.notify(this);
