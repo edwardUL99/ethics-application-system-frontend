@@ -15,6 +15,7 @@ import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ContainerComponent } from '../../models/components/containercomponent';
 import { CompositeComponent } from '../../models/components/compositecomponent';
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
+import { AutofillNotifier } from '../../autofill/autofillnotifier';
 
 /**
  * A type to determine if an autosave event has already been dispatched for the section
@@ -62,6 +63,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */
   @Output() terminate: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
   /**
+   * The autofill notifier to notify of autofill events taking place
+   */
+  @Output('autofilled') autofillNotifier: AutofillNotifier = new AutofillNotifier();
+  /**
    * The user viewing the application
    */
   @Input() viewingUser: ViewingUser;
@@ -101,6 +106,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   ngOnDestroy(): void {
     this.questionChange.destroy();
     this.componentsChange.destroy();
+    this.autofillNotifier.destroy();
     this.loader.destroyComponents();
     setResolver(undefined); // clean up and remove the set autofill resolver
   }
@@ -151,7 +157,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         autosaveContext: undefined
       };
 
-      this.loadComponent(this.loader, '', data);
+      this.loadComponent(this.loader, '', this.autofillNotifier, data);
     }
   }
 

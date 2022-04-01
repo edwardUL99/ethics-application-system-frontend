@@ -158,7 +158,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           template: this.template
         };
 
-        const ref = this.loadComponent(this.loader, part.question.componentId, data);
+        const ref = this.loadComponent(this.loader, part.question.componentId, this.template.autofillNotifier, data);
         this.loader.registerReference(part.question.componentId, ref);
         this.matchedComponents[part.partName] = ref.instance as QuestionViewComponent;
       }

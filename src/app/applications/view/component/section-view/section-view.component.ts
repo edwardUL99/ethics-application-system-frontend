@@ -154,7 +154,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
             autosaveContext: this.autosaveContext
           };
 
-          ref = this.loadComponent(this.loader, this.component.componentId, data, true);
+          ref = this.loadComponent(this.loader, this.component.componentId, this.template.autofillNotifier, data, true);
           detectChangesList.push(ref);
         }
 

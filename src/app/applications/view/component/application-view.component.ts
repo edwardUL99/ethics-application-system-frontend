@@ -1,6 +1,7 @@
 import { OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { TrackedEventEmitter } from '../../../utils';
+import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
@@ -190,6 +191,13 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * TODO: For now, autofill is only supported in text and select question views. In the future, it may be expanded to other components
    */
   autofill?(): void;
+
+  /**
+   * If the application implements autofill, this method should be called and implemented where the component attaches itself to the notifier
+   * and notify of autofill events
+   * @param notifier the notifier to attach the component to
+   */
+  registerAutofill?(notifier: AutofillNotifier): void;
 
   /**
    * Determine whether the question component should be displayed based on the status of the application
