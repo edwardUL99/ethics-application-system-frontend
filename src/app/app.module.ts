@@ -76,6 +76,9 @@ import { AttachmentsComponent } from './applications/view/attachments/attachment
 import { CommentsDisplayComponent } from './applications/view/comments-display/comments-display.component';
 import { AssignedUsersComponent } from './applications/view/assigned-users/assigned-users.component';
 import { ApplicationResultsComponent } from './applications/search/application-results/application-results.component';
+import { ExporterService } from './exporter/exporter.service';
+import { ExportDownloaderComponent } from './exporter/export-downloader/export-downloader.component';
+import { ExportComponent } from './exporter/export/export.component';
 
 @NgModule({
   declarations: [
@@ -128,7 +131,9 @@ import { ApplicationResultsComponent } from './applications/search/application-r
     AttachmentModalComponent,
     AttachmentsComponent,
     AssignedUsersComponent,
-    ApplicationResultsComponent
+    ApplicationResultsComponent,
+    ExportDownloaderComponent,
+    ExportComponent
   ],
   imports: [
     BrowserModule,
@@ -173,7 +178,8 @@ import { ApplicationResultsComponent } from './applications/search/application-r
     AuthGuard,
     SearchService,
     UserQueryService,
-    FilesService
+    FilesService,
+    ExporterService
   ],
   bootstrap: [AppComponent]
 })

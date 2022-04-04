@@ -4,6 +4,8 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
+import { AuthorizationService } from '../users/authorization.service';
+import { User } from '../users/user';
 
 /**
  * This component represents a navbar used throughout the application
@@ -39,6 +41,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   error: string;
   /**
+   * Determines if the user can export applications
+   */
+  canExport: boolean;
+  /**
    * The subscription for retrieving a user
    */
   private userSubscription: Subscription;
@@ -47,7 +53,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private contextSubscription: Subscription;
 
-  constructor(private userContext: UserContext, private modalService: NgbModal, private router: Router) {
+  constructor(private userContext: UserContext, private modalService: NgbModal, private router: Router,
+    private authorizationService: AuthorizationService) {
     this.contextSubscription = this.userContext.subscribeToUpdates({
       next: () => {
         this.username = this.userContext.getUsername();
@@ -58,29 +65,34 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!this.hideLinks) {
-      this.username = this.userContext.getUsername();
-      this.name = this.userContext.getName();
-
-      if (!this.username || !this.name) {
-        try {
-          this.userSubscription = this.userContext.getUser().subscribe({
-            next: user => {
-              this.username = user.username;
-              this.name = user.name;
-              this.displayProfile = this.username != undefined && this.name != undefined;
-            },
-            error: e => {
-              this.error = e;
-              this.openError();
-            }
-          });
-        } catch (e) {
-          console.log(e);
-        }
+      try {
+        this.userSubscription = this.userContext.getUser().subscribe({
+          next: user => {
+            this.username = user.username;
+            this.name = user.name;
+            this.displayProfile = this.username != undefined && this.name != undefined;
+            this.checkExport(user);
+          },
+          error: e => {
+            this.error = e;
+            this.openError();
+          }
+        });
+      } catch (e) {
+        console.log(e);
       }
     }
+  }
 
-    this.displayProfile = this.username != undefined && this.name != undefined;
+  private checkExport(user: User) {
+    this.authorizationService.authorizeUserPermissions(user, ['EXPORT_APPLICATIONS'], true)
+      .subscribe({
+        next: response => this.canExport = response,
+        error: e => {
+          console.log(e);
+          this.openError();
+        }
+      });
   }
 
   ngOnDestroy(): void {
