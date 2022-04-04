@@ -1,3 +1,4 @@
+import { createTimestamp } from '../../../utils';
 import { Comment } from '../applications/comment';
 
 /**
@@ -52,7 +53,7 @@ export function mapCommentToRequest(comment: Comment): RequestComment {
     comment: comment.comment,
     componentId: comment.componentId,
     subComments: [],
-    createdAt: comment.createdAt.toISOString(),
+    createdAt: createTimestamp(comment.createdAt),
     sharedApplicant: comment.sharedApplicant
   };
 

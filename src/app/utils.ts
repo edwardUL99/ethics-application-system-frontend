@@ -125,3 +125,13 @@ export class TrackedEventEmitter<T> extends EventEmitter<T> {
     this.subscriptions.splice(0);
   }
 }
+
+/**
+ * Create an ISO timestamp of the current date
+ * @param date the date to convert
+ * @returns an ISO timestamp
+ */
+export function createTimestamp(date: Date): string {
+  const dateStr = date.toLocaleString('sv');
+  return dateStr.replace(/\s/, 'T')
+}
