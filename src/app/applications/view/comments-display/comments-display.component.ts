@@ -103,6 +103,10 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
     } else {
       this.formDisplayed = !this.formDisplayed;
     }
+
+    if (!this.formDisplayed) {
+      this.form.reset();
+    }
   }
 
   private displayAddAlert(message: string, error: boolean = false) {
@@ -145,7 +149,7 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
     const value = this.form.get('comment').value;
     let shared = this.form.get('sharedApplicant').value;
 
-    if (shared == undefined) {
+    if (shared == undefined || shared == '') {
       shared = false;
     }
 

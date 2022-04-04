@@ -21,6 +21,7 @@ import { GetAuthorizationResponse } from '../users/responses/getauthorizationres
 import { PermissionResponse } from '../users/responses/permissionresponse';
 import { RoleResponse } from '../users/responses/roleresponse';
 import { AssignMembersResponse } from '../applications/models/requests/assignmembersresponse';
+import { createTimestamp } from '../utils';
 
 
 export const USERNAME = "username";
@@ -200,7 +201,7 @@ export function createDraftApplicationResponse(): DraftApplicationResponse {
         templateId: draft.applicationTemplate.databaseId,
         answers: {},
         attachedFiles: [],
-        lastUpdated: new Date().toISOString()    
+        lastUpdated: createTimestamp(new Date())    
     };
 }
 
@@ -220,7 +221,7 @@ export function createSubmittedApplicationResponse(status: ApplicationStatus): S
         templateId: submitted.applicationTemplate.databaseId,
         answers: {},
         attachedFiles: [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: createTimestamp(new Date()),
         comments: {},
         assignedCommitteeMembers: [],
         submittedTime: undefined,
@@ -246,7 +247,7 @@ export function createReferredApplicationResponse(): ReferredApplicationResponse
         templateId: referred.applicationTemplate.databaseId,
         answers: {},
         attachedFiles: [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: createTimestamp(new Date()),
         comments: {},
         assignedCommitteeMembers: [],
         finalComment: undefined,
@@ -306,7 +307,7 @@ export function createAssignMembersResponse(): AssignMembersResponse {
                 finishReview: false
             }
         ],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: createTimestamp(new Date())
     };
 }
 

@@ -582,6 +582,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
               this.application.id = response.dbId;
               this.application.answers = mapAnswers(response.answers);
               this.reload(true);
+              this.scrollUp();
             },
             error: e => this.saveErrorAlert.displayMessage(e, true)
           });
@@ -790,6 +791,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     const value = this.finalCommentForm.get('comment').value;
 
     return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
+  }
+
+  private scrollUp() {
+    document.querySelector('#top')?.scrollIntoView();
   }
 
   rejectApplication() {

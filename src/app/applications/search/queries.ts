@@ -1,5 +1,6 @@
 import { FormBuilder, Validators } from '@angular/forms';
 import { Queries, Query, SearchControl, SearchControlOption, SearchQuery } from '../../search/searchcomponent';
+import { createTimestamp } from '../../utils';
 import { ApplicationStatus } from '../models/applications/applicationstatus';
 
 
@@ -44,7 +45,7 @@ class SubmittedDateRangeQuery implements SearchQuery {
     const offset = date.getTimezoneOffset()
     date = new Date(date.getTime() - (offset*60*1000))
     
-    return date.toISOString().split('T')[0]
+    return createTimestamp(date).split('T')[0]
   }
 
   createControls(fb: FormBuilder): SearchControl[] {
