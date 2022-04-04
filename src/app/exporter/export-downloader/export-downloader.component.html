@@ -1,0 +1,12 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container" [appCenterBox]>
+    <app-alert #alert [hidden]="true" [dismissible]="false"></app-alert>
+    <div *ngIf="error" class="text-end">
+      <button type="button" class="btn btn-primary" (click)="download()">Retry</button>
+    </div>
+    <div *ngIf="!error" class="text-center">
+      <a routerLink="/home">Home</a>
+    </div>
+  </div>
+</div>

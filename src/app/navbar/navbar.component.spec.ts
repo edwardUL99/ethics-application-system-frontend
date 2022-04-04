@@ -9,6 +9,7 @@ import { AuthService } from '../authentication/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '../users/user';
 import { createUser } from '../testing/fakes';
+import { AuthorizationService } from '../users/authorization.service';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -27,7 +28,8 @@ describe('NavbarComponent', () => {
         AuthService,
         UserService,
         {provide: UserContext, useValue: userContextSpy},
-        NgbModal
+        NgbModal,
+        AuthorizationService
       ],
       imports: [
         HttpClientTestingModule,
