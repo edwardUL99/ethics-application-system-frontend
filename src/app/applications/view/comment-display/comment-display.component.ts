@@ -9,6 +9,14 @@ import { ApplicationViewComponent } from '../component/application-view.componen
 import { CommentsDisplayComponent } from '../comments-display/comments-display.component';
 import { Router } from '@angular/router';
 import { ViewingUser } from '../../applicationcontext';
+import { ApplicationService } from '../../application.service';
+import { UpdateCommentRequest } from '../../models/requests/updatecommentrequest';
+import { mapCommentToRequest } from '../../models/requests/reviewapplicationrequest';
+
+export function copyComment(comment: Comment): Comment {
+  return new Comment(comment.id, comment.username, comment.comment, comment.componentId, comment.subComments,
+    comment.createdAt, comment.sharedApplicant, comment.edited);
+}
 
 /**
  * This component displays a form to leave a comment 
@@ -80,12 +88,38 @@ export class CommentDisplayComponent implements OnInit {
    * User viewing the application
    */
   viewingUser: ViewingUser;
+  /** 
+   * Determine if the user should be allowed the comment to be edited
+   */
+  allowEdit: boolean;
+  /**
+   * A form group to edit a comment
+   */
+  editCommentForm: FormGroup;
+  /**
+   * Determine if edit should be displayed
+   */
+  editDisplayed: boolean;
+  /**
+   * A new comment instance being edited to allow restoration
+   */
+  editingComment: Comment;
+  /**
+   * The alert for editing comments
+   */
+  @ViewChild('editAlert')
+  editAlert: AlertComponent;
 
   constructor(private fb: FormBuilder,
     private userService: UserService,
-    private router: Router) {
+    private router: Router,
+    private applicationService: ApplicationService) {
     this.subCommentForm = this.fb.group({
       comment: this.fb.control('', [Validators.required])
+    });
+
+    this.editCommentForm = this.fb.group({
+      comment: this.fb.control('')
     });
   }
 
@@ -135,15 +169,119 @@ export class CommentDisplayComponent implements OnInit {
     const componentId = this.comment.componentId;
 
     if (value) {
-      const subComment: Comment = new Comment(undefined, this.component.template.viewingUser.user.username, value, componentId, [], new Date());
+      const subComment: Comment = new Comment(undefined, this.viewingUser.user.username, value, componentId, [], new Date());
       this.hostDisplay.addSubComment(this.comment, subComment, () => this.displayAddAlert('Replied Successfully'), (e: any) => this.displayAddAlert(e, true));
+    }
+  }
+
+  private replaceSubComment(comment: Comment, subComment: Comment) {
+    for (let i = 0; i < comment.subComments.length; i++) {
+      if (comment.subComments[i].id == subComment.id) {
+        comment.subComments[i] = subComment;
+        break;
+      }
+    }
+  }
+
+  private getUpdatedComment() {
+    let updated: Comment;
+
+    if (this.parentComment) {
+      const parent = copyComment(this.parentComment.comment);
+      this.replaceSubComment(parent, this.editingComment);
+      updated = parent;
+    } else {
+      updated = this.editingComment;
+    }
+
+    return updated;
+  }
+
+  toggleEditComment(explicit?: boolean) {
+    if (explicit != undefined) {
+      this.editDisplayed = false;
+    } else {
+      this.editDisplayed = !this.editDisplayed;
+    }
+
+    if (!this.editDisplayed) {
+      this.editAlert?.hide();
+      this.editCommentForm.reset();
+    } else {
+      this.editCommentForm.get('comment').setValue(this.comment.comment);
+    }
+  }
+
+  private copySubCommentsList(subComments: Comment[]) {
+    const list: Comment[] = [];
+    subComments.forEach(c => list.push(c));
+
+    return list;
+  }
+
+  deleteComment() {
+    if (confirm('Are you sure you want to delete the comment?')) {
+      if (!this.parentComment) {
+        this.hostDisplay.deleteComment(this);
+      } else {
+        const editing = copyComment(this.parentComment.comment);
+        editing.subComments = this.copySubCommentsList(editing.subComments);
+        let index = -1;
+
+        for (let i = 0; i < editing.subComments.length; i++) {
+          if (editing.subComments[i].id == this.comment.id) {
+            index = i;
+            break;
+          }
+        }
+
+        if (index != -1) {
+          editing.subComments.splice(index, 1);
+          // when deleting a sub-comment, we simply update the parent comment with the sub-comment removed, so don't delete the parent
+          const request = new UpdateCommentRequest(this.application.applicationId, mapCommentToRequest(editing), false);
+
+          this.applicationService.patchComment(request)
+            .subscribe({
+              next: () => this.parentComment.comment.subComments = editing.subComments,
+              error: e => this.editAlert.displayMessage(e, true)
+            });
+        }
+      }
+    }
+  }
+
+  editComment() {
+    const value = this.editCommentForm.get('comment').value;
+
+    if (value && value != this.comment.comment) {
+      const editing = copyComment(this.comment);
+      editing.createdAt = new Date();
+      editing.comment = value;
+      editing.edited = true;
+      this.editingComment = editing;
+      const updated = this.getUpdatedComment();
+      const request = new UpdateCommentRequest(this.application.applicationId, mapCommentToRequest(updated), false);
+
+      this.applicationService.patchComment(request)
+        .subscribe({
+          next: () => {
+            this.toggleEditComment(false);
+            this.comment = this.editingComment;
+          },
+          error: e => this.editAlert.displayMessage(e, true)
+        });
+    } else if (this.comment.comment == value) {
+      this.toggleEditComment(false);
     }
   }
 
   loadUser(user: string) {
     this.userService.getUser(user)
       .subscribe({
-        next: response => this.userInfo = new UserInfo(response.name, user),
+        next: response => {
+          this.userInfo = new UserInfo(response.name, user);
+          this.allowEdit = user == this.viewingUser.user.username || this.viewingUser.admin;
+        },
         error: e => {
           console.error(e);
           this.userInfo = new UserInfo(user, user);
@@ -152,7 +290,10 @@ export class CommentDisplayComponent implements OnInit {
   }
 
   formatDate(date: Date) {
-    return date.toLocaleString();
+    let dateStr = date.toLocaleString();
+    let edited = (this.comment.edited) ? ' (edited)' : '';
+
+    return dateStr + edited;
   }
 
   navigateUser(username: string) {
@@ -168,5 +309,5 @@ export class CommentDisplayComponent implements OnInit {
  * An info object for comments, i.e. their name and username
  */
 class UserInfo {
-  constructor(public name: string, public username: string) {}
+  constructor(public name: string, public username: string) { }
 }

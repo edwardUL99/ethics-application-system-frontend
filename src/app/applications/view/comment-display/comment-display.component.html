@@ -6,7 +6,29 @@
         <small class="form-text my-auto">{{formatDate(comment?.createdAt)}}</small>
       </div>
       <div class="mt-1">
-        <p class="render-new-lines">{{comment?.comment}}</p>
+        <div *ngIf="!editDisplayed; else doEdit">
+          <p class="render-new-lines">{{comment?.comment}}</p>
+          <div class="d-inline">
+            <div class="text-end" *ngIf="allowEdit">
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteComment()">Delete</button>
+              <button type="button" class="btn btn-sm btn-outline-primary" style="margin-left: 1%;" (click)="toggleEditComment()">Edit</button>
+            </div>
+          </div>
+        </div>
+        <ng-template #doEdit>
+          <form [formGroup]="editCommentForm">
+            <div class="form-group mb-2">
+              <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>
+            </div>
+          </form>
+          <div class="d-inline">
+            <div class="text-end">
+              <button type="button" class="btn btn-link" (click)="toggleEditComment(false)">Cancel</button>
+              <button type="button" class="btn btn-primary" style="margin-left: 1%" (click)="editComment()">Edit</button>
+            </div>
+          </div>
+        </ng-template>
+        <app-alert #editAlert [hidden]="true" [dismissible]="true"></app-alert> 
         <small class="form-text" *ngIf="sharedApplicant && viewingUser?.reviewer" [appTooltip]="'Comment is visible to the applicant'">
           Shared
         </small>

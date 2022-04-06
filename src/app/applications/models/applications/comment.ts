@@ -11,9 +11,11 @@ export class Comment {
    * @param subComments the list of sub comments on this comment
    * @param createdAt the timestam of when the comment was created
    * @param sharedApplicant true if shared with applicants
+   * @param edited determines if the application has been edited or not
    */
   constructor(public id: number, public username: string, public comment: string,
-    public componentId: string, public subComments: Comment[], public createdAt: Date, public sharedApplicant: boolean = false) {}
+    public componentId: string, public subComments: Comment[], public createdAt: Date, public sharedApplicant: boolean = false,
+    public edited: boolean = false) {}
 }
 
 /**
