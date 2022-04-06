@@ -1,9 +1,9 @@
 import { KeyValue } from '@angular/common';
 
 /**
- * A function that can be passed into angular's keyvalue pipe
+ * A function that is used to compare Grouped keys
  */
-export type GroupSort<T> = (a: KeyValue<string, T[]>, b: KeyValue<string, T[]>) => number;
+export type GroupSort = (a: string, b: string) => number;
 
 /**
  * This interface represents an object that can take an object of type T and return the group key for it
@@ -20,7 +20,7 @@ export interface Grouper<T> {
   /**
    * Get the group sort function to pass into angulars keyvalue
    */
-  getGroupSort?(): GroupSort<T>;
+  getGroupSort?(): GroupSort;
 }
 
 /**
@@ -48,7 +48,7 @@ export type GroupedValues<T> = {
   [key: string]: T[];
 };
 
-export function insertionOrder<T>(a: KeyValue<string, T[]>, b: KeyValue<string, T[]>): number {
+export function insertionOrder(a: string, b: string): number {
   return 0;
 }
 
@@ -61,7 +61,7 @@ export class Grouped<T> {
    * @param grouped the grouped values
    * @param groupSort the function to sort the groups by in angular's keyvalue pipe. Default is to maintain insertion order
    */
-  constructor(public grouped: GroupedValues<T> = {}, public groupSort: GroupSort<T> = insertionOrder) {}
+  constructor(public grouped: GroupedValues<T> = {}, public groupSort: GroupSort = insertionOrder) {}
 
   /**
    * Determines if values exist within the grouped object
@@ -69,6 +69,16 @@ export class Grouped<T> {
    */
   hasValues() {
     return Object.keys(this.grouped).length > 0;
+  }
+
+  /**
+   * Get the sort funtion to pass into Angular's keyvalue pipe
+   * @returns the number to use to sort the list
+   */
+  getSort(): (a: KeyValue<string, T[]>, b: KeyValue<string, T[]>) => number {
+    return (a: KeyValue<string, T[]>, b: KeyValue<string, T[]>) => {
+      return this.groupSort(a.key, b.key);
+    }
   }
 
   /**
@@ -132,4 +142,33 @@ export class GroupBy<T> {
     values.forEach(value => this._group(value, grouped));
     return grouped;
   }
+}
+
+/**
+ * This interface represents an object that can order a list/group of results
+ */
+export interface OrderBy<T> {
+  /**
+   * Order the list/grouped results. If grouped, each individual list should be ordered
+   * @param value the value to group
+   */
+  order(value: T[] | Grouped<T>): T[] | Grouped<T>;
+}
+
+/**
+ * Represents a configuration option for ordering
+ */
+export interface OrderOption {
+  /**
+   * The label to display
+   */
+  label: string;
+  /**
+  * The value to lookup order by with
+  */
+  value: string;
+  /**
+  * The order by implementation to use
+  */
+  orderBy: OrderBy<any>;
 }

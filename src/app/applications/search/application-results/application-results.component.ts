@@ -1,13 +1,13 @@
-import { KeyValue } from '@angular/common';
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { catchError, Observable, of, Subscriber, Subscription } from 'rxjs';
+import { catchError, of, Subscriber, Subscription } from 'rxjs';
 import { AlertComponent } from '../../../alert/alert.component';
-import { GroupBy, Grouped } from '../../../search/grouping';
+import { GroupBy, Grouped, OrderBy } from '../../../search/grouping';
 import { ApplicationService } from '../../application.service';
 import { ApplicationResponse } from '../../models/requests/applicationresponse';
 import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
 import { UserPermissions } from '../../userpermissions';
 import { ApplicationSearchComponent } from '../application-search/application-search.component';
+import { ApplicationIDOrder } from '../sort';
 
 @Component({
   selector: 'app-application-results',
@@ -19,6 +19,16 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
    * The applications subscription
    */
   applications: ApplicationResponse[];
+
+  /**
+   * The unordered applications
+   */
+  private unorderedApplications: ApplicationResponse[];
+
+  /**
+   * Allows for undo operation of ordering
+   */
+  private unorderGrouped: Grouped<ApplicationResponse>;
 
   /**
    * This field is set if applications are grouped
@@ -130,7 +140,11 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
 
       if (!subscriber) {
         subscriber = {
-          next: response => this.applications = response
+          next: response => {
+            this.applications = new ApplicationIDOrder(true).order(response) as ApplicationResponse[];
+            this.unorderedApplications = this.applications;
+            this.unorderGrouped = undefined;
+          }
         }
       };
 
@@ -156,7 +170,40 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
       if (!groupBy) {
         this.grouped = undefined;
       } else {
+        const grouped = groupBy.group(this.applications);
+        const sort = new ApplicationIDOrder(true);
+        Object.keys(grouped.grouped).forEach(key => grouped.grouped[key] = sort.order(grouped.grouped[key]) as ApplicationResponse[]);
         this.grouped = groupBy.group(this.applications);
+        this.unorderGrouped = this.grouped;
+      }
+    }
+  }
+
+  doOrder(orderBy: OrderBy<ApplicationResponse>) {
+    if (!this.unorderGrouped && this.grouped)
+      this.unorderGrouped = this.grouped;
+
+
+    if (!this.applications) {
+      this.getApplications({
+        next: response => {
+          this.applications = response;
+          this.doOrder(orderBy);
+        }
+      });
+    } else {
+      if (!orderBy) {
+        if (this.grouped) {
+          this.grouped = this.unorderGrouped;
+        } else {
+          this.applications = this.unorderedApplications;
+        }
+      } else {
+        if (this.grouped) {
+          this.grouped = orderBy.order(this.grouped) as Grouped<ApplicationResponse>;
+        } else {
+          this.applications = orderBy.order(this.applications) as ApplicationResponse[];
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 <div>
   <h4 style="color: white">Search</h4>
-  <app-application-search #applicationSearch (reset)="searchReset($event)" (groupBy)="doGroup($event)"></app-application-search>
+  <app-application-search #applicationSearch (reset)="searchReset($event)" (groupBy)="doGroup($event)" (orderBy)="doOrder($event)"></app-application-search>
   <app-alert #searchError [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
 </div>
 <div>
@@ -38,7 +38,7 @@
     </div>
     <div *ngIf="grouped">
       <div *ngIf="grouped.hasValues(); else noGroupValues">
-        <div *ngFor="let item of grouped.grouped | keyvalue: grouped.groupSort" class="my-2">
+        <div *ngFor="let item of grouped.grouped | keyvalue: grouped.getSort()" class="my-2">
           <h5 style="color: grey">{{item.key}}</h5>
           <div class="d-flex flex-row flex-wrap">
             <div *ngFor="let application of item.value">
