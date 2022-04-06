@@ -6,8 +6,11 @@ import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ApplicationComments, Comment } from '../../models/applications/comment';
+import { SubmittedApplicationResponse } from '../../models/requests/applicationresponse';
 import { mapApplicationComments, resolveStatus } from '../../models/requests/mapping/applicationmapper';
 import { mapCommentToRequest, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
+import { UpdateCommentRequest } from '../../models/requests/updatecommentrequest';
+import { CommentDisplayComponent } from '../comment-display/comment-display.component';
 import { ApplicationViewComponent } from '../component/application-view.component';
 
 /**
@@ -165,5 +168,33 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   addSubComment(comment: Comment, subComment: Comment, alerter: () => void, error: (e: any) => void) {
     comment.subComments.push(subComment);
     this.updateComments([comment], alerter, error);
+  }
+
+  deleteComment(commentDisplay: CommentDisplayComponent) {
+    let removeIndex = -1;
+
+    for (let i = 0; i < this.comments.comments.length; i++) {
+      let c1 = this.comments.comments[i];
+
+      if (c1.id == commentDisplay.comment.id) {
+        removeIndex = i;
+        break;
+      }
+    }
+
+    if (removeIndex != -1) {
+      this.applicationService.patchComment(new UpdateCommentRequest(this.application?.applicationId, mapCommentToRequest(commentDisplay.comment), true))
+        .subscribe({
+          next: response => {
+            if ('comments' in response) {
+              const mapped = mapApplicationComments((response as SubmittedApplicationResponse).comments);
+              this.application.comments[this.componentId] = mapped[this.componentId];
+              this.comments = mapped[this.componentId];
+              this.application.lastUpdated = new Date(response.lastUpdated);
+            }
+          },
+          error: e => commentDisplay.editAlert.displayMessage(e, true)
+        });
+    }
   }
 }

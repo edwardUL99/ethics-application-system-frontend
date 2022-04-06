@@ -25,6 +25,7 @@ import { UploadFileResponse } from '../files/requests/uploadfileresponse';
 import { AttachedFile } from './models/applications/attachedfile';
 import { ApplicationStatus } from './models/applications/applicationstatus';
 import { PatchAnswersRequest } from './models/requests/patchanswerrequest';
+import { UpdateCommentRequest } from './models/requests/updatecommentrequest';
 
 /**
  * This interface represents options for getting an application
@@ -468,6 +469,17 @@ export class ApplicationService {
    */
   patchAnswers(request: PatchAnswersRequest): Observable<ApplicationResponse> {
     return this.http.patch<ApplicationResponse>('/api/applications/answers/', request)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Patch the comment of the application. The comment must have a database ID and be a top-level parent comment
+   * @param request the request to patch the comment
+   */
+  patchComment(request: UpdateCommentRequest): Observable<ApplicationResponse> {
+    return this.http.patch<ApplicationResponse>('/api/applications/comment/', request)
       .pipe(
         catchError(this.handleError)
       );
