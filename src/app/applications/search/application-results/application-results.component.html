@@ -13,6 +13,8 @@
     </div>
   </div>
   <div class="card shadow p-2" *ngIf="applications">
+    <app-results-operator [groupOptions]="groupOptions" [orderOptions]="orderOptions" 
+      (groupRequested)="doGroup($event)" (orderRequested)="doOrder($event)" #resultsOperator></app-results-operator>
     <div *ngIf="!grouped">
       <div *ngIf="applications.length > 0; else noApplications">
         <div class="d-flex flex-row flex-wrap">

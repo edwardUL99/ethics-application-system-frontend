@@ -24,58 +24,6 @@
         </div>
       </div>
     </div>
-    <div class="my-4 btn-group w-100" *ngIf="groupOptions || orderOptions">
-      <div *ngIf="groupOptions">
-        <div *ngIf="selectedGroup">
-          <div>
-            <div class="btn-group">
-              <div class="d-flex">
-                <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">{{selectedGroup.label}}</button>
-                <button class="btn-close btn-side" [appTooltip]="'Clear Group'" (click)="groupByChosen(undefined)"></button>
-                <ul class="dropdown-menu">
-                  <div *ngFor="let option of groupOptions">
-                    <li *ngIf="option != selectedGroup"><button type="button" class="dropdown-item" (click)="groupByChosen(option)">{{option.label}}</button></li>
-                  </div>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div *ngIf="!selectedGroup">
-          <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Group By</button> 
-            <ul class="dropdown-menu">
-              <li *ngFor="let option of groupOptions"><button type="button" class="dropdown-item" (click)="groupByChosen(option)">{{option.label}}</button></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="orderOptions" style="margin-left: 1%">
-        <div *ngIf="selectedOrder">
-          <div>
-            <div class="btn-group">
-              <div class="d-flex">
-                <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">{{selectedOrder.label}}</button>
-                <button class="btn-close btn-side" (click)="orderByChosen(undefined)" [appTooltip]="'Clear Ordering'"></button>
-                <ul class="dropdown-menu">
-                  <div *ngFor="let option of orderOptions">
-                    <li *ngIf="option != selectedOrder"><button type="button" class="dropdown-item" (click)="orderByChosen(option)">{{option.label}}</button></li>
-                  </div>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div *ngIf="!selectedOrder">
-          <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Order By</button> 
-            <ul class="dropdown-menu">
-              <li *ngFor="let option of orderOptions"><button type="button" class="dropdown-item" (click)="orderByChosen(option)">{{option.label}}</button></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
     <div *ngIf="!allowReset" class="text-end">
       <button type="button" class="btn btn-primary" [disabled]="!form.valid" (click)="search()">Search</button>
     </div>

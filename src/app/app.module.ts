@@ -79,6 +79,7 @@ import { ApplicationResultsComponent } from './applications/search/application-r
 import { ExporterService } from './exporter/exporter.service';
 import { ExportDownloaderComponent } from './exporter/export-downloader/export-downloader.component';
 import { ExportComponent } from './exporter/export/export.component';
+import { ResultsOperatorComponent } from './search/results-operator/results-operator.component';
 
 @NgModule({
   declarations: [
@@ -133,7 +134,8 @@ import { ExportComponent } from './exporter/export/export.component';
     AssignedUsersComponent,
     ApplicationResultsComponent,
     ExportDownloaderComponent,
-    ExportComponent
+    ExportComponent,
+    ResultsOperatorComponent
   ],
   imports: [
     BrowserModule,
