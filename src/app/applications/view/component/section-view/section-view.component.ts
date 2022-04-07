@@ -3,7 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape, QuestionViewComponent, ApplicationViewComponent } from '../application-view.component';
-import { ComponentHost, LoadedComponentsChange } from '../component-host.directive';
+import { ComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -80,6 +80,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
   initialise(data: ViewComponentShape): void {
     const questionData = data as SectionViewComponentShape;
     this.template = data.template;
+
     this.component = questionData.component;
     this.application = data.application;
     this.form = questionData.form;
@@ -142,7 +143,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
         if (component.getType() == ComponentType.SECTION) {
           ref = this.loadComponentSubSection(this.loader, this.component.componentId,
-            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback, autosaveContext: this.autosaveContext}, true); // section is being loaded inside in a section, so, it is a sub-section
+            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback, autosaveContext: this.autosaveContext, template: this.template}, true); // section is being loaded inside in a section, so, it is a sub-section
             detectChangesList.push(ref);
         } else {
           const data: QuestionViewComponentShape = {

@@ -40,7 +40,8 @@ describe('TextQuestionViewComponent', () => {
       form: form,
       component: questionComponent,
       application: application,
-      autosaveContext: new AutosaveContext()
+      autosaveContext: new AutosaveContext(),
+      template: undefined
     };
 
     component.initialise(data);

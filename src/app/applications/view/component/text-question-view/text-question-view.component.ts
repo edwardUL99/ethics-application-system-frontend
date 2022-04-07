@@ -62,6 +62,11 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    */
   autosaveContext: AutosaveContext;
   /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments: boolean;
+  /**
    * The notifier of autofill events
    */
   private autofillNotifier: AutofillNotifier;
@@ -75,6 +80,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.application = data.application;
     this.template = data.template;
     this.form = questionData.form;
+    this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);

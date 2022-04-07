@@ -60,6 +60,10 @@ export class SearchControlComponent implements OnInit {
    */
   private orderers: RegisteredOrderers = {};
   /**
+   * A default order if specified
+   */
+  private defaultOrder: OrderOption;
+  /**
    * The form group to store the search form
    */
   form: FormGroup;
@@ -118,6 +122,10 @@ export class SearchControlComponent implements OnInit {
     if (this.orderOptions) {
       this.orderOptions.forEach(option => {
         this.orderers[option.value] = option.orderBy;
+
+        if (option.default) {
+          this.defaultOrder = option;
+        }
       });
     }
   }
@@ -140,7 +148,15 @@ export class SearchControlComponent implements OnInit {
 
   search() {
     this.selectedGroup = undefined;
+    this.selectedOrder = undefined;
     this.searchPressed.emit((this.currentQuery) ? this.currentQuery.constructQuery() : undefined);
+    this.getDefaultOrdering();
+  }
+
+  getDefaultOrdering() {
+    if (this.defaultOrder) {
+      this.orderByChosen(this.defaultOrder);
+    }
   }
 
   private resetValue() {

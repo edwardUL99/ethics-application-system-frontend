@@ -1,5 +1,6 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { GroupBy, Grouper, GroupOption, GroupSort, OrderBy, OrderOption } from '../../../search/grouping';
+import { SearchControlComponent } from '../../../search/search-control/search-control.component';
 import { SearchEndpoints } from '../../../search/search-endpoints';
 import { SearchService } from '../../../search/search.service';
 import { Queries, Query, SearchComponent } from '../../../search/searchcomponent';
@@ -130,7 +131,12 @@ export class ApplicationSearchComponent implements OnInit, SearchComponent<Appli
   /**
    * Emits the order by object to order results with
    */
-   @Output() orderBy: EventEmitter<OrderBy<ApplicationResponse>> = new EventEmitter<OrderBy<ApplicationResponse>>();
+  @Output() orderBy: EventEmitter<OrderBy<ApplicationResponse>> = new EventEmitter<OrderBy<ApplicationResponse>>();
+  /**
+   * The underlying search control component
+   */
+  @ViewChild('searchControl')
+  searchControl: SearchControlComponent; 
   /**
    * The endpoint to search with
    */
@@ -160,7 +166,7 @@ export class ApplicationSearchComponent implements OnInit, SearchComponent<Appli
     ];
 
     this.orderOptions = [
-      {label: 'Application ID (Ascending)', value: 'application-id-asc', orderBy: new ApplicationIDOrder(true)},
+      {label: 'Application ID (Ascending)', value: 'application-id-asc', orderBy: new ApplicationIDOrder(true), default: true},
       {label: 'Application ID (Descending)', value: 'application-id-desc', orderBy: new ApplicationIDOrder(false)},
       {label: 'Updated (Ascending)', value: 'application-updated-asc', orderBy: new LastUpdatedOrder(true)},
       {label: 'Updated (Descending)', value: 'application-updated-desc', orderBy: new LastUpdatedOrder(false)}

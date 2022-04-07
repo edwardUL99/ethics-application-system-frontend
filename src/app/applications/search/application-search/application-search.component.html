@@ -1,4 +1,4 @@
 <div class="card p-3 my-2 shadow">
-  <app-search-control [queries]="queries" [allowReset]="true" (searchPressed)="search($event)" 
+  <app-search-control [queries]="queries" [allowReset]="true" (searchPressed)="search($event)" #searchControl
     (reset)="doReset()" (groupRequested)="doGroup($event)" (orderRequested)="doOrder($event)" [groupOptions]="groupOptions" [orderOptions]="orderOptions"></app-search-control>
 </div>

@@ -11,7 +11,7 @@ import { mapApplicationComments, resolveStatus } from '../../models/requests/map
 import { mapCommentToRequest, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { UpdateCommentRequest } from '../../models/requests/updatecommentrequest';
 import { CommentDisplayComponent } from '../comment-display/comment-display.component';
-import { ApplicationViewComponent } from '../component/application-view.component';
+import { QuestionViewComponent } from '../component/application-view.component';
 
 /**
  * This component displays a form to leave comments
@@ -29,7 +29,7 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   /**
    * The component view the comment is attached to
    */
-  @Input() component: ApplicationViewComponent;
+  @Input() component: QuestionViewComponent;
   /**
    * Enables comment button to be displayed
    */
@@ -79,24 +79,26 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   ngOnInit(): void {}
 
   ngOnChanges(): void {
-    const status = resolveStatus(this.application.status);
-    this.createComment = this.enable &&
-      (this.viewingUser?.reviewer &&
-      (status == ApplicationStatus.REVIEW) || status == ApplicationStatus.REVIEWED);
-    
-    if (!this.comments) {
-      this.componentId = this.component.component.componentId;
-      this.comments = this.application.comments?.[this.component.component.componentId];
-    } else {
-      this.componentId = this.comments.componentId;
-    }
+    if (!this.component.hideComments) {
+      const status = resolveStatus(this.application.status);
+      this.createComment = this.enable &&
+        (this.viewingUser?.reviewer &&
+        (status == ApplicationStatus.REVIEW) || status == ApplicationStatus.REVIEWED);
+      
+      if (!this.comments) {
+        this.componentId = this.component.component.componentId;
+        this.comments = this.application.comments?.[this.component.component.componentId];
+      } else {
+        this.componentId = this.comments.componentId;
+      }
 
-    if (this.application.status != ApplicationStatus.DRAFT && this.viewingUser?.reviewer) {
-      this.display = true;
-    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
-      this.display = true;
-    } else {
-      this.display = false;
+      if (this.application.status != ApplicationStatus.DRAFT && this.viewingUser?.reviewer) {
+        this.display = true;
+      } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
+        this.display = true;
+      } else {
+        this.display = false;
+      }
     }
   }
 

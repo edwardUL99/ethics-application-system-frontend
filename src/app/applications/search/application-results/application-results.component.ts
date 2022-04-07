@@ -141,9 +141,10 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
       if (!subscriber) {
         subscriber = {
           next: response => {
-            this.applications = new ApplicationIDOrder(true).order(response) as ApplicationResponse[];
+            this.applications = response;
             this.unorderedApplications = this.applications;
             this.unorderGrouped = undefined;
+            this.applicationSearch.searchControl.getDefaultOrdering();
           }
         }
       };

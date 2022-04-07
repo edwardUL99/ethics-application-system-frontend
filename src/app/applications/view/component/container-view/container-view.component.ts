@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Outp
 import { ContainerComponent } from '../../../models/components/containercomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { ApplicationViewComponent, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { ComponentHost, LoadedComponentsChange } from '../component-host.directive';
+import { ComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { FormGroup } from '@angular/forms';
 import { AbstractComponentHost } from '../abstractcomponenthost';

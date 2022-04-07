@@ -171,4 +171,8 @@ export interface OrderOption {
   * The order by implementation to use
   */
   orderBy: OrderBy<any>;
+  /**
+   * Determines if this should be a default option to use
+   */
+  default?: boolean;
 }

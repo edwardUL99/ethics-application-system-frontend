@@ -230,7 +230,7 @@ describe('LoginComponent', () => {
     fixture.whenStable().then(() => {
       component.login();
 
-      expect(component.error).toBe('A server error occurred. Are you connected to the internet?');
+      expect(component.error).toBe('Failed to reach the server. Are you connected to the internet?');
       expect(routerSpy).not.toHaveBeenCalled();
       expect(spy).toHaveBeenCalled();
       done();

@@ -33,11 +33,6 @@ export class ComponentHostDirective implements AfterViewInit {
 }
 
 /**
- * An EventEmitter that emits true if the components loaded for a component have changed (i.e. components have been added/removed)
- */
-export class LoadedComponentsChange extends TrackedEventEmitter<boolean> {}
-
-/**
  * This interface marks a component as a component host and that it needs to load the components.
  * Can be a recursive definition, sub-components can also be component hosts, e.g. containers and sections.
  * Extends the AfterViewInit interface since the loadComponents call should be made from that callback function

@@ -3,7 +3,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { MultipartQuestionComponent, QuestionBranch, QuestionPart } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
-import { QuestionComponentHost, MatchedQuestionComponents, LoadedComponentsChange } from '../component-host.directive';
+import { QuestionComponentHost, MatchedQuestionComponents } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';

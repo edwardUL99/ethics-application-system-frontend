@@ -20,10 +20,10 @@ export function getErrorMessage(error: HttpErrorResponse) {
     return 'You are no longer authorized, so you will have to login again';
   } else if (error.status == 404) {
     return 'Not Found';
-  } else if (error.status >= 300 && error.status < 500) {
-    return 'An unknown error occurred, please try again later';
+  } else if (error.status >= 300 && error.status <= 500) {
+    return 'An unknown server error occurred, please try again later';
   } else {
-    return 'A server error occurred. Are you connected to the internet?';
+    return 'Failed to reach the server. Are you connected to the internet?';
   }
 }
 

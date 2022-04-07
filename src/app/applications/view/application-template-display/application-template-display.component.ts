@@ -5,7 +5,7 @@ import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
-import { ComponentHost, LoadedComponentsChange } from '../component/component-host.directive';
+import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
@@ -75,10 +75,6 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */ 
   private _viewInitialised: boolean = false;
   /**
-   * An emitter to emit when loaded components change
-   */
-  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
-  /**
    * Record if the section already has an autosave dispatched
    */
   private dispatchedAutosaves: AutosaveDispatched = {};
@@ -105,7 +101,6 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
-    this.componentsChange.destroy();
     this.autofillNotifier.destroy();
     this.loader.destroyComponents();
     setResolver(undefined); // clean up and remove the set autofill resolver

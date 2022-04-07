@@ -95,6 +95,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
+  /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments: boolean;
 
   constructor() {}
 
@@ -105,6 +110,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.form = questionData.form;
     this.template = data.template;
     this.autosaveContext = questionData.autosaveContext;
+    this.hideComments = this.hideComments;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
