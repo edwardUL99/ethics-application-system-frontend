@@ -1,6 +1,7 @@
 import { OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { TrackedEventEmitter } from '../../../utils';
+import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
@@ -28,13 +29,13 @@ export interface ViewComponentShape {
   /**
    * The application object representing the current application
    */
-  application?: Application;
+  application: Application;
   /**
    * The display component the view component is being rendered inside. An optional parameter, as a
    * component does not have to consume it. However, sections and containers should take it and pass it
    * to its children
    */
-  template?: ApplicationTemplateDisplayComponent;
+  template: ApplicationTemplateDisplayComponent;
 }
 
 /**
@@ -62,6 +63,12 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
    * if you wish the question to be considered for autosave
    */
   autosaveContext: AutosaveContext;
+
+  /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments?: boolean;
 }
 
 /**
@@ -166,6 +173,13 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * if you wish the question to be considered for autosave
    */
   autosaveContext: AutosaveContext;
+  /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level.
+   * 
+   * An optional variable since not all components support comments anyway, regardless of this value
+   */
+  hideComments?: boolean;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
@@ -190,6 +204,13 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * TODO: For now, autofill is only supported in text and select question views. In the future, it may be expanded to other components
    */
   autofill?(): void;
+
+  /**
+   * If the application implements autofill, this method should be called and implemented where the component attaches itself to the notifier
+   * and notify of autofill events
+   * @param notifier the notifier to attach the component to
+   */
+  registerAutofill?(notifier: AutofillNotifier): void;
 
   /**
    * Determine whether the question component should be displayed based on the status of the application

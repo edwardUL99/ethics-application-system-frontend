@@ -5,7 +5,7 @@ import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
-import { ComponentHost, LoadedComponentsChange } from '../component/component-host.directive';
+import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
@@ -15,6 +15,7 @@ import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ContainerComponent } from '../../models/components/containercomponent';
 import { CompositeComponent } from '../../models/components/compositecomponent';
 import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
+import { AutofillNotifier } from '../../autofill/autofillnotifier';
 
 /**
  * A type to determine if an autosave event has already been dispatched for the section
@@ -62,6 +63,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */
   @Output() terminate: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
   /**
+   * The autofill notifier to notify of autofill events taking place
+   */
+  @Output('autofilled') autofillNotifier: AutofillNotifier = new AutofillNotifier();
+  /**
    * The user viewing the application
    */
   @Input() viewingUser: ViewingUser;
@@ -69,10 +74,6 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * A variable to indicate if the view is initialised or not
    */ 
   private _viewInitialised: boolean = false;
-  /**
-   * An emitter to emit when loaded components change
-   */
-  @Output() componentsChange: LoadedComponentsChange = new LoadedComponentsChange();
   /**
    * Record if the section already has an autosave dispatched
    */
@@ -100,7 +101,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
-    this.componentsChange.destroy();
+    this.autofillNotifier.destroy();
     this.loader.destroyComponents();
     setResolver(undefined); // clean up and remove the set autofill resolver
   }
@@ -151,7 +152,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         autosaveContext: undefined
       };
 
-      this.loadComponent(this.loader, '', data);
+      this.loadComponent(this.loader, '', this.autofillNotifier, data);
     }
   }
 

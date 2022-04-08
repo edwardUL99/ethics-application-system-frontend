@@ -17,10 +17,17 @@ export class HomeComponent implements OnInit {
    * Determines if an error occurred
    */
   error: string;
+  /**
+   * The text for the header
+   */
+  headerText: string;
 
   constructor(private authorizationService: AuthorizationService,
     private userContext: UserContext,
-    private router: Router) { }
+    private router: Router) { 
+    
+    this.headerText = 'Science and Engineering Research Ethics Committee'
+  }
 
   ngOnInit(): void {
     try {

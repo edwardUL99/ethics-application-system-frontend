@@ -1,9 +1,10 @@
 <div>
   <app-navbar></app-navbar>
   <div class="container" [appCenterBox]>
-    <app-center-header [text]="'Research Ethics'"></app-center-header>
+    <app-center-header [text]="headerText"></app-center-header>
     <app-alert [message]="error" [alertType]="'alert-danger'" [hidden]="!error" [dismissible]="true"></app-alert>
     <div class="card p-2 text-center">
+      <img src="/assets/images/ul.jpg" style="width: 200px; height: 200px;" class="my-2 mx-auto">
       <p class="welcome-text">Welcome to the Faculty of Science and Engineering Research Ethics Web Application System.
         The aim of our committee is to ensure that research is conducted according to best practice and in accordance with ethical standards in research. 
         Our first priority is to safeguard the health, welfare, dignity and rights of human participants and the researchers undertaking the work in order 
@@ -13,8 +14,11 @@
         and/or legal action
       </p>
       <div class="text-center mt-3 d-flex align-self-center">
-        <button type="button" class="btn btn-primary" style="margin-right: 50px" (click)="goToApplications()">View Applications</button>
+        <button type="button" class="btn btn-primary" [style]="(createApplication) ? 'margin-right: 50px':''" (click)="goToApplications()">View Applications</button>
         <button *ngIf="createApplication" type="button" class="btn btn-primary" (click)="goToApplications(true)">Create Application</button>
+      </div>
+      <div class="text-center mt-3" style="color: grey">
+        <p>Any Questions? Please contact <a href="mailto:johanna.griffin@ul.ie">Johanna Griffin</a></p>
       </div>
     </div>
   </div>

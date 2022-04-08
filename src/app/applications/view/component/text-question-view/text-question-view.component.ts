@@ -10,6 +10,9 @@ import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { AutosaveContext } from '../autosave';
+import { AutofillNotifier } from '../../../autofill/autofillnotifier';
+import { ApplicationStatus } from '../../../models/applications/applicationstatus';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 @Component({
   selector: 'app-text-question-view',
@@ -58,6 +61,15 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * The context for autosaving
    */
   autosaveContext: AutosaveContext;
+  /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments: boolean;
+  /**
+   * The notifier of autofill events
+   */
+  private autofillNotifier: AutofillNotifier;
 
   constructor() {}
 
@@ -68,6 +80,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.application = data.application;
     this.template = data.template;
     this.form = questionData.form;
+    this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -87,14 +100,15 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.autofillNotifier?.detach(this);
     this.removeFromForm();
   }
 
   private _addToForm(): void {
+    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
+
     if (this.edit()) {
       // only add to form if it is to be edited
-      this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
-
       if (this.questionComponent.questionType == 'email' && !this.control.hasValidator(Validators.email)) {
         this.control.setValidators(Validators.email);
       } 
@@ -135,15 +149,25 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   autofill(): void {
-    if (this.questionComponent.autofill && this.edit()) {
+    if (this.questionComponent.autofill) {
+      if (!this.autofillNotifier) {
+        throw new Error('registerAutofill not implemented or not called');
+      }
+
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        if (value) {
+        if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
           this.control.setValue(value, {emitEvent: false});
           this.emit(false);
+          this.autofillNotifier.notify(this);
         }
       });
     }
+  }
+
+  registerAutofill(notifier: AutofillNotifier) {
+    notifier.attach(this);
+    this.autofillNotifier = notifier;
   }
 
   display(): boolean {

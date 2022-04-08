@@ -10,6 +10,9 @@ import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { AutofillNotifier } from '../../../autofill/autofillnotifier';
+import { ApplicationStatus } from '../../../models/applications/applicationstatus';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 /**
  * This function returns a validator that validates the value chosen by select
@@ -77,9 +80,18 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   autosaveContext: AutosaveContext;
   /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments: boolean;
+  /**
    * The parent template component
    */
   @Input() template: ApplicationTemplateDisplayComponent;
+  /**
+   * The notifier of autofill events
+   */
+  private autofillNotifier: AutofillNotifier;
 
   constructor() {}
 
@@ -91,6 +103,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
     this.template = questionData.template;
+    this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -106,13 +119,14 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
 
   ngOnDestroy(): void {
     this.questionChange.destroy();
+    this.autofillNotifier?.detach(this);
     this.removeFromForm();
   }
 
   addToForm(): void {
-    if (this.edit() && !this.form.get(this.questionComponent.name)) {
-      this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
+    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
+    if (this.edit() && !this.form.get(this.questionComponent.name)) {
       const validator = SelectValidator();
       if (this.questionComponent.required && !this.control.hasValidator(validator)) {
         this.control.addValidators(validator);
@@ -149,14 +163,24 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   autofill(): void {
     // autofills assuming the value returned is the same as the value key in the options
     if (this.questionComponent.autofill) {
+      if (!this.autofillNotifier) {
+        throw new Error('registerAutofill not implemented or not called');
+      }
+
       const resolver = getResolver();
       resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        if (value) {
+        if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
           this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
           this.emit(false);
+          this.autofillNotifier.notify(this);
         }
       });
     }
+  }
+
+  registerAutofill(notifier: AutofillNotifier) {
+    notifier.attach(this);
+    this.autofillNotifier = notifier;
   }
 
   setFromAnswer(answer: Answer): void {

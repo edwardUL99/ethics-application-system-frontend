@@ -20,10 +20,10 @@ export function getErrorMessage(error: HttpErrorResponse) {
     return 'You are no longer authorized, so you will have to login again';
   } else if (error.status == 404) {
     return 'Not Found';
-  } else if (error.status >= 300 && error.status < 500) {
-    return 'An unknown error occurred, please try again later';
+  } else if (error.status >= 300 && error.status <= 500) {
+    return 'An unknown server error occurred, please try again later';
   } else {
-    return 'A server error occurred. Are you connected to the internet?';
+    return 'Failed to reach the server. Are you connected to the internet?';
   }
 }
 
@@ -124,4 +124,14 @@ export class TrackedEventEmitter<T> extends EventEmitter<T> {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
     this.subscriptions.splice(0);
   }
+}
+
+/**
+ * Create an ISO timestamp of the current date
+ * @param date the date to convert
+ * @returns an ISO timestamp
+ */
+export function createTimestamp(date: Date): string {
+  const dateStr = date.toLocaleString('sv');
+  return dateStr.replace(/\s/, 'T')
 }

@@ -240,7 +240,7 @@ export function mapApplicationComments(comments: ResponseCommentsMapping): Comme
  */
 export function mapComment(comment: CommentShape): Comment {
   if (comment) {
-    const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt), comment.sharedApplicant);
+    const newComment: Comment = new Comment(comment.id, comment.username, comment.comment, comment.componentId, [], new Date(comment.createdAt), comment.sharedApplicant, comment.edited);
 
     for (let sub of comment.subComments) {
       newComment.subComments.push(mapComment(sub));
@@ -342,13 +342,17 @@ export class SubmittedApplicationResponseMapper implements ApplicationResponseMa
         observables.push(joinAndWait(response.previousCommitteeMembers, (v: string[]) => v.map(v => userService.getUser(v))));
       }
 
+      const lastUpdated = (response.lastUpdated) ? new Date(response.lastUpdated) : undefined;
+      const submitted = (response.submittedTime) ? new Date(response.submittedTime) : undefined;
+      const approved = (response.approvalTime) ? new Date(response.approvalTime) : undefined;
+
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new SubmittedApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
-              new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [],
-              new Date(response.submittedTime), new Date(response.approvalTime))))
+              lastUpdated, comments, usersArray[0], finalComment, (usersArray.length > 1) ? mapUsersArray(usersArray[1]) : [],
+              submitted, approved)))
               observer.complete();
             });
         },
@@ -383,13 +387,17 @@ export class ReferredApplicationResponseMapper implements ApplicationResponseMap
         observables.push(joinAndWait(response.previousCommitteeMembers, (v: string[]) => v.map(v => userService.getUser(v))));
       }
 
+      const lastUpdated = (response.lastUpdated) ? new Date(response.lastUpdated) : undefined;
+      const submitted = (response.submittedTime) ? new Date(response.submittedTime) : undefined;
+      const approved = (response.approvalTime) ? new Date(response.approvalTime) : undefined;
+
       joinAndWait(observables).subscribe({
         next: usersArray => {
           loadUserAndTemplate(observer, response,
             value => {
               observer.next(Application.create(new ReferredApplicationInitialiser(response.dbId, response.id, value.user, ApplicationStatus[response.status], value.template, answers, attachedFiles,
-                new Date(response.lastUpdated), comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [],
-                new Date(response.submittedTime), new Date(response.approvalTime),
+                lastUpdated, comments, usersArray[0], finalComment, (usersArray.length > 2) ? mapUsersArray(usersArray[2]) : [],
+                submitted, approved,
                 response.editableFields, userResponseMapper(usersArray[1]))));
               observer.complete();
             });

@@ -58,6 +58,10 @@ export interface CommentShape {
    * The timestamp of when the comment was created
    */
   createdAt: string;
+  /**
+   * Determines if the comment has been edited
+   */
+  edited: boolean;
 }
 
 /**

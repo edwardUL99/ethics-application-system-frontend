@@ -8,6 +8,9 @@ import { getErrorMessage } from '../utils';
 import { BaseResponse } from '../baseresponse';
 import { DownloadedFile } from './files';
 
+/**
+ * This service is used to interact with the files endpoint
+ */
 @Injectable()
 export class FilesService {
   constructor(private http: HttpClient) { }
@@ -20,6 +23,11 @@ export class FilesService {
     }
   }
 
+  /**
+   * Upload the file to the server
+   * @param request the upload file request
+   * @returns an observable with the response
+   */
   uploadFile(request: UploadFileRequest): Observable<UploadFileResponse> {
     const formData: FormData = new FormData();
 

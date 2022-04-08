@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Output, ViewChildren } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
-import { LoadedComponentsChange, MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
+import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
@@ -188,9 +188,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             form: this.group,
             parent: this,
             questionChangeCallback: questionChangeCallback,
-            autosaveContext: this.autosaveContext
+            autosaveContext: this.autosaveContext,
+            template: this.template,
+            hideComments: true // let the question table manage comments for all its cells, rather than the individual cells
           };
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, data).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.template.autofillNotifier, data).instance as QuestionViewComponent;
         }
       }
     }

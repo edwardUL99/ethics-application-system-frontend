@@ -1,0 +1,61 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container" [appCenterBox]>
+    <app-center-header [text]="'Application Exporter'"></app-center-header>
+    <p class="text-center" style="color: white">This utility allows you to request an export of applications to PDF files</p>
+    <div class="row" *ngIf="!loadError; else errorDisplay">
+      <div class="col card shadow p-2 m-2">
+        <h4 class="text-center">Single Application</h4>
+        <p class="form-text">Export a single application with the given ID</p>
+        <form [formGroup]="singleForm">
+          <div class="form-group">
+            <label>Application ID:</label>
+            <input type="text" class="form-control" name="id" formControlName="id">
+            <app-field-error [condition]="singleForm.get('id').errors?.['required'] && singleForm.get('id').touched" [error]="'This field is required'"></app-field-error>
+            <small class="form-text">
+              The ID of the application
+            </small>
+          </div>
+          <div class="text-end">
+            <button type="button" class="btn btn-primary" (click)="singleExport()" [disabled]="!singleForm.valid">Export</button>
+          </div>
+        </form>
+      </div>
+      <div class="col card shadow p-2 m-2">
+        <h4 class="text-center">Range of Applications</h4>
+        <p class="form-text">Export a range of applications submitted between the specified dates</p>
+        <form [formGroup]="rangeForm">
+          <div class="row">
+            <div class="col form-group">
+              <label>Start:</label>
+              <input type="date" class="form-control" name="start" formControlName="start">
+              <app-field-error [condition]="rangeForm.get('start').errors?.['start'] && rangeForm.get('start').touched" [error]="'This field is required'"></app-field-error>
+              <small class="form-text">
+                The start of the date range
+              </small>
+            </div>
+            <div class="col form-group">
+              <label>End:</label>
+              <input type="date" class="form-control" name="end" formControlName="end">
+              <app-field-error [condition]="rangeForm.get('end').errors?.['required'] && rangeForm.get('end').touched" [error]="'This field is required'"></app-field-error>
+              <small class="form-text">
+                The end of the date range
+              </small>
+            </div>
+          </div>
+          <div class="text-end">
+            <button type="button" class="btn btn-primary" (click)="rangeExport()" [disabled]="!rangeForm.valid">Export</button>
+          </div>
+        </form>
+      </div>
+      <div style="color: white; font-size: 14px;" class="text-center">
+        Exports can take some time to complete depending on the size of the export. This page simply requests an export to occur. The results of 
+        the export will be sent to your e-mail address
+      </div>
+      <app-alert #exportAlert [hidden]="true" [dismissible]="true"></app-alert>
+    </div>
+    <ng-template #errorDisplay>
+      <app-alert [message]="loadError" [alertType]="'alert-danger'"></app-alert>
+    </ng-template>
+  </div>
+</div>

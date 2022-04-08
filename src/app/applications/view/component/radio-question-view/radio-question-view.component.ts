@@ -81,6 +81,11 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    */
   autosaveContext: AutosaveContext;
   /**
+   * Determines if the component should hide comments (don't display them). This can be used if parent components wish to
+   * manage the comments at a top-level rather than at the child question level
+   */
+  hideComments: boolean;
+  /**
    * The parent template
    */
   @Input() template: ApplicationTemplateDisplayComponent;
@@ -95,6 +100,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
     this.template = questionData.template;
+    this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);

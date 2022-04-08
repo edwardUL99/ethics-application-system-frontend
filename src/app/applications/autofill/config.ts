@@ -8,9 +8,9 @@ import { ApplicationContext } from '../applicationcontext';
  */
 export const Config: AutofillConfig = {
   application: {
-    'value': () => InjectorService.getInstance().inject(ApplicationContext).getApplication(),
-    'proxies': {
-      'id': 'applicationId'
+    value: () => InjectorService.getInstance().inject(ApplicationContext).getApplication(),
+    proxies: {
+      id: 'applicationId'
     }
   },
   user: {

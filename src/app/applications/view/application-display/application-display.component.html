@@ -51,6 +51,9 @@
       </div>
       <app-alert #actionAlert [alertType]="'alert-success'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
       <app-alert *ngIf="actionError" [alertType]="'alert-danger'" [dismissible]="true" [message]="actionError"></app-alert>
+      <div class="text-end" *ngIf="actionRetryCallback">
+        <button class="btn btn-primary" type="button" (click)="actionRetryCallback()">Retry?</button>
+      </div>
       <app-attachments [applicationDisplay]="this" #applicationAttachments></app-attachments>
       <div class="card shadow text-center mt-3 p-3">
         <div class="card-header">
@@ -85,7 +88,7 @@
       </div>
       <app-center-header [text]="'Application Form'"></app-center-header>
       <app-application-template-display [application]="application" (questionChange)="questionChange($event)" (autoSave)="autoSave($event)"
-      (terminate)="terminateApplication($event)" (attachFile)="attachFile($event)" [viewingUser]="viewingUser" #templateView></app-application-template-display>
+      (terminate)="terminateApplication($event)" (attachFile)="attachFile($event)" [viewingUser]="viewingUser" (autofilled)="autofillNotified($event)" #templateView></app-application-template-display>
       <app-alert #saveAlert [alertType]="'alert-success'" [message]="'Saved'" [dismissible]="true" [hidden]="true" class="text-center"></app-alert>
       <app-alert #saveErrorAlert [alertType]="'alert-danger'" [message]="saveError" [dismissible]="true" [hidden]="true"></app-alert>
       <div class="card shadow px-3 py-2" *ngIf="showSaveSubmitButton()">

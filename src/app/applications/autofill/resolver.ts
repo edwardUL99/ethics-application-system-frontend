@@ -12,6 +12,46 @@ import { Config } from './config';
 let _resolver: AutofillResolver; 
 
 /**
+ * Converts values to an autofill friendly version
+ */
+export interface Converter {
+  /**
+   * Convert the value
+   * @param value the value to convert
+   */
+  convert(value: any): any;
+}
+
+/**
+ * Converts dates to a format for a text-input
+ */
+export class DateConverter implements Converter {
+  convert(value: any) {
+    if (value instanceof Date) {
+      let str = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getUTCDate()}`
+
+      return str;
+    } else {
+      return value;
+    }
+  }
+}
+
+/**
+ * Map of property types to converter
+ */
+export type Converters = {
+  [key: string]: Converter;
+}
+
+/**
+ * The map of converters
+ */
+const _converters: Converters = {}
+
+_converters[Date.name] = new DateConverter();
+
+/**
  * This class is used to resolve autofill query strings. Resolves paths as so:
  * key.property.property1... etc.
  * 
@@ -67,7 +107,21 @@ export class AutofillResolver {
     }
 
     if (key in this.proxies) {
-      delete this.proxies;
+      delete this.proxies[key];
+    }
+  }
+
+  private _convertValue(value: any) {
+    if (value) {
+      const converter = _converters[value.constructor.name];
+
+      if (converter != undefined) {
+        return converter.convert(value);
+      } else {
+        return value;
+      }
+    } else {
+      return value;
     }
   }
 
@@ -80,7 +134,7 @@ export class AutofillResolver {
     return new ResolvedProperty(observer => {
       value.subscribe({
         next: value => {
-          observer.next((queryArray.length == 1) ? value : this.resolveRecursive(queryArray, value, 1));
+          observer.next((queryArray.length == 1) ? this._convertValue(value) : this.resolveRecursive(queryArray, value, 1));
           observer.complete();
         },
         error: e => {
@@ -126,7 +180,7 @@ export class AutofillResolver {
         return undefined; // cannot go any further down if the type is a simple type
       }
 
-      return (key in value) ? value[key] : undefined;
+      return (key in value) ? this._convertValue(value[key]) : undefined;
     } else {
       const key = this.resolveProxiedKey(queryArray[0], queryArray[currentIndex]);
 
@@ -161,7 +215,7 @@ export class AutofillResolver {
       if (queryParams.length > 1) {
         return this.createProperty(this.resolveRecursive(queryParams, value, 1));
       } else {
-        return this.createProperty(value);
+        return this.createProperty(this._convertValue(value));
       }
     }
   }

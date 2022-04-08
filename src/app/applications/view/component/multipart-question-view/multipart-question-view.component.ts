@@ -3,7 +3,7 @@ import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, Ques
 import { MultipartQuestionComponent, QuestionBranch, QuestionPart } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
-import { QuestionComponentHost, MatchedQuestionComponents, LoadedComponentsChange } from '../component-host.directive';
+import { QuestionComponentHost, MatchedQuestionComponents } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -158,7 +158,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           template: this.template
         };
 
-        const ref = this.loadComponent(this.loader, part.question.componentId, data);
+        const ref = this.loadComponent(this.loader, part.question.componentId, this.template.autofillNotifier, data);
         this.loader.registerReference(part.question.componentId, ref);
         this.matchedComponents[part.partName] = ref.instance as QuestionViewComponent;
       }

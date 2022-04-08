@@ -1,16 +1,11 @@
 <nav [ngClass]="sticky ? 'navbar navbar-expand-lg navbar-light bg-light sticky-top':'navbar navbar-expand-lg navbar-light bg-light'">
   <div class="container-fluid">
-    <div class="navbar-brand" style="color: grey">
-      Scieng Research Ethics Committee
+    <div class="navbar-brand">
+      <img src="/assets/images/ul-logo.jpg" style="height:50px;">
     </div>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <!-- <a *ngIf="user && !hideLinks" class="navbar-brand" [routerLink]="['/user', user.id]">
-      <img src="{{user.profileImage}}" width="30" height="30" >
-    </a> 
-    Have an @Input for user to this navbar 
-    -->
     <div *ngIf="!hideLinks" class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
@@ -20,7 +15,10 @@
           <a class="nav-link" aria-current="page" routerLink="/applications">Applications</a>
         </li>
         <li class="nav-item">
-          <a aria-current="page" class="nav-link" routerLink="/user-search"> User Search</a>
+          <a aria-current="page" class="nav-link" routerLink="/user-search">User Search</a>
+        </li>
+        <li *ngIf="canExport" class="nav-item">
+          <a aria-current="page" class="nav-link" routerLink="/export">Export Applications</a>
         </li>
       </ul>
       <div *ngIf="displayProfile" class="mt-2" style="margin-right: 1%">

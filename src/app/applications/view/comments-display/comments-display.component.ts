@@ -6,9 +6,12 @@ import { ViewingUser } from '../../applicationcontext';
 import { Application } from '../../models/applications/application';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ApplicationComments, Comment } from '../../models/applications/comment';
+import { SubmittedApplicationResponse } from '../../models/requests/applicationresponse';
 import { mapApplicationComments, resolveStatus } from '../../models/requests/mapping/applicationmapper';
 import { mapCommentToRequest, ReviewSubmittedApplicationRequest } from '../../models/requests/reviewapplicationrequest';
-import { ApplicationViewComponent } from '../component/application-view.component';
+import { UpdateCommentRequest } from '../../models/requests/updatecommentrequest';
+import { CommentDisplayComponent } from '../comment-display/comment-display.component';
+import { QuestionViewComponent } from '../component/application-view.component';
 
 /**
  * This component displays a form to leave comments
@@ -26,7 +29,7 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   /**
    * The component view the comment is attached to
    */
-  @Input() component: ApplicationViewComponent;
+  @Input() component: QuestionViewComponent;
   /**
    * Enables comment button to be displayed
    */
@@ -76,24 +79,26 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   ngOnInit(): void {}
 
   ngOnChanges(): void {
-    const status = resolveStatus(this.application.status);
-    this.createComment = this.enable &&
-      (this.viewingUser?.reviewer &&
-      (status == ApplicationStatus.REVIEW) || status == ApplicationStatus.REVIEWED);
-    
-    if (!this.comments) {
-      this.componentId = this.component.component.componentId;
-      this.comments = this.application.comments?.[this.component.component.componentId];
-    } else {
-      this.componentId = this.comments.componentId;
-    }
+    if (!this.component.hideComments) {
+      const status = resolveStatus(this.application.status);
+      this.createComment = this.enable &&
+        (this.viewingUser?.reviewer &&
+        (status == ApplicationStatus.REVIEW) || status == ApplicationStatus.REVIEWED);
+      
+      if (!this.comments) {
+        this.componentId = this.component.component.componentId;
+        this.comments = this.application.comments?.[this.component.component.componentId];
+      } else {
+        this.componentId = this.comments.componentId;
+      }
 
-    if (this.application.status != ApplicationStatus.DRAFT && this.viewingUser?.reviewer) {
-      this.display = true;
-    } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
-      this.display = true;
-    } else {
-      this.display = false;
+      if (this.application.status != ApplicationStatus.DRAFT && this.viewingUser?.reviewer) {
+        this.display = true;
+      } else if ([ApplicationStatus.APPROVED, ApplicationStatus.REJECTED, ApplicationStatus.REFERRED].indexOf(this.application.status) != -1) {
+        this.display = true;
+      } else {
+        this.display = false;
+      }
     }
   }
 
@@ -102,6 +107,10 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
       this.formDisplayed = explicit;
     } else {
       this.formDisplayed = !this.formDisplayed;
+    }
+
+    if (!this.formDisplayed) {
+      this.form.reset();
     }
   }
 
@@ -145,7 +154,7 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
     const value = this.form.get('comment').value;
     let shared = this.form.get('sharedApplicant').value;
 
-    if (shared == undefined) {
+    if (shared == undefined || shared == '') {
       shared = false;
     }
 
@@ -161,5 +170,33 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
   addSubComment(comment: Comment, subComment: Comment, alerter: () => void, error: (e: any) => void) {
     comment.subComments.push(subComment);
     this.updateComments([comment], alerter, error);
+  }
+
+  deleteComment(commentDisplay: CommentDisplayComponent) {
+    let removeIndex = -1;
+
+    for (let i = 0; i < this.comments.comments.length; i++) {
+      let c1 = this.comments.comments[i];
+
+      if (c1.id == commentDisplay.comment.id) {
+        removeIndex = i;
+        break;
+      }
+    }
+
+    if (removeIndex != -1) {
+      this.applicationService.patchComment(new UpdateCommentRequest(this.application?.applicationId, mapCommentToRequest(commentDisplay.comment), true))
+        .subscribe({
+          next: response => {
+            if ('comments' in response) {
+              const mapped = mapApplicationComments((response as SubmittedApplicationResponse).comments);
+              this.application.comments[this.componentId] = mapped[this.componentId];
+              this.comments = mapped[this.componentId];
+              this.application.lastUpdated = new Date(response.lastUpdated);
+            }
+          },
+          error: e => commentDisplay.editAlert.displayMessage(e, true)
+        });
+    }
   }
 }
