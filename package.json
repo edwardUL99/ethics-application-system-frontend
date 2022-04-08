@@ -4,13 +4,14 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node server.js",
     "startTest": "ng serve --configuration=test",
-    "build": "ng build --prod",
+    "build": "ng build -c production",
     "test": "ng test",
     "headlessTest": "ng test --no-watch --no-progress --browsers=FirefoxHeadless",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "heroku-postbuild": "ng build -c production"
   },
   "private": true,
   "dependencies": {
@@ -25,6 +26,8 @@
     "@angular/platform-browser-dynamic": "^13.2.1",
     "@angular/router": "^13.2.1",
     "core-js": "^3.21.0",
+    "express": "^4.17.3",
+    "path": "^0.12.7",
     "rxjs": "^7.5.2",
     "zone.js": "^0.11.4"
   },
@@ -54,5 +57,6 @@
     "ts-node": "~10.4.0",
     "tslint": "~5.20.1",
     "typescript": "~4.5.5"
-  }
+  },
+  "engines": { "node": "12.22.5", "npm": "8.4.0" }
 }

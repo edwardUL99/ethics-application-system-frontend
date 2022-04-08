@@ -80,6 +80,7 @@ export class SearchControlComponent implements OnInit {
   }
 
   search() {
+    this.groupForm.reset();
     this.searchPressed.emit((this.currentQuery) ? this.currentQuery.constructQuery() : undefined);
   }
 
