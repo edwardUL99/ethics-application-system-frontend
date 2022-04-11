@@ -80,6 +80,11 @@ import { ExporterService } from './exporter/exporter.service';
 import { ExportDownloaderComponent } from './exporter/export-downloader/export-downloader.component';
 import { ExportComponent } from './exporter/export/export.component';
 import { ResultsOperatorComponent } from './search/results-operator/results-operator.component';
+import { AnswerRequestComponent } from './applications/view/answer-requests/answer-request/answer-request.component';
+import { AnswerRequestContextComponent } from './applications/view/answer-requests/answer-request-context/answer-request-context.component';
+import { AnswerRequestService } from './applications/answer-request.service';
+import { RequestsListComponent } from './applications/view/answer-requests/requests-list/requests-list.component';
+import { RequestComponentAnswerComponent } from './applications/view/answer-requests/request-component-answer/request-component-answer.component';
 
 @NgModule({
   declarations: [
@@ -135,7 +140,11 @@ import { ResultsOperatorComponent } from './search/results-operator/results-oper
     ApplicationResultsComponent,
     ExportDownloaderComponent,
     ExportComponent,
-    ResultsOperatorComponent
+    ResultsOperatorComponent,
+    AnswerRequestComponent,
+    AnswerRequestContextComponent,
+    RequestsListComponent,
+    RequestComponentAnswerComponent
   ],
   imports: [
     BrowserModule,
@@ -181,7 +190,8 @@ import { ResultsOperatorComponent } from './search/results-operator/results-oper
     SearchService,
     UserQueryService,
     FilesService,
-    ExporterService
+    ExporterService,
+    AnswerRequestService
   ],
   bootstrap: [AppComponent]
 })

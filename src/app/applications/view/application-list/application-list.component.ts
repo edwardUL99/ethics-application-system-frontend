@@ -80,7 +80,7 @@ export class ApplicationListComponent implements OnInit {
       next: permissions => {
         this.userContext.getUser().subscribe({
           next: user => {
-            const userPermissions = user.role.permissions;
+            const userPermissions = new Set(user.role.permissions);
             this.userPermissions = {
               createApplication: Authorizer.hasPermission(userPermissions, permissions.CREATE_APPLICATION),
               reviewApplication: Authorizer.hasPermission(userPermissions, permissions.REVIEW_APPLICATIONS),

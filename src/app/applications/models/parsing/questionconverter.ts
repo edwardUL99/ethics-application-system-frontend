@@ -15,7 +15,7 @@ export abstract class QuestionConverter implements ComponentConverter {
   /**
    * The array of fields that this converter adds to the return value of parseBase
    */
-  private readonly commonFields: string[] = ['editable', 'autofill'];
+  private readonly commonFields: string[] = ['editable', 'autofill', 'requestInput'];
 
   convert(component: ComponentObject): ApplicationComponent {
     const error = this.validate(component);

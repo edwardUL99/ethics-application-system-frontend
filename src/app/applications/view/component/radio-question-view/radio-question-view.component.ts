@@ -10,7 +10,7 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * A custom validator as Validators.required is not working
@@ -75,7 +75,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The context for autosaving
    */
@@ -86,9 +86,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    */
   hideComments: boolean;
   /**
-   * The parent template
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
 
   constructor() {}
 
@@ -99,7 +99,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
     this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
@@ -112,7 +112,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.radioClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
 
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -205,7 +205,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {
@@ -226,7 +226,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   value(): Answer {
-    return new Answer(undefined, this.component.componentId, this.selectedRadioValue, ValueType.OPTIONS);
+    return new Answer(undefined, this.component.componentId, this.selectedRadioValue, ValueType.OPTIONS, undefined);
   }
 
   isVisible(): boolean {
@@ -238,9 +238,14 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   displayAnswer(): boolean {
-    const display = this.questionComponent?.componentId in this.application?.answers;
-    this.visible = display;
+    return QuestionViewUtils.displayAnswer(this);
+  }
 
-    return display;
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.radioGroup.disable();
+    } else {
+      this.radioGroup.enable();
+    }
   }
 }

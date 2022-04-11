@@ -20,6 +20,8 @@ import { UserSearchPageComponent } from '../users/search/user-search-page/user-s
 import { UserProfileComponent } from '../users/user-profile/user-profile.component';
 import { ExportDownloaderComponent } from '../exporter/export-downloader/export-downloader.component';
 import { ExportComponent } from '../exporter/export/export.component';
+import { RequestsListComponent } from '../applications/view/answer-requests/requests-list/requests-list.component';
+import { AnswerRequestComponent } from '../applications/view/answer-requests/answer-request/answer-request.component';
 
 function createRoute(path: string, component: Type<any>, canDeactivate?: Type<CanDeactivate<any>>[], canActivate?: Type<CanActivate>[], pathMatch?: string) {
     const route = {path: path, component: component};
@@ -55,6 +57,8 @@ const routes: Routes = [
     createRoute('profile', UserProfileComponent, undefined, [AuthGuard]),
     createRoute('export-downloader', ExportDownloaderComponent, undefined, [AuthGuard]),
     createRoute('export', ExportComponent, undefined, [AuthGuard]),
+    createRoute('answer-requests', RequestsListComponent, undefined, [AuthGuard]),
+    createRoute('answer-request', AnswerRequestComponent, undefined, [AuthGuard]),
     createRoute('', IndexRedirectComponent, undefined, undefined, 'full'),
     createRoute('**', NotFoundComponent)
 ];

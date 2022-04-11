@@ -136,7 +136,7 @@ export class CommentDisplayComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.viewingUser = this.component?.template?.viewingUser;
+    this.viewingUser = this.component?.context?.viewingUser;
     this.replyComment = this.viewingUser?.reviewer;
 
     this.initDisplay(this.viewingUser);

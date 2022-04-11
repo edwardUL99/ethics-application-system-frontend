@@ -9,6 +9,7 @@ import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
 import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 @Component({
   selector: 'app-container-view',
@@ -18,9 +19,9 @@ import { ApplicationTemplateDisplayComponent } from '../../application-template-
 @ComponentViewRegistration(ComponentType.CONTAINER)
 export class ContainerViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
   /**
    * The component to be displayed
    */
@@ -53,7 +54,7 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
-    this.template = data.template;
+    this.context = data.context;
     this.component = questionData.component;
     this.application = data.application;
     this.form = questionData.form;
@@ -96,11 +97,11 @@ export class ContainerViewComponent extends AbstractComponentHost implements OnI
           component: component,
           form: this.form,
           questionChangeCallback: callback,
-          template: this.template,
+          context: this.context,
           autosaveContext: undefined
         };
 
-        ref = this.loadComponent(this.loader, this.component.componentId, this.template.autofillNotifier, data);
+        ref = this.loadComponent(this.loader, this.component.componentId, this.context.autofillNotifier, data);
 
         if (component.isComposite) {
           // register a composite component so that it can be deleted after all its children if a container is replace in the template display

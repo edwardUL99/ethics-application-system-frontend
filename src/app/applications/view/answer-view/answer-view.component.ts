@@ -1,6 +1,10 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { Answer, ValueType } from '../../models/applications/answer';
+import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { QuestionComponent } from '../../models/components/questioncomponent';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
+import { QuestionChangeEvent, QuestionViewComponent } from '../component/application-view.component';
 import { Renderers } from './renderers';
 
 /**
@@ -19,7 +23,11 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   /**
    * The question being answered
    */
-  @Input() question: QuestionComponent;
+  @Input() question: QuestionViewComponent;
+  /**
+   * The underlying component
+   */
+  questionComponent: QuestionComponent;
   /**
    * The renderer to use to render the answer
    */
@@ -34,8 +42,12 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
    */
   @ViewChild('imgCanvas')
   imgCanvas: ElementRef;
+  /**
+   * Determines if edit is allowed if the answer has been provided by someone else
+   */
+  editAllowed: boolean = true;
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
     let rendererImpl = Renderers[this.renderer];
@@ -45,6 +57,15 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
     }
 
     this.answer = rendererImpl.render(this.answer);
+    this.questionComponent = this.question.castComponent();
+
+    if (this.answer.user && resolveStatus(this.question.application?.status) == ApplicationStatus.DRAFT) {
+      // disable so the user can't change the provided answer
+      this.question.setDisabled(true);
+      this.editAllowed = false;
+      this.question.autosaveContext?.notifyQuestionChange(
+        new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
+    }
   }
 
   ngAfterViewInit(): void {
@@ -58,7 +79,7 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   }
 
   displayLabel() {
-    return 'label' in this.question;
+    return 'label' in this.questionComponent;
   }
 
   private scaleAndDraw(image: any) {
@@ -104,5 +125,20 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
 
   isValueType(type: string): boolean {
     return this.answer?.valueType == ValueType[type];
+  }
+
+  navigateUser(username: string) {
+    this.router.navigate(['profile'], {
+      queryParams: {
+        username: username
+      }
+    });
+  }
+
+  allowEdit() {
+    if (confirm('Confirm that you want to change the provided answer?')) {
+      this.question.setDisabled(false);
+      this.editAllowed = true;
+    }
   }
 }

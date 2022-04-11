@@ -16,7 +16,7 @@ export interface AnswerRenderer {
  */
 export class SameAnswerRenderer implements AnswerRenderer {
   render(answer: Answer): Answer {
-    return new Answer(answer.id, answer.componentId, answer.value, answer.valueType);
+    return new Answer(answer.id, answer.componentId, answer.value, answer.valueType, answer.user);
   }
 }
 
@@ -25,7 +25,7 @@ export class SameAnswerRenderer implements AnswerRenderer {
  */
 export class DateAnswerRenderer implements AnswerRenderer {
   render(answer: Answer): Answer {
-    const copied = new Answer(answer.id, answer.componentId, answer.value, answer.valueType);
+    const copied = new Answer(answer.id, answer.componentId, answer.value, answer.valueType, answer.user);
 
     if (!answer.empty() && !answer.value.match("[0-9]{2}/[0-9]{2}/[0-9]{4}")) {
       const date = new Date(answer.value);

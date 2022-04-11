@@ -4,18 +4,20 @@ import { ApplicationTemplateContext, ReplacedContainer } from '../../application
 import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
+import { ActionBranchSource, AutosaveSource, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
 import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
-import { SectionViewComponent, SectionViewComponentShape } from '../component/section-view/section-view.component';
+import { SectionViewComponentShape } from '../component/section-view/section-view.component';
 import { AutofillResolver, setResolver } from '../../autofill/resolver';
 import { Application } from '../../models/applications/application';
 import { ViewingUser } from '../../applicationcontext';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
 import { ContainerComponent } from '../../models/components/containercomponent';
 import { CompositeComponent } from '../../models/components/compositecomponent';
-import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
 import { AutofillNotifier } from '../../autofill/autofillnotifier';
+import { ComponentDisplayContext } from '../component/displaycontext';
+import { QuestionComponent } from '../../models/components/questioncomponent';
+import { RequestedAnswers } from '../answer-requests/requestedanswers';
 
 /**
  * A type to determine if an autosave event has already been dispatched for the section
@@ -29,7 +31,7 @@ export type AutosaveDispatched = {
   templateUrl: './application-template-display.component.html',
   styleUrls: ['./application-template-display.component.css']
 })
-export class ApplicationTemplateDisplayComponent extends AbstractComponentHost implements OnInit, ComponentHost, AfterViewInit, OnDestroy {
+export class ApplicationTemplateDisplayComponent extends AbstractComponentHost implements OnInit, ComponentHost, AfterViewInit, OnDestroy, ComponentDisplayContext {
   /**
    * The template context instance
    */
@@ -53,15 +55,15 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   /**
    * Event for when a section is autosaved to tell the parent to autosave
    */
-  @Output() autoSave: EventEmitter<SectionViewComponent> = new EventEmitter<SectionViewComponent>();
+  @Output() autoSave: EventEmitter<AutosaveSource> = new EventEmitter<AutosaveSource>();
   /**
    * An event notifying that a checkbox group component has an attach-file branch triggered
    */
-  @Output() attachFile: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
+  @Output() attachFile: EventEmitter<ActionBranchSource> = new EventEmitter<ActionBranchSource>();
   /**
    * An event that indicates that the application being filled out should be terminated
    */
-  @Output() terminate: EventEmitter<CheckboxGroupViewComponent> = new EventEmitter<CheckboxGroupViewComponent>();
+  @Output() terminate: EventEmitter<ActionBranchSource> = new EventEmitter<ActionBranchSource>();
   /**
    * The autofill notifier to notify of autofill events taking place
    */
@@ -70,6 +72,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * The user viewing the application
    */
   @Input() viewingUser: ViewingUser;
+  /**
+   * The requested answers received by the context
+   */
+  private requestedAnswers: RequestedAnswers = new RequestedAnswers();
   /**
    * A variable to indicate if the view is initialised or not
    */ 
@@ -114,17 +120,17 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     questionChange.emit(e);
   }
 
-  autoSaveSection(section: SectionViewComponent) {
-    const id = section.component.componentId;
+  autosave(source: AutosaveSource) {
+    const id = source.getComponentId();
 
     if (!this.dispatchedAutosaves[id]) {
-      this.autoSave.emit(section);
+      this.autoSave.emit(source);
       this.dispatchedAutosaves[id] = true;
     }
   }
 
-  markSectionSaved(section: SectionViewComponent) {
-    delete this.dispatchedAutosaves[section.component.componentId];
+  markAutosaved(source: AutosaveSource): void {
+    delete this.dispatchedAutosaves[source.getComponentId()];   
   }
 
   private _loadComponent(component: ApplicationComponent) {
@@ -137,7 +143,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         form: this.form,
         subSection: false,
         questionChangeCallback: callback,
-        template: this,
+        context: this,
         autosaveContext: undefined
       };
 
@@ -148,7 +154,7 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
         form: this.form,
         questionChangeCallback: callback,
         component: component,
-        template: this,
+        context: this,
         autosaveContext: undefined
       };
 
@@ -169,13 +175,13 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     this.cd.detectChanges();
   }
 
-  terminateApplication(checkbox: CheckboxGroupViewComponent) {
+  terminateApplication(checkbox: ActionBranchSource) {
     if (this.application.status == ApplicationStatus.DRAFT) {
       this.terminate.emit(checkbox);
     }
   }
 
-  attachFileToApplication(checkbox: CheckboxGroupViewComponent) {
+  attachFileToApplication(checkbox: ActionBranchSource) {
     if (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED) {
       this.attachFile.emit(checkbox);
     }
@@ -229,5 +235,21 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     this.questionChange.destroy();
     this.loader.getLoadedComponents('').forEach(c => c.destroy());
     this.loadComponents();
+  }
+
+  answerRequestEnabled(): boolean {
+    return true;
+  }
+
+  onAnswerRequested(component: QuestionComponent, username: string, remove?: boolean): void {
+    if (remove) {
+      this.requestedAnswers.removeRequest(username, component);
+    } else {
+      this.requestedAnswers.addRequest(username, component);
+    }
+  }
+
+  getRequestedAnswers(): RequestedAnswers {
+    return this.requestedAnswers;
   }
 }

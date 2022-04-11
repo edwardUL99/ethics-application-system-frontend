@@ -1,0 +1,43 @@
+<div>
+  <app-navbar></app-navbar>
+  <div *ngIf="!loadError; else displayError">
+    <div *ngIf="request && viewingUser; else loading" class="container">
+      <app-center-header [text]="'Answers Requested'"></app-center-header>
+      <div class="text-center" style="color: white">
+        <p>You have been requested to provide answers for the questions following on the specified application</p>
+      </div>
+      <div class="card shadow text-center mt-3 p-3">
+        <div class="card-header">
+         <h4>{{request?.application?.applicationId}}</h4>
+        </div>
+        <div class="card-body">
+          <div class="">
+            <p class="application-text"><b>Applicant:</b><span class="hover-underline" (click)="navigateToUser(request?.application?.user?.username)"> {{request?.application?.user?.name}}</span></p>
+            <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
+          </div>
+        </div>
+      </div>
+      <app-center-header [text]="'Questions'"></app-center-header>
+      <div class="card shadow my-2 p-2">
+        <form [formGroup]="form">
+          <app-answer-request-context *ngFor="let component of request?.components" [application]="request?.application" [component]="component"
+            [viewingUser]="viewingUser" [form]="form" (questionChange)="questionChange($event)"></app-answer-request-context>
+        </form>
+      </div>
+      <app-alert #submitAlert [dismissible]="true" [hidden]="true"></app-alert>
+      <div class="card shadow px-3 py-2">
+        <div class="text-end">
+          <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="!form.valid">Submit Answers</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-template #loading>
+    <app-loading></app-loading>
+  </ng-template> 
+  <ng-template #displayError>
+    <div class="container">
+      <app-alert [alertType]="'alert-danger'" [message]="loadError"></app-alert>
+    </div>
+  </ng-template>
+</div>

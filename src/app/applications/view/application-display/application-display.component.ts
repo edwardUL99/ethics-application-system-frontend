@@ -8,8 +8,7 @@ import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
 import { Application } from '../../models/applications/application';
 import { DraftApplicationInitialiser } from '../../models/applications/applicationinit';
 import { ApplicationTemplateDisplayComponent } from '../application-template-display/application-template-display.component';
-import { QuestionChangeEvent } from '../component/application-view.component';
-import { SectionViewComponent } from '../component/section-view/section-view.component';
+import { ActionBranchSource, AutosaveSource, QuestionChangeEvent } from '../component/application-view.component';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../../users/user';
 import { catchError, map, Observable, of, retry, take} from 'rxjs';
@@ -22,12 +21,11 @@ import { MessageMappings } from '../../../mappings';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserResponseShortened } from '../../../users/responses/userresponseshortened';
-import { getErrorMessage } from '../../../utils';
+import { getErrorMessage, joinAndWait } from '../../../utils';
 import { ReviewApplicationRequest } from '../../models/requests/reviewapplicationrequest';
 import { ReferApplicationRequest } from '../../models/requests/referapplicationrequest';
 import { SubmitApplicationRequest } from '../../models/requests/submitapplicationrequest';
-import { mapAnswers, mapAssignedMembers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper'
-import { CheckboxGroupViewComponent } from '../component/checkbox-group-view/checkbox-group-view.component';
+import { mapAnswers, mapAssignedMembers, mapComment, resolveStatus } from '../../models/requests/mapping/applicationmapper';
 import { AttachmentsComponent } from '../attachments/attachments/attachments.component';
 
 import { Location } from '@angular/common';
@@ -36,8 +34,12 @@ import { AcceptResubmittedRequest } from '../../models/requests/acceptresubmitte
 import { ApproveApplicationRequest } from '../../models/requests/approveapplicationrequest';
 import { Comment } from '../../models/applications/comment';
 import { PatchAnswersRequest } from '../../models/requests/patchanswerrequest';
-import { AnswersMapping } from '../../models/requests/applicationresponse';
 import { AnswersMapping as ApplicationAnswers } from '../../models/applications/types';
+import { RequestedAnswers } from '../answer-requests/requestedanswers';
+import { AnswerRequestService } from '../../answer-request.service';
+import { AddAnswerRequest } from '../../models/requests/answer-requests/requests';
+import { AddAnswerRequestResponse } from '../../models/requests/answer-requests/responses';
+import { RequestComponentAnswerComponent } from '../answer-requests/request-component-answer/request-component-answer.component';
 
 /**
  * The default template ID to use
@@ -159,7 +161,8 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private fb: FormBuilder,
     private element: ElementRef,
     private cd: ChangeDetectorRef,
-    private location: Location) {
+    private location: Location,
+    private requestService: AnswerRequestService) {
     super();
 
     this.finalCommentForm = this.fb.group({
@@ -188,7 +191,6 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  // TODO where else user's names or usernames are added, allow clicking to go to their user profile
   navigateToUser(username: string) {
     if (username) {
       this.router.navigate(['profile'], {
@@ -290,6 +292,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   ngOnDestroy(): void {
+    RequestComponentAnswerComponent.reset();
     ApplicationTemplateContext.getInstance().clear(); // TODO decide if this is necessary, but it maybe as container replacement may modify the template for the next createApplication
   }
 
@@ -358,14 +361,29 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         }
       });
       this.templateView.reload();
+      this.templateView.getRequestedAnswers().clear();
     }
   }
 
-  private setAnswer(answer: Answer) {
-    if (answer && !answer.empty()) {
+  private setAnswer(answer: Answer, e: QuestionChangeEvent) {
+    if (answer) {
       // set the answer on the application from a question change event
       const componentId = answer.componentId;
-      this.application.answers[componentId] = answer;
+
+      if (!e.autosave) {
+        // initial set answer, only override if anwer not in application answers or answer value is different
+        const existing = this.application.answers[componentId];
+
+        if (existing && existing.value == answer.value) {
+          return;
+        }
+      }
+
+      if (!answer.empty()) {
+        this.application.answers[componentId] = answer;
+      } else {
+        delete this.application.answers[componentId];
+      }
     }
   }
 
@@ -378,14 +396,14 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     if (answer) {
       if (Array.isArray(answer)) {
-        answer.forEach(a => this.setAnswer(a));
+        answer.forEach(a => this.setAnswer(a, event));
       } else {
-        this.setAnswer(answer);
+        this.setAnswer(answer, event);
       }
     }
   }
 
-  autoSave(section: SectionViewComponent) {
+  autoSave(source: AutosaveSource) {
     if (!this.applicationContext.disableAutosave) {
       const saveMessage = 'Section saved automatically';
 
@@ -393,13 +411,13 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         if (response) {
           this.application.lastUpdated = new Date(response.lastUpdated);
           this.application.answers = mapAnswers(response.answers);
-          section.onAutoSave(saveMessage);
+          source.onAutoSave(saveMessage);
           this.saved = true;
         } else {
-          section.onAutoSave(error, true);
+          source.onAutoSave(error, true);
         }
 
-        this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
+        this.templateView.markAutosaved(source); // mark autosave as finished so future autosaves will work
       }
 
       // a section requested that it do be autosaved
@@ -409,14 +427,14 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             this.application.applicationId = response.id;
             this.application.answers = mapAnswers(response.answers);
             this._populateApplication(response);
-            section.onAutoSave(saveMessage);
+            source.onAutoSave(saveMessage);
             this.reload();
             this.saved = true;
           } else {
-            section.onAutoSave(error, true);
+            source.onAutoSave(error, true);
           }
 
-          this.templateView.markSectionSaved(section); // mark autosave as finished so future autosaves will work
+          this.templateView.markAutosaved(source); // mark autosave as finished so future autosaves will work
         }
 
         this.saveDraft(createCallback, updateCallback);
@@ -445,7 +463,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       this.displaySaveAlert();
 
       if (reload) {
-        this.reload(true);
+        this.reload(false);
       }
 
       this.saved = true;
@@ -821,17 +839,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  attachFile(checkbox: CheckboxGroupViewComponent) {
-    if (checkbox && (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED)) {
+  attachFile(source: ActionBranchSource) {
+    if (source && (this.application.status == ApplicationStatus.DRAFT || this.application.status == ApplicationStatus.REFERRED)) {
       this.applicationAttachments.attachments.attachFileCallback({
-        next: () => checkbox.onFileAttached('File attached successfully'),
-        error: e => checkbox.onFileAttached(e, true)
+        next: () => source.onFileAttached('File attached successfully'),
+        error: e => source.onFileAttached(e, true)
       });
     }
   }
 
-  terminateApplication(checkbox: CheckboxGroupViewComponent) {
-    if (checkbox && this.application.status == ApplicationStatus.DRAFT) {
+  terminateApplication(source: ActionBranchSource) {
+    if (source && this.application.status == ApplicationStatus.DRAFT) {
       const redirect = () => {
         this.freezeSaved = true; // don't allow any event propagation to change the saved property
         this.saved = true;
@@ -844,7 +862,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         this.applicationService.deleteApplication(this.application.applicationId)
           .subscribe({
             next: () => redirect(),
-            error: e => checkbox.displayError(e)
+            error: e => source.displayError(e)
           });
       }
     }
@@ -883,7 +901,37 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             this.displayActionAlert('Failed to update application due to error: ' + e, true);
             this.actionRetryCallback = () => this.autofillNotified(answers);
           }
-        })
+        });
+    }
+  }
+
+  submitRequests() {
+    if (!this.newApplication) {
+      const requestedAnswers = this.templateView.getRequestedAnswers();
+      const answers = requestedAnswers.getAnswers();
+      const requests: Observable<AddAnswerRequestResponse>[] = [];
+
+      Object.keys(answers).forEach(requested => {
+        const username = requested;
+        const componentsMap = answers[username];
+        const components = Object.keys(componentsMap).map(key => componentsMap[key]);
+
+        requests.push(this.requestService.createRequest(
+          new AddAnswerRequest(this.application.applicationId, username, components)));
+      });
+
+      joinAndWait(requests)
+        .subscribe({
+          next: response => {
+            const usernames = response.map(r => r.user).join(', ');
+            const users = (usernames.length > 1) ? 'users':'user';
+            this.saveAlert.displayMessage(`Answers requested from ${users} ${usernames} successfully`);
+            requestedAnswers.clear();
+            this.cd.detectChanges();
+            console.log(requestedAnswers);
+          },
+          error: e => this.saveAlert.displayMessage(e, true)
+        });
     }
   }
 }

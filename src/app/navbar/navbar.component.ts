@@ -3,7 +3,6 @@ import { UserContext } from '../users/usercontext';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
 import { Subscription } from 'rxjs';
-import { Router } from '@angular/router';
 import { AuthorizationService } from '../users/authorization.service';
 import { User } from '../users/user';
 
@@ -53,7 +52,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private contextSubscription: Subscription;
 
-  constructor(private userContext: UserContext, private modalService: NgbModal, private router: Router,
+  constructor(private userContext: UserContext, private modalService: NgbModal,
     private authorizationService: AuthorizationService) {
     this.contextSubscription = this.userContext.subscribeToUpdates({
       next: () => {
@@ -111,9 +110,5 @@ export class NavbarComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.content = this.error;
     modalRef.componentInstance.redirectLink = 'logout';
     modalRef.componentInstance.redirectText = 'Go to login';
-  }
-
-  navigateToProfile() {
-    this.router.navigate(['profile']);
   }
 }

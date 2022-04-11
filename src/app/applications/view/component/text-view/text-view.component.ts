@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextComponent } from '../../../models/components/textcomponent';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { ApplicationViewComponent, ViewComponentShape } from '../application-view.component';
+import { ComponentDisplayContext } from '../displaycontext';
 import { ComponentViewRegistration } from '../registered.components';
 
 @Component({
@@ -21,9 +21,9 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
    */
   @Input() visible: boolean;
   /**
-   * The parent template
+   * The display context the view component is being rendered inside
    */
-  template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
 
   constructor() { }
 
@@ -32,7 +32,7 @@ export class TextViewComponent implements OnInit, ApplicationViewComponent {
 
   initialise(data: ViewComponentShape): void {
     this.component = data.component;
-    this.template = data.template;
+    this.context = data.context;
   }
 
   castComponent() {

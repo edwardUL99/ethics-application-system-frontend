@@ -5,8 +5,8 @@ import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { Answer } from '../../models/applications/answer';
 import { Application } from '../../models/applications/application';
 import { ApplicationComponent } from '../../models/components/applicationcomponent';
-import { ApplicationTemplateDisplayComponent } from '../application-template-display/application-template-display.component';
 import { AutosaveContext } from './autosave';
+import { ComponentDisplayContext } from './displaycontext';
 
 /**
  * This type represents a callback for when a question change event is fired
@@ -31,11 +31,9 @@ export interface ViewComponentShape {
    */
   application: Application;
   /**
-   * The display component the view component is being rendered inside. An optional parameter, as a
-   * component does not have to consume it. However, sections and containers should take it and pass it
-   * to its children
+   * The display context the view component is being rendered inside.
    */
-  template: ApplicationTemplateDisplayComponent;
+  context: ComponentDisplayContext;
 }
 
 /**
@@ -80,9 +78,9 @@ export interface QuestionViewComponentShape extends ViewComponentShape {
  */
 export interface ApplicationViewComponent extends OnDestroy {
   /**
-   * The display component the view component is being rendered inside
+   * The display context the view component is being rendered inside
    */
-  template: ApplicationTemplateDisplayComponent;
+  context: ComponentDisplayContext;
 
   /**
    * The component being rendered by this view
@@ -257,4 +255,57 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * An optional method to implement and return false if this component should not be counted towards autosave
    */
   disableAutosave?(): boolean;
+
+  /**
+   * Disable/enable the question component, so it can/cannot be edited
+   * @param disabled true to disable the component, false to enable
+   */
+  setDisabled(disabled: boolean): void;
+}
+
+/**
+ * This interface represents a component that is the source of an action branch. It provides callback methods for the target to notify
+ * of error/success
+ */
+export interface ActionBranchSource {
+  /**
+   * Callback for when the attach-file action triggers and completes. Takes a message to display in the source
+   * @param message the message to display
+   * @param error true if error, false if not
+   */
+  onFileAttached(message: string, error?: boolean): void;
+
+  /**
+   * Display the provided error message in some way
+   * @param msg the message to display
+   */
+  displayError(msg: string): void;
+
+  /**
+   * Perform the attach file action
+   */
+  attachFile(): void;
+
+  /**
+   * Execute the terminate action.
+   * @param args the args an implementation can choose to accept. 
+   */
+  terminate(...args: any[]): void;
+}
+
+/**
+ * This interface represents the source of an autosave event (usually sections)
+ */
+export interface AutosaveSource {
+  /**
+   * Retrieves the ID of the component being autosaved
+   */
+  getComponentId(): string;
+
+  /**
+   * Callback for when autosave succeeds/fails
+   * @param message the message to display
+   * @param error true if error
+   */
+  onAutoSave(message: string, error?: boolean): void;
 }

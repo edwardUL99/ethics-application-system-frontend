@@ -9,7 +9,7 @@ import { SignatureFieldComponent } from './signature-field/signature-field.compo
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * The copied signature
@@ -68,7 +68,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The context for autosaving
    */
@@ -79,9 +79,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    */
   hideComments: boolean;
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
 
   constructor() {}
 
@@ -92,7 +92,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
     this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
@@ -106,7 +106,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   ngAfterViewInit(): void {
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
 
     if (this.signatureFieldComponent) {
       this.resizeSignature();
@@ -193,7 +193,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {
@@ -213,7 +213,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   value(): Answer {
-    return new Answer(undefined, this.component.componentId, this.signature, ValueType.IMAGE);
+    return new Answer(undefined, this.component.componentId, this.signature, ValueType.IMAGE, undefined);
   }
 
   copy() {
@@ -238,9 +238,14 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   displayAnswer(): boolean {
-    const display = this.questionComponent?.componentId in this.application?.answers;
-    this.visible = display;
+    return QuestionViewUtils.displayAnswer(this);
+  }
 
-    return display;
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.signatureFieldComponent.signaturePad.off();
+    } else {
+      this.signatureFieldComponent.signaturePad.on();
+    }
   }
 }

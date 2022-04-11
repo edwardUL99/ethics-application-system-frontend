@@ -2,15 +2,15 @@ import { Component, Input, OnInit, OnChanges, ChangeDetectorRef, OnDestroy, Outp
 import { FormGroup } from '@angular/forms';
 import { SectionComponent } from '../../../models/components/sectioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
-import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape, QuestionViewComponent, ApplicationViewComponent } from '../application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape, ViewComponentShape, QuestionViewComponent, ApplicationViewComponent, AutosaveSource } from '../application-view.component';
 import { ComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { AbstractComponentHost } from '../abstractcomponenthost';
 import { DynamicComponentLoader } from '../dynamiccomponents';
 import { Application } from '../../../models/applications/application';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { AutosaveContext } from '../autosave';
+import { ComponentDisplayContext } from '../displaycontext';
 
 export interface SectionViewComponentShape extends QuestionViewComponentShape {
   /**
@@ -25,11 +25,11 @@ export interface SectionViewComponentShape extends QuestionViewComponentShape {
   styleUrls: ['./section-view.component.css']
 })
 @ComponentViewRegistration(ComponentType.SECTION)
-export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy {
+export class SectionViewComponent extends AbstractComponentHost implements OnInit, OnChanges, ApplicationViewComponent, ComponentHost, OnDestroy, AutosaveSource {
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
   /**
    * The component to be displayed
    */
@@ -79,7 +79,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as SectionViewComponentShape;
-    this.template = data.template;
+    this.context = data.context;
 
     this.component = questionData.component;
     this.application = data.application;
@@ -93,7 +93,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
       this.autosaveContext = new AutosaveContext();
       this.autosaveContext?.onAutoSave.subscribe(autosave => {
         if (autosave) {
-          this.template.autoSaveSection(this);
+          this.context.autosave(this);
         }
       });
     }
@@ -101,6 +101,10 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
     }
+  }
+
+  getComponentId(): string {
+    return this.component?.componentId;
   }
 
   ngOnInit(): void {
@@ -143,7 +147,7 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
 
         if (component.getType() == ComponentType.SECTION) {
           ref = this.loadComponentSubSection(this.loader, this.component.componentId,
-            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback, autosaveContext: this.autosaveContext, template: this.template}, true); // section is being loaded inside in a section, so, it is a sub-section
+            {component: component, application: this.application, form: this.form, subSection: true, questionChangeCallback: callback, autosaveContext: this.autosaveContext, context: this.context}, true); // section is being loaded inside in a section, so, it is a sub-section
             detectChangesList.push(ref);
         } else {
           const data: QuestionViewComponentShape = {
@@ -151,11 +155,11 @@ export class SectionViewComponent extends AbstractComponentHost implements OnIni
             component: component,
             form: this.form,
             questionChangeCallback: callback,
-            template: this.template,
+            context: this.context,
             autosaveContext: this.autosaveContext
           };
 
-          ref = this.loadComponent(this.loader, this.component.componentId, this.template.autofillNotifier, data, true);
+          ref = this.loadComponent(this.loader, this.component.componentId, this.context.autofillNotifier, data, true);
           detectChangesList.push(ref);
         }
 
