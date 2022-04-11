@@ -35,7 +35,6 @@ import { ApproveApplicationRequest } from '../../models/requests/approveapplicat
 import { Comment } from '../../models/applications/comment';
 import { PatchAnswersRequest } from '../../models/requests/patchanswerrequest';
 import { AnswersMapping as ApplicationAnswers } from '../../models/applications/types';
-import { RequestedAnswers } from '../answer-requests/requestedanswers';
 import { AnswerRequestService } from '../../answer-request.service';
 import { AddAnswerRequest } from '../../models/requests/answer-requests/requests';
 import { AddAnswerRequestResponse } from '../../models/requests/answer-requests/responses';
@@ -923,12 +922,11 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       joinAndWait(requests)
         .subscribe({
           next: response => {
-            const usernames = response.map(r => r.user).join(', ');
+            const usernames = response.map(r => r.user);
             const users = (usernames.length > 1) ? 'users':'user';
-            this.saveAlert.displayMessage(`Answers requested from ${users} ${usernames} successfully`);
+            this.saveAlert.displayMessage(`Answers requested from ${users} ${usernames.join(', ')} successfully`);
             requestedAnswers.clear();
             this.cd.detectChanges();
-            console.log(requestedAnswers);
           },
           error: e => this.saveAlert.displayMessage(e, true)
         });

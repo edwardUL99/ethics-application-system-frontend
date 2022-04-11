@@ -1,6 +1,6 @@
 import { Application } from '../../models/applications/application';
 import { ViewingUser } from '../../applicationcontext';
-import { ActionBranchSource, AutosaveSource, QuestionChange, QuestionChangeEvent } from './application-view.component';
+import { ActionBranchSource, AutosaveSource, QuestionChange, QuestionChangeEvent, QuestionViewComponent } from './application-view.component';
 import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { ReplacedContainer } from '../../applicationtemplatecontext';
 import { QuestionComponent } from '../../models/components/questioncomponent';
@@ -84,4 +84,18 @@ export interface ComponentDisplayContext {
    * Get the requested answers provided by the context
    */
   getRequestedAnswers(): RequestedAnswers;
+
+  /**
+   * The component when being loaded should query this method to determine if
+   * it should be displayed or not
+   * @param component the component that should be displayed/not
+   */
+  displayComponent(component: QuestionViewComponent): boolean;
+
+  /**
+   * Based on the context, determine if the component should be displayed but just disabled
+   * @param component the component to disable
+   * @returns true to display, false otherwise
+   */
+  displayAndDisableComponent(component: QuestionViewComponent): boolean;
 }

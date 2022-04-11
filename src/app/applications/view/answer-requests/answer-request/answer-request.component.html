@@ -18,6 +18,9 @@
         </div>
       </div>
       <app-center-header [text]="'Questions'"></app-center-header>
+      <div class="text-center">
+        <p style="color: white">See the below application for reference (excluding the requested questions)</p>
+      </div>
       <div class="card shadow my-2 p-2">
         <form [formGroup]="form">
           <app-answer-request-context *ngFor="let component of request?.components" [application]="request?.application" [component]="component"
@@ -29,6 +32,11 @@
         <div class="text-end">
           <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="!form.valid">Submit Answers</button>
         </div>
+      </div>
+      <div class="mt-2">
+        <app-center-header [text]="'Application'"></app-center-header>
+        <app-application-template-display [application]="request?.application" [template]="request?.application?.applicationTemplate" 
+          [viewingUser]="viewingUser" [hiddenComponents]="requestComponents" [editsDisabled]="true"></app-application-template-display>
       </div>
     </div>
   </div>

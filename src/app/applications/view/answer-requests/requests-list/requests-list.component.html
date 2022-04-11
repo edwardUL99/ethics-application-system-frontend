@@ -23,7 +23,7 @@
                   <a [routerLink]="['/answer-request']" [queryParams]="{id: request.id}">Open</a>
                 </div>
                 <div class="card-footer text-muted">
-                  {{requestedAt(request.requestedAt)}}
+                  {{request.requestedAt | date: 'dd/MM/yyyy HH:mm:ss'}}
                 </div>
               </div>
             </div>

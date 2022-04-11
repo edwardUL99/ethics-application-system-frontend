@@ -33,8 +33,4 @@ export class RequestsListComponent implements OnInit {
         error: e => this.loadError = e
       });
   }
-
-  requestedAt(date: Date) {
-    return date.toLocaleString();
-  }
 }

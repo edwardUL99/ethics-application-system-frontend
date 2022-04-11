@@ -3,9 +3,11 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { AnswerRequestService } from '../../../answer-request.service';
+import { ApplicationTemplateService } from '../../../application-template.service';
 import { ApplicationContext, ViewingUser } from '../../../applicationcontext';
 import { AnswerRequest } from '../../../models/applications/answer-requests/answerrequest';
 import { AnswersMapping } from '../../../models/applications/types';
+import { ApplicationTemplate } from '../../../models/applicationtemplate';
 import { RespondAnswerRequest } from '../../../models/requests/answer-requests/requests';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 import { QuestionChangeEvent } from '../../component/application-view.component';
@@ -23,6 +25,10 @@ export class AnswerRequestComponent implements OnInit {
    * The request to render
    */
   @Input() request: AnswerRequest;
+  /**
+   * The IDs of the components requested
+   */
+  requestComponents: string[];
   /**
    * The ID of the request to load
    */
@@ -73,6 +79,7 @@ export class AnswerRequestComponent implements OnInit {
       .subscribe({
         next: request => {
           this.request = request;
+          this.requestComponents = request.components.map(c => c.componentId);
           this.loadViewingUser();
         },
         error: e => this.loadError = e

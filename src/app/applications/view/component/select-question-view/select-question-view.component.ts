@@ -168,13 +168,16 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       }
 
       const resolver = getResolver();
-      resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
-          this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
-          this.emit(false);
-          this.autofillNotifier?.notify(this);
-        }
-      });
+
+      if (resolver) {
+        resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
+          if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
+            this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
+            this.emit(false);
+            this.autofillNotifier?.notify(this);
+          }
+        });
+      }
     }
   }
 

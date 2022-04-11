@@ -89,6 +89,10 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * Variable to determine if radios should be disabled
+   */
+  disableRadios: boolean = false;
 
   constructor() {}
 
@@ -247,5 +251,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     } else {
       this.radioGroup.enable();
     }
+
+    this.disableRadios = disabled;
   }
 }

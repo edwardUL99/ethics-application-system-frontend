@@ -4,7 +4,7 @@ import { ApplicationTemplateContext, ReplacedContainer } from '../../application
 import { ApplicationTemplate } from '../../models/applicationtemplate';
 import { ApplicationComponent, ComponentType } from '../../models/components/applicationcomponent';
 import { AbstractComponentHost } from '../component/abstractcomponenthost';
-import { ActionBranchSource, AutosaveSource, QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../component/application-view.component';
+import { ActionBranchSource, AutosaveSource, QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape } from '../component/application-view.component';
 import { ComponentHost } from '../component/component-host.directive';
 import { DynamicComponentLoader } from '../component/dynamiccomponents';
 import { SectionViewComponentShape } from '../component/section-view/section-view.component';
@@ -73,6 +73,14 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    */
   @Input() viewingUser: ViewingUser;
   /**
+   * IDs of components to hide
+   */
+  @Input() hiddenComponents: string[];
+  /**
+   * Determine if edits should be disabled
+   */
+  @Input() editsDisabled: boolean = false;
+  /**
    * The requested answers received by the context
    */
   private requestedAnswers: RequestedAnswers = new RequestedAnswers();
@@ -90,14 +98,17 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
   }
 
   ngOnInit(): void {
-    this.template = this.templateContext.getCurrentTemplate();
-
     if (!this.template) {
-      throw new Error('You need to set the current template before creating an application-template-display component');
+      this.template = this.templateContext.getCurrentTemplate();
+
+      if (!this.template) {
+        throw new Error('You need to set the current template before creating an application-template-display component');
+      }
+
+      setResolver(AutofillResolver.fromConfig()); // initialise the autofill for the application templates
     }
 
     this.form = new FormGroup({});
-    setResolver(AutofillResolver.fromConfig()); // initialise the autofill for the application templates
   }
 
   ngAfterViewInit(): void {
@@ -251,5 +262,23 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   getRequestedAnswers(): RequestedAnswers {
     return this.requestedAnswers;
+  }
+
+  displayComponent(component: QuestionViewComponent): boolean {
+    if (!this.hiddenComponents) {
+      return true;
+    } else {
+      return this.hiddenComponents.indexOf(component.component.componentId) == -1;
+    }
+  }
+
+  displayAndDisableComponent(component: QuestionViewComponent): boolean {
+    if (this.editsDisabled) {
+      component.setDisabled(true);
+      
+      return true;
+    } else {
+      return false;
+    }
   }
 }

@@ -4,7 +4,7 @@ import { ViewingUser } from '../../../applicationcontext';
 import { Application } from '../../../models/applications/application';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { AbstractComponentHost } from '../../component/abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent, QuestionViewComponentShape } from '../../component/application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape } from '../../component/application-view.component';
 import { ComponentHost } from '../../component/component-host.directive';
 import { ComponentDisplayContext } from '../../component/displaycontext';
 import { DynamicComponentLoader } from '../../component/dynamiccomponents';
@@ -116,5 +116,15 @@ export class AnswerRequestContextComponent extends AbstractComponentHost impleme
   getRequestedAnswers(): RequestedAnswers {
     // no-op in this context
     return undefined;
+  }
+
+  displayComponent(component: QuestionViewComponent): boolean {
+    // no-op in this context
+    return true;
+  }
+
+  displayAndDisableComponent(component: QuestionViewComponent): boolean {
+    // no-op in this context
+    return false;
   }
 }
