@@ -82,6 +82,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * Determines if the component has been disabled
+   */
+  disabled: boolean;
 
   constructor() {}
 
@@ -242,10 +246,12 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   setDisabled(disabled: boolean): void {
+    this.disabled = disabled;
+
     if (disabled) {
-      this.signatureFieldComponent.signaturePad.off();
+      this.control.disable();
     } else {
-      this.signatureFieldComponent.signaturePad.on();
+      this.control.enable();
     }
   }
 }

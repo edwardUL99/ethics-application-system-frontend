@@ -5,9 +5,10 @@ import { UserContext } from '../../../users/usercontext';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ApplicationTemplateService } from '../../application-template.service';
 import { ApplicationTemplateContext } from '../../applicationtemplatecontext';
-import { ApplicationService } from '../../application.service';
 import { Authorizer } from '../../../users/authorizations';
 import { UserPermissions } from '../../userpermissions';
+import { ApplicationTemplate } from '../../models/applicationtemplate';
+import { environment } from '../../../../environments/environment';
 
 /**
  * A template choice
@@ -63,13 +64,22 @@ export class ApplicationListComponent implements OnInit {
    */
   userPermissions: UserPermissions;
 
+  /**
+   * The selected template
+   */
+  chosenTemplate: ApplicationTemplate;
+
+  /**
+   * Determines if the default template has been chose
+   */
+  defaultTemplate: ApplicationTemplate;
+
   constructor(private fb: FormBuilder, 
     private templateService: ApplicationTemplateService,
     private authorizationService: AuthorizationService,
     private userContext: UserContext,
     private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private applicationService: ApplicationService) {
+    private activatedRoute: ActivatedRoute) {
     this.newAppForm = this.fb.group({
       template: this.fb.control('')
     });
@@ -104,6 +114,11 @@ export class ApplicationListComponent implements OnInit {
           const label = response.applications[value].name;
 
           this.templateOptions.push({value: value, label: label});
+
+          if (value == environment.default_template_id) {
+            this.defaultTemplate = response.applications[value];
+            this.chosenTemplate = this.defaultTemplate;
+          }
         }
 
         this.templateOptionsInitialised = true;
@@ -138,6 +153,21 @@ export class ApplicationListComponent implements OnInit {
         new: template
       }
     });
+  }
+
+  onChange(event: any) {
+    const value = event.target.value;
+
+    if (value == '') {
+      this.chosenTemplate = this.defaultTemplate;
+    } else {
+      for (let option of this.templateOptions) {
+        if (option.value == value) {
+          this.chosenTemplate = ApplicationTemplateContext.getInstance().getTemplate(value);
+          break;
+        }
+      }
+    }
   }
 
   unknownError(error: any) {

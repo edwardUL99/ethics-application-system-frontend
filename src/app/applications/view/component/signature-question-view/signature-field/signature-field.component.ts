@@ -1,84 +1,98 @@
-import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
-import { NG_VALUE_ACCESSOR, ControlValueAccessor }  from '@angular/forms';
+import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { SignaturePadComponent } from '@almothafar/angular-signature-pad';
 
 @Component({
-    selector: 'signature-field',
-    templateUrl: './signature-field.component.html',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => SignatureFieldComponent),
-            multi: true
-        }
-    ]
+  selector: 'signature-field',
+  templateUrl: './signature-field.component.html',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SignatureFieldComponent),
+      multi: true
+    }
+  ]
 })
-export class SignatureFieldComponent implements ControlValueAccessor, AfterViewInit {
-    /**
-     * The signature pad component
-     */
-    @ViewChild(SignaturePadComponent)
-    signaturePad: SignaturePadComponent;
-    /**
-     * The recorded signature
-     */
-    private _signature: any;
-    /**
-     * The input options
-     */
-    @Input() options = {};
-    /**
-     * An event emitted when the signature is entered
-     */
-    @Output() signatureEntered: EventEmitter<string> = new EventEmitter<string>();
-    /**
-     * An event for when the signature drawing started
-     */
-    @Output() drawStarted: EventEmitter<any> = new EventEmitter<any>();
-    /**
-     * The function to register changes
-     */
-    propagateChange: Function = null;
-    
-    get signature() {
-        return this._signature;
-    }
+export class SignatureFieldComponent implements ControlValueAccessor, AfterViewInit, OnChanges {
+  /**
+   * The signature pad component
+   */
+  @ViewChild(SignaturePadComponent)
+  signaturePad: SignaturePadComponent;
+  /**
+   * The recorded signature
+   */
+  private _signature: any;
+  /**
+   * The input options
+   */
+  @Input() options = {};
+  /**
+   * Determines if the component is disabled
+   */
+  @Input('inputDisabled') disabled: boolean;
+  /**
+   * An event emitted when the signature is entered
+   */
+  @Output() signatureEntered: EventEmitter<string> = new EventEmitter<string>();
+  /**
+   * An event for when the signature drawing started
+   */
+  @Output() drawStarted: EventEmitter<any> = new EventEmitter<any>();
+  /**
+   * The function to register changes
+   */
+  propagateChange: Function = null;
 
-    set signature(value: any) {
-        this._signature = value;
-        this.propagateChange(this.signature);
+  ngOnChanges() {
+    if (this.signaturePad) {
+      if (this.disabled) {
+        this.signaturePad.off();
+      } else {
+        this.signaturePad.on();
+      }
     }
+  }
 
-    writeValue(obj: any): void {
-        if (obj) {
-            this._signature = obj;
-            this.signaturePad.fromDataURL(this.signature);
-        }
-    }
+  get signature() {
+    return this._signature;
+  }
 
-    registerOnChange(fn: any): void {
-        this.propagateChange = fn
-    }
+  set signature(value: any) {
+    this._signature = value;
+    this.propagateChange(this.signature);
+  }
 
-    registerOnTouched(fn: any): void {
-        // no-op
+  writeValue(obj: any): void {
+    if (obj) {
+      this._signature = obj;
+      this.signaturePad.fromDataURL(this.signature);
     }
+  }
 
-    ngAfterViewInit() {
-        //this.signaturePad.clear();
-    }
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn
+  }
 
-    drawStart(event) {
-        this.drawStarted.emit(event);
-    }
+  registerOnTouched(fn: any): void {
+    // no-op
+  }
 
-    drawComplete() {
-        this.signature = this.signaturePad.toDataURL('image/png', 1);
-        this.signatureEntered.emit(this.signature);
-    }
+  ngAfterViewInit() {
+    //this.signaturePad.clear();
+  }
 
-    clear() {
-        this.signaturePad.clear();
-        this.signature = '';
-    }
+  drawStart(event) {
+    this.drawStarted.emit(event);
+  }
+
+  drawComplete() {
+    this.signature = this.signaturePad.toDataURL('image/png', 1);
+    this.signatureEntered.emit(this.signature);
+  }
+
+  clear() {
+    this.signaturePad.clear();
+    this.signature = '';
+  }
 }

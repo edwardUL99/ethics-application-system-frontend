@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, Observable, of } from 'rxjs';
 import { AlertComponent } from '../../../../alert/alert.component';
@@ -105,6 +105,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
    */
   displayForm: boolean;
   /**
+   * Display answer confirmation message
+   */
+  displayConfirmation: boolean;
+  /**
    * An alert notifying of the success/error
    */
   @ViewChild('requestAlert')
@@ -114,13 +118,16 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
    */
   private static lastEntered: string = '';
   /**
+   * Detects if user has given their confirmation to the manual answer
+   */
+  private static confirmed: boolean = false;
+  /**
    * Determines if in on changes the requestInput value should be updated
    */
   private updateRequest: boolean = true;
 
   constructor(private fb: FormBuilder, private userService: UserService, 
-    private userContext: UserContext,
-    private cd: ChangeDetectorRef) { }
+    private userContext: UserContext) { }
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -166,12 +173,14 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
     }
   }
 
-  fillAnswer() {
-    if (confirm('By continuing, you confirm that you have permission from the intended person to fill in this field or '
-      + ' that you are the intended target for this question')) {
+  fillAnswer(confirmed?: boolean) {
+    if (RequestComponentAnswerComponent.confirmed || confirmed) {
+      RequestComponentAnswerComponent.confirmed = true;
       this.updateRequest = false;
       this.requestInput = false;
       this.component.setDisabled(false);
+    } else {
+      this.toggleAnswerConfirmation();
     }
   }
 
@@ -180,11 +189,22 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
 
     if (!this.displayForm) {
       this.username.disable();
+    } else {
+      this.username.setValue(RequestComponentAnswerComponent.lastEntered);
+    }
+  }
+
+  toggleAnswerConfirmation(explicit?: boolean) {
+    if (explicit != undefined) {
+      this.displayConfirmation = explicit;
+    } else {
+      this.displayConfirmation = !this.displayConfirmation;
     }
   }
 
   static reset() {
     // reset any static content when the application is being destroyed
     this.lastEntered = '';
+    this.confirmed = false;
   }
 }

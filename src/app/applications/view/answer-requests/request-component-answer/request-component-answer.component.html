@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="my-1">
-      <p style="color: grey">This field has been marked as requiring input from another user. You can request the user to answer it or choose to manually answer it</p>
+      <p style="color: grey; font-size: 14px;">This question has been marked as requiring input from another user. You can request the user to answer it or choose to manually answer it</p>
     </div>
     <div *ngIf="displayForm">
       <form [formGroup]="form">
@@ -21,13 +21,28 @@
           <app-field-error [condition]="username.errors?.['username'] && username.touched" [error]="'Enter a valid username or UL email address'"></app-field-error>
           <app-field-error [condition]="username.errors?.['sameUser'] && username.touched" [error]="'You cannot request an answer from yourself'"></app-field-error>
           <div class="form-text">
-            The username or e-mail address of the user to request an answer from
+            The username or e-mail address of the user to request an answer from. This user is typically your supervisor
           </div>
         </div>
         <div class="text-end">
           <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="!form.valid">Submit</button>
         </div>
       </form>
+    </div>
+    <div *ngIf="displayConfirmation">
+      <div>
+        <h6 style="color: grey">Confirm Answer?</h6>
+        <p style="font-size: 14px;">Since this question has been marked as a question that is intended to be answered by someone else, typically your supervisor, you need to
+          confirm that you either have received explicit permission from this person to fill it in on their behalf, or that they are filling in the
+          field themselves. You will only be asked to confirm this once
+        </p>
+      </div>
+      <div class="d-inline">
+        <div class="text-end">
+          <buttont type="button" class="btn btn-sm btn-secondary" (click)="toggleAnswerConfirmation(false)">Cancel</buttont>
+          <button type="button" class="btn btn-sm btn-primary margin-left-1" (click)="fillAnswer(true)">Confirm</button>
+        </div>
+      </div>
     </div>
   </div>
   <app-alert #requestAlert [dismissible]="true" [hidden]="true"></app-alert>

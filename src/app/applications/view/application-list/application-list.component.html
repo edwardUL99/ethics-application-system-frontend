@@ -15,12 +15,16 @@
           <form [formGroup]="newAppForm">
             <div class="form-group">
               <label>Application:</label>
-              <select class="form-select" formControlName="template" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
+              <select class="form-select" formControlName="template" (change)="onChange($event)" [appTooltip]="'Leave blank if you\'re unsure which type to create'">
                 <option *ngFor="let option of templateOptions" [value]="option.value">{{option.label}}</option>
               </select>
               <div class="form-text">
                 Choose the application to create
               </div>
+            </div>
+            <div *ngIf="chosenTemplate" class="mt-2">
+              <h6 style="color: gray;">{{chosenTemplate.name}}</h6>
+              <p class="render-new-lines">{{chosenTemplate?.description}}</p>
             </div>
             <div class="text-end">
               <button type="button" class="btn btn-primary" (click)="createNewApplication()">Create</button>
