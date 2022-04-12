@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthorizationService } from '../users/authorization.service';
 import { UserContext } from '../users/usercontext';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,14 @@ export class HomeComponent implements OnInit {
    * The text for the header
    */
   headerText: string;
+  /**
+   * Name of committee contact
+   */
+  contactName: string = environment.contactName;
+  /**
+   * Email of committee contact
+   */
+  contactEmail: string = environment.contactEmail;
 
   constructor(private authorizationService: AuthorizationService,
     private userContext: UserContext,
