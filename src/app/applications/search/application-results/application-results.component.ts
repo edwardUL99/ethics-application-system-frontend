@@ -14,7 +14,7 @@ import { ApplicationIDOrder, LastUpdatedOrder } from '../sort';
 /**
  * Sorts the groups by Month Year in descending order
  */
- function dateGroupSort(a: string, b: string): number {
+function dateGroupSort(a: string, b: string): number {
   const getMonthYear = (key: string) => {
     const split = key.split(' ');
     const months = ["January", "February", "March", "April", "May", "June",
@@ -270,6 +270,7 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
       this.applicationSearch.refreshSearch();
     } else {
       this.getApplications();
+      this.resetOperations = true;
     }
   }
 
@@ -290,6 +291,7 @@ export class ApplicationResultsComponent implements OnInit, OnChanges, AfterView
           next: response => {
             this.applications = response;
             this.unorderedApplications = this.applications;
+            this.grouped = undefined;
             this.unorderGrouped = undefined;
           }
         }

@@ -162,7 +162,7 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
 
     if (value) {
       let requestComments = [];
-      requestComments.push(new Comment(undefined, this.component.template.viewingUser.user.username, value, componentId, [], new Date(), shared));
+      requestComments.push(new Comment(undefined, this.component.context.viewingUser.user.username, value, componentId, [], new Date(), shared));
       this.updateComments(requestComments, () => this.displayAddAlert('Comment added successfully'), (e: any) => this.displayAddAlert(e, true));
     }
   }

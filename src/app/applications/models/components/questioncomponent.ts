@@ -25,6 +25,10 @@ export abstract class QuestionComponent extends SimpleComponent {
      * The autofill query string
      */
     autofill: string;
+    /**
+     * Specifies that input from another user should be requested as the answer to this component
+     */
+    requestInput: boolean;
     
     /**
      * Create a QuestionComponent

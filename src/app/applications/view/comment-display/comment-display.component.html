@@ -39,7 +39,7 @@
     </div>
     <div *ngIf="!approvalComment && !parentComment && replyComment && comment.id" class="mt-2">
       <div class="text-start">
-        <button type="button" class="btn btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="toggleSubCommentForm()">Reply</button>
       </div>
       <div *ngIf="subCommentFormDisplayed">
         <form [formGroup]="subCommentForm">

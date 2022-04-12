@@ -1,1 +1,3 @@
-<signature-pad #pad [options]="options" (drawStart)="drawStart($event)" (drawEnd)="drawComplete()"></signature-pad>
+<div [style]="(disabled) ? 'opacity: 50%; pointer-events: none;':''">
+  <signature-pad #pad [options]="options" (drawStart)="drawStart($event)" (drawEnd)="drawComplete()"></signature-pad>
+</div>

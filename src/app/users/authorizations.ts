@@ -141,7 +141,7 @@ export class Authorizer {
           continue;
         }
 
-        const hasPermission = this.hasPermission(role.permissions, permission);
+        const hasPermission = this.hasPermission(new Set(role.permissions), permission);
         
         matched = (requireAll) ? matched && hasPermission : matched || hasPermission;
 

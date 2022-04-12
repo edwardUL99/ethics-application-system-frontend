@@ -1,5 +1,5 @@
-<div [id]="checkboxGroupComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
+<div class="question-spacing" [id]="checkboxGroupComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display">
+    <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
     <label>{{checkboxGroupComponent?.title}}</label>
     <div [id]="checkboxGroupComponent?.componentId + '-checkboxes'">
         <div *ngFor="let checkbox of checkboxGroupComponent?.checkboxes" class="form-check">
@@ -11,5 +11,5 @@
     </div>
     <app-alert #error [hidden]="true" [alertType]="'alert-danger'" [dismissible]="true"></app-alert>
     <app-alert #attachFileAlert [hidden]="true" [dismissible]="true"></app-alert>
-    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser" [enable]="visible"></app-comments-display>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

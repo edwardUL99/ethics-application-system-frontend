@@ -17,7 +17,7 @@
       (groupRequested)="doGroup($event)" (orderRequested)="doOrder($event)" #resultsOperator></app-results-operator>
     <div *ngIf="!grouped">
       <div *ngIf="applications.length > 0; else noApplications">
-        <div class="d-flex flex-row flex-wrap">
+        <div class="d-flex flex-row flex-wrap justify-content-center">
           <div *ngFor="let application of applications">
             <div class="card shadow m-2" style="width: 18rem;">
               <div class="card-body">
@@ -42,7 +42,7 @@
       <div *ngIf="grouped.hasValues(); else noGroupValues">
         <div *ngFor="let item of grouped.grouped | keyvalue: grouped.getSort()" class="my-2">
           <h5 style="color: grey">{{item.key}}</h5>
-          <div class="d-flex flex-row flex-wrap">
+          <div class="d-flex flex-row flex-wrap justify-content-center">
             <div *ngFor="let application of item.value">
               <div class="card shadow m-2" style="width: 18rem;">
                 <div class="card-body">

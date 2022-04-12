@@ -9,10 +9,10 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { AutofillNotifier } from '../../../autofill/autofillnotifier';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * This function returns a validator that validates the value chosen by select
@@ -74,7 +74,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The context for autosaving
    */
@@ -85,9 +85,9 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   hideComments: boolean;
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
   /**
    * The notifier of autofill events
    */
@@ -102,7 +102,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
     this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
@@ -114,7 +114,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -164,22 +164,25 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     // autofills assuming the value returned is the same as the value key in the options
     if (this.questionComponent.autofill) {
       if (!this.autofillNotifier) {
-        throw new Error('registerAutofill not implemented or not called');
+        console.warn("Autofill events are not being notified by this component, this may lead to the value filled by autofill being ignored and not saved");
       }
 
       const resolver = getResolver();
-      resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
-          this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
-          this.emit(false);
-          this.autofillNotifier.notify(this);
-        }
-      });
+
+      if (resolver) {
+        resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
+          if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
+            this.control.setValue((Array.isArray(value)) ? value : [value], {emitEvent: false});
+            this.emit(false);
+            this.autofillNotifier?.notify(this);
+          }
+        });
+      }
     }
   }
 
   registerAutofill(notifier: AutofillNotifier) {
-    notifier.attach(this);
+    notifier?.attach(this);
     this.autofillNotifier = notifier;
   }
 
@@ -199,7 +202,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
 
   value(): Answer {
@@ -213,7 +216,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
         value = valueRaw;
       }
 
-      return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS);
+      return new Answer(undefined, this.component.componentId, value, ValueType.OPTIONS, undefined);
     } else {
       return null;
     }
@@ -228,9 +231,14 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   displayAnswer(): boolean {
-    const display = this.questionComponent?.componentId in this.application?.answers;
-    this.visible = display;
+    return QuestionViewUtils.displayAnswer(this);
+  }
 
-    return display;
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.control.disable();
+    } else {
+      this.control.enable();
+    }
   }
 }

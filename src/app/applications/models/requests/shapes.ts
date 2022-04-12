@@ -2,6 +2,7 @@
  * This file contains many different "shapes" for objects used throughout the responses
  */
 
+import { UserResponse } from '../../../users/responses/userresponse';
 import { ValueType } from "../applications/answer";
 
 /**
@@ -24,6 +25,10 @@ export interface AnswerShape {
    * The type of the value contained within the answer
    */
   valueType: ValueType;
+  /**
+   * Another user that created this answer
+   */
+  user: UserResponse;
 }
 
 /**

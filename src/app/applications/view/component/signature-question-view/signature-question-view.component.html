@@ -1,24 +1,23 @@
-<div [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
-    <div *ngIf="edit(); else notEdit">
+<div class="question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
+    <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
+    <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
+    <div *ngIf="edit()">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div #signatureContainer>
             <label>{{questionComponent?.label}}</label>
             <div class="text-end w-100">
-                <button class="btn btn-sm btn-outline-primary" style="margin-right: 1%" type="button" (click)="paste()">Paste</button>
-                <button class="btn btn-sm btn-outline-primary" type="button" (click)="copy()">Copy</button>
+                <button class="btn btn-sm btn-outline-primary" style="margin-right: 1%" type="button" (click)="paste()" [disabled]="disabled">Paste</button>
+                <button class="btn btn-sm btn-outline-primary" type="button" (click)="copy()" [disabled]="disabled">Copy</button>
             </div>
-            <signature-field #signature [formControlName]="questionComponent?.name" (drawStarted)="drawStarted()" (signatureEntered)="signatureEntered($event)"></signature-field>
+            <signature-field #signature [formControlName]="questionComponent?.name" [inputDisabled]="disabled" (drawStarted)="drawStarted()" (signatureEntered)="signatureEntered($event)"></signature-field>
             <div class="text-end">
-                <button type="button" class="btn btn-link" (click)="clear()">Clear</button>
+                <button type="button" class="btn btn-link" (click)="clear()" [disabled]="disabled">Clear</button>
             </div>
             <app-field-error [condition]="control?.errors?.['required'] && control?.touched" [error]="'This field is required'"></app-field-error>
         </div>
     </div>
-    <ng-template #notEdit>
-        <app-answer-view *ngIf="displayAnswer()"
-            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
-    </ng-template>
-    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser" [enable]="visible"></app-comments-display>
+    <app-answer-view *ngIf="displayAnswer()"
+        [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

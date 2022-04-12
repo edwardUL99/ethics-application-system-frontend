@@ -1,5 +1,6 @@
 import { ViewingUser } from '../../applicationcontext';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
 import { QuestionViewComponent } from './application-view.component';
 
 /**
@@ -24,8 +25,8 @@ export class QuestionViewUtils {
    */
   public static display(view: QuestionViewComponent, checkParent: boolean = true): boolean {
     // determine if this component should be viewed at all based on the application status
-    return (checkParent && view.parent?.display()) || (view.application.status == ApplicationStatus.DRAFT || view.application.status == ApplicationStatus.REFERRED
-      || view.component.componentId in view.application.answers);
+    return view.context?.displayComponent(view) && ((checkParent && view.parent?.display()) || (view.application.status == ApplicationStatus.DRAFT || view.application.status == ApplicationStatus.REFERRED
+      || view.component.componentId in view.application.answers));
   }
 
   /**
@@ -37,7 +38,23 @@ export class QuestionViewUtils {
    */
   public static edit(view: QuestionViewComponent, checkParent: boolean = true, viewingUser: ViewingUser): boolean {
     // determine if the question is editable
-    return (!viewingUser || viewingUser.applicant) && ((checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
-      (view.application.status == ApplicationStatus.REFERRED && view.application.editableFields.indexOf(view.component.componentId) != -1)));
+    return view.context?.displayAndDisableComponent(view) || ((!viewingUser || viewingUser.applicant) && ((checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
+      (view.application.status == ApplicationStatus.REFERRED && view.application.editableFields.indexOf(view.component.componentId) != -1))));
+  }
+
+  /**
+   * A utility to determine if an answer should be displayed and it also sets the visible attribute accordingly
+   * @param view the view to determine to display answer for
+   * @returns true to display answer, false if not
+   */
+  public static displayAnswer(view: QuestionViewComponent) {
+    const display = view.component?.componentId in view.application?.answers;
+    const status = resolveStatus(view.application?.status);
+
+    if (status != ApplicationStatus.DRAFT && (status != ApplicationStatus.REFERRED || !view.edit())) {
+      view.setVisible(display);
+    }
+
+    return display;
   }
 }

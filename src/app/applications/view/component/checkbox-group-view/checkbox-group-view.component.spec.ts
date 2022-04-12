@@ -43,7 +43,7 @@ describe('CheckboxGroupViewComponent', () => {
       component: questionComponent,
       application: application,
       autosaveContext: new AutosaveContext(),
-      template: undefined
+      context: undefined
     };
 
     component.initialise(data);
