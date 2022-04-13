@@ -1,7 +1,7 @@
-<div class="question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="state.display">
+<div class="question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()">
     <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
     <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
-    <div *ngIf="state.edit">
+    <div *ngIf="edit()">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div #signatureContainer>
@@ -17,7 +17,7 @@
             <app-field-error [condition]="control?.errors?.['required'] && control?.touched" [error]="'This field is required'"></app-field-error>
         </div>
     </div>
-    <app-answer-view *ngIf="state.displayAnswer"
+    <app-answer-view *ngIf="displayAnswer()"
         [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

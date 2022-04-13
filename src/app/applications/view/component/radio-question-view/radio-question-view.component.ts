@@ -3,7 +3,7 @@ import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn 
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
@@ -93,11 +93,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    * Variable to determine if radios should be disabled
    */
   disableRadios: boolean = false;
-  /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
 
   constructor() {}
 

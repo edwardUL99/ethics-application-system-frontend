@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
@@ -78,11 +78,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
-  /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
 
   constructor() {}
 

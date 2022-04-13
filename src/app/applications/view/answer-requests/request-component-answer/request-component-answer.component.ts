@@ -53,15 +53,13 @@ export function OwnUsernameValidator(username: string): ValidatorFn {
   }
 }
 
-// TODO a custom validator for each component should use the following function to determine if form is valid 
-
 /**
  * Determine if input should be requested
  * @param context the context the component is loaded in
  * @param component the component to determine if input should be requested from it
  */
 export function shouldRequestInput(context: ComponentDisplayContext, component: QuestionComponent): boolean {
-  if (component.requestInput) {
+  if (component.requestInput && context?.viewingUser?.applicant) {
     const id = component.componentId;
     const answerAvailable = id in context.application?.answers && !context.application?.answers[id].empty();
     
@@ -191,6 +189,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
       this.username.disable();
     } else {
       this.username.setValue(RequestComponentAnswerComponent.lastEntered);
+
+      if (!this.requestedUsername) {
+        this.username.enable();
+      }
     }
   }
 

@@ -3,11 +3,9 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { AnswerRequestService } from '../../../answer-request.service';
-import { ApplicationTemplateService } from '../../../application-template.service';
 import { ApplicationContext, ViewingUser } from '../../../applicationcontext';
 import { AnswerRequest } from '../../../models/applications/answer-requests/answerrequest';
 import { AnswersMapping } from '../../../models/applications/types';
-import { ApplicationTemplate } from '../../../models/applicationtemplate';
 import { RespondAnswerRequest } from '../../../models/requests/answer-requests/requests';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 import { QuestionChangeEvent } from '../../component/application-view.component';
@@ -91,6 +89,8 @@ export class AnswerRequestComponent implements OnInit {
       .subscribe({
         next: user => {
           this.viewingUser = user;
+          this.viewingUser.givingInput = true;
+          this.viewingUser.applicant = this.request?.application?.user?.username == user.user.username;
           this.cd.detectChanges();
         },
         error: e => this.loadError = e

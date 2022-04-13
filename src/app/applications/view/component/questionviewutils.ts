@@ -38,7 +38,7 @@ export class QuestionViewUtils {
    */
   public static edit(view: QuestionViewComponent, checkParent: boolean = true, viewingUser: ViewingUser): boolean {
     // determine if the question is editable
-    return view.context?.displayAndDisableComponent(view) || ((!viewingUser || viewingUser.applicant) && ((checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
+    return view.context?.displayAndDisableComponent(view) || ((!viewingUser || viewingUser.applicant || viewingUser.givingInput) && ((checkParent && view.parent?.edit()) || (view.application.status == ApplicationStatus.DRAFT || 
       (view.application.status == ApplicationStatus.REFERRED && view.application.editableFields.indexOf(view.component.componentId) != -1))));
   }
 

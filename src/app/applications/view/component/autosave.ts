@@ -52,7 +52,7 @@ export class AutosaveContext {
       const child = this.questions[key];
       const childAnswered = this.answeredQuestions[child.component.componentId];
 
-      if (child.isVisible()) {
+      if ((!child.castComponent().requestInput || childAnswered) && child.isVisible()) {
         if ((child.component as QuestionComponent).required) {
           answered = childAnswered;
 
@@ -63,7 +63,6 @@ export class AutosaveContext {
           answered = answered && childAnswered;
         }
       } else {
-        console.log('answered', child);
         // if not visible, we don't need to wait for an answer
         answered = true;
       }

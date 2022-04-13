@@ -1,13 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormsModule, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormGroup } from '@angular/forms';
 
 import { Application } from '../../../models/applications/application';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { SignatureQuestionViewComponent } from './signature-question-view.component';
-import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
+import { createDraftApplication } from '../../../../testing/fakes';
 import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
-import { forwardRef } from '@angular/core';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { AutosaveContext } from '../autosave';
 
@@ -67,7 +66,6 @@ describe('SignatureQuestionViewComponent', () => {
     };
 
     component.initialise(data);
-    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

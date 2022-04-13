@@ -17,8 +17,11 @@ export class AnswerRequestService {
   constructor(public http: HttpClient) {}
 
   private handleGeneralError(e: HttpErrorResponse, list: boolean) {
+    const base = (list) ? 'Request(s) Not Found.' : 'Request Not Found.';
+
     if (e.status == 404) {
-      return throwError(() => (list) ? 'Request(s) Not Found' : 'Request Not Found');
+      return throwError(() => base + ' This could be because the application is no longer in a status that is accepting answers or ' +
+      'all of the requested fields no longer exist (full application being filled out instead of expedited, for instance)');
     } else {
       return throwError(() => getErrorMessage(e));
     }

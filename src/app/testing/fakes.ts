@@ -22,7 +22,6 @@ import { PermissionResponse } from '../users/responses/permissionresponse';
 import { RoleResponse } from '../users/responses/roleresponse';
 import { AssignMembersResponse } from '../applications/models/requests/assignmembersresponse';
 import { createTimestamp } from '../utils';
-import { QuestionComponentState } from '../applications/view/component/application-view.component';
 
 export const USERNAME = "username";
 export const EMAIL = "username@email.com";
@@ -317,10 +316,4 @@ export function createListApplicationsResponse(): ApplicationResponse[] {
     response2.id = APPLICATION_ID + '-2';
 
     return [response1, response2];
-}
-
-export const TestComponentState: QuestionComponentState = {
-    edit: true,
-    display: true,
-    displayAnswer: false
 }

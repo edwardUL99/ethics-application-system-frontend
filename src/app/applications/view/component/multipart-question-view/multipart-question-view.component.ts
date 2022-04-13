@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy } from '@angular/core';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { MultipartQuestionComponent, QuestionBranch, QuestionPart } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
@@ -90,11 +90,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
-  /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {

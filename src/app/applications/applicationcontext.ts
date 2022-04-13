@@ -157,7 +157,8 @@ export class ViewingUser {
    * @param applicant true if the user is the applicant that created the application
    * @param reviewer true if the viewer is a reviewer
    * @param admin true if the viewer has admin permissions
+   * @param givingInput true if the user isn't an applicant but has been asked to give input
    */
   constructor(public user: User, public create, public applicant: boolean = false,
-    public reviewer: boolean = false, public admin: boolean = false) {}
+    public reviewer: boolean = false, public admin: boolean = false, public givingInput = false) {}
 }

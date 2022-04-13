@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ActionBranchSource, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ActionBranchSource } from '../application-view.component';
 import { ActionBranch, Actions } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
@@ -100,11 +100,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * manage the comments at a top-level rather than at the child question level
    */
   hideComments: boolean;
-  /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
 
   constructor() {}
 
@@ -135,9 +130,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
-    const edit = this.edit();
     const newCheckboxGroup = !this.checkboxGroup;
     this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
+    const edit = this.edit();
 
     if (newCheckboxGroup) {
       this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
