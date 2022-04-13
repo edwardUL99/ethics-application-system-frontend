@@ -32,6 +32,10 @@ export class LoginComponent implements OnInit {
    */
   error: string;
   /**
+   * An info message
+   */
+  message: string;
+  /**
    * A tooltip for the username field on login
    */
   loginTooltip: string = 'You can enter just your username (student ID or first.lastname) or your full e-mail';
@@ -47,24 +51,37 @@ export class LoginComponent implements OnInit {
     private userService: UserService,
     private route: ActivatedRoute,
     private userContext: UserContext) { 
-      this.form = this.fb.group({
-        username: ['', [Validators.required, EmailUsernameValidator()]],
-        password: ['', Validators.required],
-        staySignedIn: ['']
-      });
+    this.form = this.fb.group({
+      username: ['', [Validators.required, EmailUsernameValidator()]],
+      password: ['', Validators.required],
+      staySignedIn: ['']
+    });
+  }
+
+  private setMessageOrError() {
+    const passwordReset = this.route.snapshot.queryParams['reset'];
+    const accountConfirmed = this.route.snapshot.queryParams['confirmed'];
+    const timeout = this.route.snapshot.queryParams['sessionTimeout'];
+
+    if (passwordReset) {
+      this.message = 'Your password has been successfully reset';
+    } else if (accountConfirmed) {
+      this.message = 'Your account has successfully been confirmed';
+    } else if (timeout) {
+      this.error = 'The session has timed out. Please login again';
     }
+  }
 
   ngOnInit() {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'];
+    this.setMessageOrError();
 
     if (this.jwtStore.isTokenValid()) {
       this.redirectPostLogin(this.jwtStore.getUsername());
     } else {
-      this.route.queryParams.subscribe(params => {
-        if (params.sessionTimeout) {
-          this.error = 'The session has timed out. Please login again';
-        }
-      });
+      if (this.route.snapshot.queryParams['sessionTimeout']) {
+        this.error = 'The session has timed out. Please login again';
+      }
     }
   }
 

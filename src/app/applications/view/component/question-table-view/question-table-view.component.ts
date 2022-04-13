@@ -4,7 +4,7 @@ import { QuestionComponent } from '../../../models/components/questioncomponent'
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionComponentState, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -12,7 +12,7 @@ import { Application } from '../../../models/applications/application';
 import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * A mapping of question component IDs to the question components
@@ -95,15 +95,20 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * Autosave context
    */
   autosaveContext: AutosaveContext;
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -117,7 +122,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -189,10 +194,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             parent: this,
             questionChangeCallback: questionChangeCallback,
             autosaveContext: this.autosaveContext,
-            template: this.template,
+            context: this.context,
             hideComments: true // let the question table manage comments for all its cells, rather than the individual cells
           };
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.template.autofillNotifier, data).instance as QuestionViewComponent;
+          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.context.autofillNotifier, data).instance as QuestionViewComponent;
         }
       }
     }
@@ -252,7 +257,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     for (let key of Object.keys(this.matchedComponents)) {
       const component = this.matchedComponents[key];
 
-      if (QuestionViewUtils.edit(component, false, this.template?.viewingUser)) {
+      if (QuestionViewUtils.edit(component, false, this.context?.viewingUser)) {
         return true;
       }
     }
@@ -294,5 +299,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   displayAnswer(): boolean {
     return true; // no-op
+  }
+
+  setDisabled(disabled: boolean): void {
+    Object.keys(this.matchedComponents).forEach(key => this.matchedComponents[key].setDisabled(disabled));
   }
 }

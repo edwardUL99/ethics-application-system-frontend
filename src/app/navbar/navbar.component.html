@@ -21,11 +21,16 @@
           <a aria-current="page" class="nav-link" routerLink="/export">Export Applications</a>
         </li>
       </ul>
-      <div *ngIf="displayProfile" class="mt-2" style="margin-right: 1%">
-        <h6 style="color: grey;" class="hover-underline" (click)="navigateToProfile()">{{name}}</h6>
-      </div>
-      <div class="text-end">
-        <a routerLink="/logout">Logout</a>
+      <div *ngIf="displayProfile" class="dropdown nav-item" style="margin-right: 1%">
+        <a class="link-normal-text dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{name}}
+        </a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLink="/profile"><b>Profile</b></a></li>
+          <li><a class="dropdown-item" routerLink="/answer-requests" 
+            [appTooltip]="'If a user has requested you give input on their application, the requests will go here'" [tooltipPosition]="'bottom'">Answer Requests</a></li>
+          <li><a class="dropdown-item" routerLink="/logout">Logout</a></li>
+        </ul>
       </div>
     </div>
   </div>

@@ -15,6 +15,7 @@ import { User } from '../../../users/user';
 import { AuthorizationService } from '../../../users/authorization.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FilesService } from '../../../files/files.service';
+import { AnswerRequestService } from '../../answer-request.service';
 
 describe('ApplicationDisplayComponent', () => {
   let component: ApplicationDisplayComponent;
@@ -37,7 +38,8 @@ describe('ApplicationDisplayComponent', () => {
         ApplicationContext,
         {provide: UserContext, useValue: userContextSpy},
         AuthorizationService,
-        FilesService
+        FilesService,
+        AnswerRequestService
       ],
       imports: [
         HttpClientTestingModule,

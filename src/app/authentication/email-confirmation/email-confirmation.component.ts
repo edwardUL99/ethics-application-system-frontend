@@ -129,15 +129,21 @@ export class EmailConfirmationComponent implements OnInit {
         retry(3),
         catchError(this.confirmationError)
       )
-      .subscribe(r => {
-        if (!r.confirmed) {
-          this.confirmError = "Failed to confirm the user";
-        } else {
-          this.router.navigate(['login']);
+      .subscribe({
+        next: r => {
+          if (!r.confirmed) {
+            this.confirmError = "Failed to confirm the user";
+          } else {
+            this.router.navigate(['login'], {
+              queryParams: {
+                confirmed: true
+              }
+            });
+          }
+        },
+        error: e => {
+          this.confirmError = e;
         }
-      },
-      e => {
-        this.confirmError = e;
-      })
+      });
   }
 }

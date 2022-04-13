@@ -63,6 +63,7 @@ export class AutosaveContext {
           answered = answered && childAnswered;
         }
       } else {
+        console.log('answered', child);
         // if not visible, we don't need to wait for an answer
         answered = true;
       }

@@ -7,7 +7,7 @@
       </div>
       <div class="text-center" style="color: grey">
         <p>The page you requested at <b>{{currentURL}}</b> could not be found. Check that you entered the URL correctly. If the URL is correct,
-        please contact the Faculty of Science and Engineering Research Committee at <a href="mailto:johanna.griffin@ul.ie">Johanna.Griffin@ul.ie</a> to
+        please contact the Faculty of Science and Engineering Research Committee at <a [href]="'mailto:' + contactEmail">{{contactEmail}}</a> to
         notify the committee of the error.
         </p>
       </div>

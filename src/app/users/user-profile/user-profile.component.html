@@ -7,7 +7,7 @@
         <div class="row w-100">
           <div class="col">
             <h4>{{user?.name}}</h4>
-            <h5 style="color: grey">{{user?.role?.name}}</h5>
+            <h5 style="color: grey" [appTooltip]="user?.role?.description">{{user?.role?.name}}</h5>
             <p style="font-size: 18px"><b>Department: </b>{{user?.department}}</p>
             <p style="font-size: 18px"><b>Contact: </b><a [href]="'mailto:' + user?.account?.email">{{user?.account?.email}}</a></p>
           </div>

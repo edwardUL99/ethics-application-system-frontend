@@ -1,22 +1,21 @@
-<div [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
-    <app-refer-marker [viewingUser]="template?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
-    <div *ngIf="edit(); else notEdit">
+<div class="question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="state.display">
+    <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
+    <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
+    <div *ngIf="state.edit">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <div [id]="questionComponent?.componentId + '-radios'" class="row">
             <div [ngClass]="(questionComponent?.inline) ? '':'col'">
                 <div *ngFor="let radio of getRadios()" [ngClass]="radioClass">
                     <input type="radio" class="form-check-input" [value]="radio?.value" (change)="onCheckChange($event)" 
-                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue" [formGroupName]="component?.name">
+                    [name]="component?.name" [checked]="radio?.value === selectedRadioValue" [attr.disabled]="(disableRadios) ? true : null">
                     <label class="form-check-label">{{radio?.title}}</label>
                 </div>
             </div>
         </div>
         <app-field-error [condition]="radioGroup?.errors?.['required']" [error]="'This field is required'"></app-field-error>
     </div>
-    <ng-template #notEdit>
-        <app-answer-view *ngIf="displayAnswer()"
-            [question]="questionComponent" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
-    </ng-template>
-    <app-comments-display [application]="application" [component]="this" [viewingUser]="template?.viewingUser" [enable]="visible"></app-comments-display>
+    <app-answer-view *ngIf="state.displayAnswer"
+        [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

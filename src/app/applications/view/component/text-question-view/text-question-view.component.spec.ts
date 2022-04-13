@@ -5,7 +5,7 @@ import { Application } from '../../../models/applications/application';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { TextQuestionViewComponent } from './text-question-view.component';
-import { createDraftApplication } from '../../../../testing/fakes';
+import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
 import { AutosaveContext } from '../autosave';
 
 describe('TextQuestionViewComponent', () => {
@@ -41,10 +41,11 @@ describe('TextQuestionViewComponent', () => {
       component: questionComponent,
       application: application,
       autosaveContext: new AutosaveContext(),
-      template: undefined
+      context: undefined
     };
 
     component.initialise(data);
+    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

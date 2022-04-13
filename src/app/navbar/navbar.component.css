@@ -1,0 +1,9 @@
+.link-normal-text {
+  color: grey;
+  text-decoration: inherit;
+}
+
+.dropdown-menu {
+  right: 0 !important;
+  left: auto !important;
+}

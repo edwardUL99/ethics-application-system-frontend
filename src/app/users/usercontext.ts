@@ -111,8 +111,8 @@ export class UserContext {
   setUser(user: User) {
     this._user = user;
     this._username = user.username;
-    localStorage.setItem('_username', this._username);
-    localStorage.setItem('_name', user.name);
+    localStorage.setItem(USERNAME, this._username);
+    localStorage.setItem(NAME, user.name);
     this._userUpdates.emit(true);
   }
 
@@ -126,11 +126,13 @@ export class UserContext {
 
   /**
    * This should be called to notify the context that the user has been updated
+   * @param user the user to update the context with
    */
-  update() {
+  update(user: User) {
+    this._user = user;
     this._username = this._user.username;
-    localStorage.setItem('_username', this._user.username);
-    localStorage.setItem('_name', this._user.name);
+    localStorage.setItem(USERNAME, this._user.username);
+    localStorage.setItem(NAME, this._user.name);
     this._userUpdates.emit(true);
   }
 }

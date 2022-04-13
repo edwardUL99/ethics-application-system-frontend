@@ -107,31 +107,35 @@ const resolveCache: ResolvedStatusCache = {};
  * @returns the resolved value
  */
 export function resolveStatus(key: ApplicationStatus | string): string {
-  const cached = resolveCache[key];
+  if (key) {
+    const cached = resolveCache[key];
 
-  if (cached) {
-    return cached;
-  } else {
-    const keys = Object.keys(ApplicationStatus);
-    let resolved: string;
+    if (cached) {
+      return cached;
+    } else {
+      const keys = Object.keys(ApplicationStatus);
+      let resolved: string;
 
-    for (let k of keys) {
-      if (ApplicationStatus[k] == key) {
-        resolved = key;
-        break;
-      } else if (k == key) {
-        resolved = ApplicationStatus[k];
-        break;
+      for (let k of keys) {
+        if (ApplicationStatus[k] == key) {
+          resolved = key;
+          break;
+        } else if (k == key) {
+          resolved = ApplicationStatus[k];
+          break;
+        }
+      }
+
+      if (!resolved) {
+        throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
+      } else {
+        resolveCache[key] = resolved;
+
+        return resolved;
       }
     }
-
-    if (!resolved) {
-      throw new Error("Could not find a matching ApplicationStatus that has a key/value for: " + key);
-    } else {
-      resolveCache[key] = resolved;
-
-      return resolved;
-    }
+  } else {
+    return undefined;
   }
 }
 
@@ -191,7 +195,9 @@ export function mapAnswers(answers: ResponseAnswersMapping): AnswersMapping {
 
   Object.keys(answers).forEach(key => {
     const answer = answers[key];
-    mappedAnswers[answer.componentId] = new Answer(answer.id, answer.componentId, answer.value, answer.valueType);
+    const user = (answer.user) ? userResponseMapper(answer.user) : undefined;
+    const mapped = new Answer(answer.id, answer.componentId, answer.value, answer.valueType, user);
+    mappedAnswers[mapped.componentId] = mapped;
   });
 
   return mappedAnswers;

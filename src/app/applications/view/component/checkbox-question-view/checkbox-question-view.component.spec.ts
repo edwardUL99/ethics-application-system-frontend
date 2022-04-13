@@ -6,7 +6,7 @@ import { CheckboxQuestionComponent } from '../../../models/components/checkboxqu
 import { Option } from '../../../models/components/selectquestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { CheckboxQuestionViewComponent } from './checkbox-question-view.component';
-import { createDraftApplication } from '../../../../testing/fakes';
+import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
 import { AutosaveContext } from '../autosave';
 
 describe('CheckboxQuestionViewComponent', () => {
@@ -45,10 +45,11 @@ describe('CheckboxQuestionViewComponent', () => {
       component: questionComponent,
       application: application,
       autosaveContext: new AutosaveContext(),
-      template: undefined
+      context: undefined
     };
 
     component.initialise(data);
+    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

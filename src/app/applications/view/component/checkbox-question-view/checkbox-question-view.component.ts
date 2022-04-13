@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
 import { CheckboxMapping, CheckboxSelection } from '../checkbox-group-view/checkbox-group-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
@@ -11,7 +11,7 @@ import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { CheckboxGroupRequired } from '../../../../validators';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 
 @Component({
@@ -64,7 +64,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The context for autosaving
    */
@@ -75,9 +75,14 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    */
   hideComments: boolean;
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor() {}
 
@@ -88,7 +93,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
     this.hideComments = questionData.hideComments;
 
     if (questionData.questionChangeCallback) {
@@ -101,7 +106,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
 
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -193,7 +198,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
 
   setFromAnswer(answer: Answer): void {
@@ -228,7 +233,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       }
     }
 
-    return new Answer(undefined, this.component.componentId, options.join(','), ValueType.OPTIONS);
+    return new Answer(undefined, this.component.componentId, options.join(','), ValueType.OPTIONS, undefined);
   }
 
   isVisible(): boolean {
@@ -240,9 +245,14 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   displayAnswer(): boolean {
-    const display = this.questionComponent?.componentId in this.application?.answers;
-    this.visible = display;
+    return QuestionViewUtils.displayAnswer(this);
+  }
 
-    return display;
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.checkboxGroup.disable();
+    } else {
+      this.checkboxGroup.enable();
+    }
   }
 }

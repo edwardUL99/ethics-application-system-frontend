@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy } from '@angular/core';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
 import { MultipartQuestionComponent, QuestionBranch, QuestionPart } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
@@ -12,7 +12,7 @@ import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 import { AutosaveContext } from '../autosave';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -81,15 +81,20 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The autosave context to pass to children
    */
   autosaveContext: AutosaveContext;
   /**
-   * The parent template component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
@@ -103,7 +108,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     this.application = data.application;
     this.form = questionData.form;
     this.autosaveContext = questionData.autosaveContext;
-    this.template = questionData.template;
+    this.context = questionData.context;
 
     if (questionData.questionChangeCallback) {
       this.questionChange.register(questionData.questionChangeCallback);
@@ -155,10 +160,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           parent: this,
           questionChangeCallback: callback,
           autosaveContext: this.autosaveContext,
-          template: this.template
+          context: this.context
         };
 
-        const ref = this.loadComponent(this.loader, part.question.componentId, this.template.autofillNotifier, data);
+        const ref = this.loadComponent(this.loader, part.question.componentId, this.context.autofillNotifier, data);
         this.loader.registerReference(part.question.componentId, ref);
         this.matchedComponents[part.partName] = ref.instance as QuestionViewComponent;
       }
@@ -360,5 +365,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   displayAnswer(): boolean {
     return true; // no-op
+  }
+
+  setDisabled(disabled: boolean): void {
+    Object.keys(this.matchedComponents).forEach(key => this.matchedComponents[key].setDisabled(disabled));
   }
 }

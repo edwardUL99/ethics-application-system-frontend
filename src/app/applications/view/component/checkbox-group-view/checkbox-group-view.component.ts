@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ActionBranchSource, QuestionComponentState } from '../application-view.component';
 import { ActionBranch, Actions } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
@@ -11,10 +11,10 @@ import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { ComponentViewRegistration } from '../registered.components';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { CheckboxGroupRequired } from '../../../../validators';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { AutosaveContext } from '../autosave';
+import { ComponentDisplayContext } from '../displaycontext';
 
 /**
  * A type for mapping checkbox names to the checkbox
@@ -36,7 +36,7 @@ export type CheckboxSelection = {
   styleUrls: ['./checkbox-group-view.component.css']
 })
 @ComponentViewRegistration(ComponentType.CHECKBOX_GROUP)
-export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent {
+export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent, ActionBranchSource {
   /**
    * The component being rendered by this view
    */
@@ -50,9 +50,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   @Input() application: Application;
   /**
-   * The template display component rendering this group
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
   /**
    * The form group passed into this component
    */
@@ -80,7 +80,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * An error message to display
    */
@@ -100,6 +100,11 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * manage the comments at a top-level rather than at the child question level
    */
   hideComments: boolean;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor() {}
 
@@ -108,7 +113,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.component = questionData.component;
     this.application = questionData.application;
     this.form = questionData.form;
-    this.template = data.template;
+    this.context = data.context;
     this.autosaveContext = questionData.autosaveContext;
     this.hideComments = this.hideComments;
 
@@ -121,7 +126,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
 
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -223,7 +228,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.error.displayMessage(msg, true);
   }
 
-  private _terminate(actionBranch: ActionBranch, checkbox: string) {
+  terminate(actionBranch: ActionBranch, checkbox: string) {
     let msg: string = 'Confirm application termination?';
 
     if (actionBranch.comment) {
@@ -231,26 +236,26 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     }
 
     if (confirm(msg)) {
-      this.template.terminateApplication(this);
+      this.context.terminateApplication(this);
     } else {
       this.unselectCheckbox(checkbox);
     }
   }
 
-  private _attachFile() {
+  attachFile() {
     this.attachFileAlert.alertType = 'alert-primary';
     this.attachFileAlert.message = 'Attaching file';
     this.attachFileAlert.show();
-    this.template.attachFileToApplication(this);
+    this.context.attachFileToApplication(this);
   }
 
   private _executeActionBranch(branch: Branch, checkbox: string) {
     const actionBranch = branch as ActionBranch;
       
     if (actionBranch.action == Actions.TERMINATE) {
-      this._terminate(actionBranch, checkbox);
+      this.terminate(actionBranch, checkbox);
     } else if (actionBranch.action == Actions.ATTACH_FILE) {
-      this._attachFile();
+      this.attachFile();
     }
   }
 
@@ -261,7 +266,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
       for (let replacement of replacementBranch.replacements) {
         const replaced = templateContext.executeContainerReplacement(replacement.replace, replacement.target);
-        this.template.loadNewContainer(replaced);
+        this.context.loadNewContainer(replaced);
         // TODO maybe here, add functionality to swap back the old container if the checkbox is unchecked again. may need a mapping to indicate a container was swapped out
       }
     } else {
@@ -289,7 +294,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
 
   display(): boolean {
@@ -316,7 +321,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     const options = Object.keys(this.selectedCheckboxes)
       .filter(key => this.selectedCheckboxes[key]).join(',');
 
-    return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS);
+    return new Answer(undefined, this.component.componentId, options, ValueType.OPTIONS, undefined);
   }
 
   disableAutosave(): boolean {
@@ -343,6 +348,14 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     if (!error) {
       setTimeout(() => this.attachFileAlert.hide(), 2000);
+    }
+  }
+
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.checkboxGroup.disable();
+    } else {
+      this.checkboxGroup.enable();
     }
   }
 }

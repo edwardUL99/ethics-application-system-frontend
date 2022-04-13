@@ -1,3 +1,5 @@
+import { User } from '../../../users/user';
+
 /**
  * The type of value contained within the answer
  */
@@ -101,8 +103,9 @@ export class Answer {
    * @param componentId the component ID the answer is associated with
    * @param value the value of the answer
    * @param valueType the type of the answer
+   * @param user another user that made this answer
    */
-  constructor(public id: number = undefined, public componentId: string, public value: string, public valueType: ValueType) {}
+  constructor(public id: number = undefined, public componentId: string, public value: string, public valueType: ValueType, public user: User) {}
 
   /**
    * A value can be matched wholely (i.e. the whole value must match) or else it can be matched

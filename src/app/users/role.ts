@@ -8,7 +8,7 @@ export class Role extends Authorization {
     /**
      * The set of permissions that belong to this role
      */
-    permissions: Set<Permission>;
+    permissions: Permission[];
     /**
      * Indicates if the role is only allowed to be assigned to a single user at a time
      */
@@ -30,7 +30,7 @@ export class Role extends Authorization {
      */
     constructor(id: number, name: string, description: string, tag: string, permissions: Permission[], singleUser: boolean, downgradeTo: string) {
         super(id, name, description, tag);
-        this.permissions = new Set(permissions);
+        this.permissions = permissions;
         this.singleUser = singleUser;
         this.downgradeTo = downgradeTo;
     }
@@ -43,14 +43,14 @@ export class Role extends Authorization {
                 && this.singleUser;
 
             if (equals) {
-                if (this.permissions.size == other.permissions.size) {
+                if (this.permissions.length == other.permissions.length) {
                     const thisValues = Array.from(this.permissions);
                     const otherValues = Array.from(other.permissions);
 
                     let i: number;
-                    for (i = 0; i < this.permissions.size && thisValues[i].equals(otherValues[i]); i++) {}
+                    for (i = 0; i < this.permissions.length && thisValues[i].equals(otherValues[i]); i++) {}
 
-                    equals = i == this.permissions.size;
+                    equals = i == this.permissions.length;
                 } else {
                     equals = false;
                 }

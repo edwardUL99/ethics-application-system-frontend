@@ -1,0 +1,45 @@
+<div>
+  <app-navbar></app-navbar>
+  <div *ngIf="!loadError; else displayError">
+    <div class="container" [appCenterBox] [toggle]="!requests || requests.length == 0">
+      <div class="my-2">
+        <app-center-header [text]="'Answer Requests'"></app-center-header>
+        <div class="text-center" style="color: white">
+          <p>
+            An applicant can request other users to provide input on some of the questions in their application form,
+            (for example, supervisor input). If you have any requests waiting for your input, they will show here and you can then
+            provide your input
+          </p>
+        </div>
+      </div>
+      <div class="card shadow p-2 mt-2 w-100">
+        <div *ngIf="requests && requests.length > 0; else noRequests">
+          <div class="d-flex flex-row flex-wrap justify-content-center">
+            <div *ngFor="let request of requests">
+              <div class="card shadow m-2" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">{{request?.application.id}}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">Requested By: {{request.application.username}}</h6>
+                  <a [routerLink]="['/answer-request']" [queryParams]="{id: request.id}">Open</a>
+                </div>
+                <div class="card-footer text-muted">
+                  {{request.requestedAt | date: 'dd/MM/yyyy HH:mm:ss'}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noRequests>
+          <div class="text-center">
+            There are no requests available to view
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <ng-template #displayError>
+    <div class="container">
+      <app-alert [alertType]="'alert-danger'" [message]="loadError"></app-alert>
+    </div>
+  </ng-template>
+</div>

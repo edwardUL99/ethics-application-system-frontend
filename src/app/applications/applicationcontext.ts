@@ -113,12 +113,13 @@ export class ApplicationContext {
           next: response => {
             const user = response[0] as User;
             const applicant = (!applicantKnown) ? user.username == response[1].user.username : applicantKnown;
+            const userPermissions = new Set(user.role.permissions);
 
             this.authorizationService.getPermissions().subscribe({
               next: permissions => {
-                const create = Authorizer.hasPermission(user.role.permissions, permissions.CREATE_APPLICATION);
-                const reviewer = Authorizer.hasPermission(user.role.permissions, permissions.REVIEW_APPLICATIONS);
-                const admin = Authorizer.hasPermission(user.role.permissions, permissions.ADMIN);
+                const create = Authorizer.hasPermission(userPermissions, permissions.CREATE_APPLICATION);
+                const reviewer = Authorizer.hasPermission(userPermissions, permissions.REVIEW_APPLICATIONS);
+                const admin = Authorizer.hasPermission(userPermissions, permissions.ADMIN);
                 observer.next(new ViewingUser(user, create, applicant, reviewer, admin));
                 observer.complete();
               },

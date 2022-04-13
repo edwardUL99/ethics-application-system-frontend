@@ -4,15 +4,15 @@ import { Application } from '../../../models/applications/application';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component'
 import { ComponentViewRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
-import { ApplicationTemplateDisplayComponent } from '../../application-template-display/application-template-display.component';
 import { AutosaveContext } from '../autosave';
 import { AutofillNotifier } from '../../../autofill/autofillnotifier';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
+import { ComponentDisplayContext } from '../displaycontext';
 
 @Component({
   selector: 'app-text-question-view',
@@ -34,9 +34,9 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    */
   questionComponent: TextQuestionComponent;
   /**
-   * The template display component
+   * The display context the view component is being rendered inside
    */
-  @Input() template: ApplicationTemplateDisplayComponent;
+  @Input() context: ComponentDisplayContext;
   /**
    * The current application object
    */
@@ -56,7 +56,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   /**
    * Determines if the component is visible
    */
-  @Input() visible: boolean;
+  @Input() visible: boolean = true;
   /**
    * The context for autosaving
    */
@@ -66,6 +66,11 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * manage the comments at a top-level rather than at the child question level
    */
   hideComments: boolean;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
   /**
    * The notifier of autofill events
    */
@@ -78,7 +83,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.component = questionData.component;
     this.parent = questionData.parent;
     this.application = data.application;
-    this.template = data.template;
+    this.context = data.context;
     this.form = questionData.form;
     this.hideComments = questionData.hideComments;
 
@@ -95,7 +100,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     this.addToForm();
     this.autofill();
 
-    QuestionViewUtils.setExistingAnswer(this, this.template?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -151,22 +156,25 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   autofill(): void {
     if (this.questionComponent.autofill) {
       if (!this.autofillNotifier) {
-        throw new Error('registerAutofill not implemented or not called');
+        console.warn("Autofill events are not being notified by this component, this may lead to the value filled by autofill being ignored and not saved");
       }
 
       const resolver = getResolver();
-      resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
-        if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
-          this.control.setValue(value, {emitEvent: false});
-          this.emit(false);
-          this.autofillNotifier.notify(this);
-        }
-      });
+
+      if (resolver) {
+        resolver.resolve(this.questionComponent.autofill).retrieveValue(value => {
+          if (value && (resolveStatus(this.application.status) == ApplicationStatus.DRAFT || !(this.questionComponent.componentId in this.application.answers))) {
+            this.control.setValue(value, {emitEvent: false});
+            this.emit(false);
+            this.autofillNotifier?.notify(this);
+          }
+        });
+      }
     }
   }
 
   registerAutofill(notifier: AutofillNotifier) {
-    notifier.attach(this);
+    notifier?.attach(this);
     this.autofillNotifier = notifier;
   }
 
@@ -175,7 +183,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   edit(): boolean {
-    return QuestionViewUtils.edit(this, true, this.template?.viewingUser);
+    return QuestionViewUtils.edit(this, true, this.context?.viewingUser);
   }
   
   setFromAnswer(answer: Answer): void {
@@ -193,7 +201,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   value(): Answer {
     if (this.control) {
       return new Answer(undefined, this.component.componentId, this.control.value, 
-        (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT);
+        (this.questionComponent.questionType == 'number') ? ValueType.NUMBER : ValueType.TEXT, undefined);
     } else {
       return undefined;
     }
@@ -208,9 +216,14 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   displayAnswer(): boolean {
-    const display = this.questionComponent?.componentId in this.application?.answers;
-    this.visible = display;
+    return QuestionViewUtils.displayAnswer(this);
+  }
 
-    return display;
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.control.disable();
+    } else {
+      this.control.enable();
+    }
   }
 }

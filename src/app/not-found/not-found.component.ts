@@ -1,5 +1,6 @@
 import { Component, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-not-found',
@@ -8,6 +9,10 @@ import { Router } from '@angular/router';
 })
 export class NotFoundComponent implements OnInit {
   currentURL: string = '';
+  /**
+  * Email of committee contact
+  */
+  contactEmail: string = environment.contactEmail;
 
   constructor(private router: Router) { 
     this.router.events.subscribe(() => this.changeURL());
