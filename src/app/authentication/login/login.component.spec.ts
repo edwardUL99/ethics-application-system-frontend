@@ -258,7 +258,7 @@ describe('LoginComponent', () => {
   });
 
   it('component should display session timeout', (done) => {
-    route.queryParams = new Observable(observer => observer.next({sessionTimeout: true}));
+    route.snapshot.queryParams['sessionTimeout'] = true;
 
     component.ngOnInit();
 

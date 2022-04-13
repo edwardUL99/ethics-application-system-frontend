@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, Renderer2, OnInit } from '@angular/core';
+import { Directive, ElementRef, Input, Renderer2, OnChanges } from '@angular/core';
 
 /**
  * This is a directive that allows the user to inject a tooltip into the element
@@ -6,7 +6,7 @@ import { Directive, ElementRef, Input, Renderer2, OnInit } from '@angular/core';
 @Directive({
   selector: '[appTooltip]'
 })
-export class TooltipDirective implements OnInit {
+export class TooltipDirective implements OnChanges {
   /**
    * The tooltip text
    */
@@ -19,7 +19,7 @@ export class TooltipDirective implements OnInit {
   constructor(private el: ElementRef,
     private renderer: Renderer2) {}
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     const element = this.el.nativeElement as HTMLElement;
     this.renderer.setAttribute(element, 'data-bs-toggle', 'tooltip');
     this.renderer.setAttribute(element, 'title', this.tooltipText);

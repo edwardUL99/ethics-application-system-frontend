@@ -376,7 +376,7 @@ export class UserProfileComponent implements OnInit {
         next: response => {
           this.user.name = response.name;
           this.user.department = response.department;
-          this.userContext.update();
+          this.userContext.update(this.user);
           this.displayEditAlert("User updated successfully");
         },
         error: e => this.displayEditAlert(e, true)

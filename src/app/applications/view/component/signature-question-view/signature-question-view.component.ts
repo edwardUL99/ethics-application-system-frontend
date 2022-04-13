@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { Answer, ValueType } from '../../../models/applications/answer';
@@ -86,6 +86,11 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * Determines if the component has been disabled
    */
   disabled: boolean;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor() {}
 

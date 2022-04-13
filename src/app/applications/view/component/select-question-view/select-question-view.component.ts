@@ -3,7 +3,7 @@ import { FormControl, FormGroup, ValidatorFn, ValidationErrors } from '@angular/
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
@@ -88,6 +88,11 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
   /**
    * The notifier of autofill events
    */

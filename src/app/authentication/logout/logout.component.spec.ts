@@ -65,7 +65,7 @@ describe('LogoutComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(jwtStoreSpy).toHaveBeenCalled();
-      expect(routerSpy).toHaveBeenCalledWith(['login'], {queryParams: {}});
+      expect(routerSpy).toHaveBeenCalledWith(['login'], {queryParamsHandling: 'merge'});
       expect(userContextSpy).toHaveBeenCalled();
       done();
     })
@@ -80,9 +80,7 @@ describe('LogoutComponent', () => {
 
     fixture.whenStable().then(() => {
       expect(routerSpy).toHaveBeenCalledWith(['login'], {
-        queryParams: {
-          sessionTimeout: true
-        }
+        queryParamsHandling: 'merge'
       });
       expect(userContextSpy).toHaveBeenCalled();
       done();
