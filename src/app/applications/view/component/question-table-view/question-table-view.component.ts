@@ -4,7 +4,7 @@ import { QuestionComponent } from '../../../models/components/questioncomponent'
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionComponentState, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -104,6 +104,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 

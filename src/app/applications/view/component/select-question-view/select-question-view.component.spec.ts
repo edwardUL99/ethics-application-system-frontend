@@ -5,7 +5,7 @@ import { Application } from '../../../models/applications/application';
 import { Option, SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { SelectQuestionViewComponent } from './select-question-view.component';
-import { createDraftApplication } from '../../../../testing/fakes';
+import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
 import { AutosaveContext } from '../autosave';
 
 describe('SelectQuestionViewComponent', () => {
@@ -48,6 +48,7 @@ describe('SelectQuestionViewComponent', () => {
     };
 
     component.initialise(data);
+    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

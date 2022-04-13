@@ -11,7 +11,7 @@
              [disabled]="assignedUsers.acceptReferredAssign && assignedUsers.displayed">Assigned Reviewers</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="displayReviewButton() && (checkStatus('SUBMITTED') || checkStatus('REVIEW') || checkStatus('REVIEWED'))" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="referApplication()">Refer to Applicant</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('RESUBMITTED')" (click)="acceptReferred()">Reassign</button>
+            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('RESUBMITTED')" (click)="acceptReferred()" [appTooltip]="'Re-assign the application to reviewers and move it to In Review'">Reassign</button>
             <button type="button" class="btn btn-danger ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(false)">Reject</button>
             <button type="button" class="btn btn-success ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(true)">Approve</button>
           </div>
@@ -63,7 +63,9 @@
           <div class="">
             <p class="application-text"><b>Applicant:</b><span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
             <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
-            <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> {{application.referredBy.name}}</p>
+            <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> <span (click)="navigateToUser(application?.referredBy?.username)" class="hover-underline">
+              {{application?.referredBy?.name}} </span>
+            </p>
           </div>
         </div>
         <div class="card-footer text-muted">
@@ -71,7 +73,7 @@
             <p *ngIf="application?.approvalTime" class="application-text" style="margin-right: 5px;"><b>Approved At:</b> {{formatDate(application?.approvalTime)}}</p>
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
-          <div *ngIf="checkStatus('REJECTED')" class="d-inline-flex">
+          <div *ngIf="checkStatus('REJECTED') || checkStatus('REFERRED')" class="d-inline-flex">
             <p class="application-text"><b>Last Updated:</b> {{formatDate(application?.lastUpdated)}}</p>
           </div>
           <div *ngIf="!checkStatus('APPROVED') && !checkStatus('REJECTED') && !checkStatus('REFERRED')" class="d-inline-flex">

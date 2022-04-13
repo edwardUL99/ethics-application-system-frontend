@@ -1,7 +1,7 @@
-<div class="form-group question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="display()">
+<div class="form-group question-spacing" [id]="questionComponent?.componentId" [formGroup]="form" *ngIf="state.display">
     <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
     <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
-    <div *ngIf="edit()">
+    <div *ngIf="state.edit">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <select *ngIf="questionComponent?.multiple" [name]="questionComponent?.name" [formControlName]="questionComponent?.name" 
@@ -16,7 +16,7 @@
         </select>
         <app-field-error [condition]="control?.errors?.['required'] && control?.touched" [error]="'You must select an option'"></app-field-error>
     </div>
-    <app-answer-view *ngIf="displayAnswer()"
+    <app-answer-view *ngIf="state.displayAnswer"
         [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

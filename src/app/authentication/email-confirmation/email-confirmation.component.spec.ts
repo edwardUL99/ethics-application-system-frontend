@@ -82,7 +82,9 @@ describe('EmailConfirmationComponent', () => {
       expect(component.initError).toBeNull();
       expect(component.confirmError).toBeNull();
       expect(authServiceSpy).toHaveBeenCalledWith(request);
-      expect(routerSpy).toHaveBeenCalledWith(['login']);
+      expect(routerSpy).toHaveBeenCalledWith(['login'], { 
+          queryParams: { confirmed: true } 
+      });
       done();
     })
   });

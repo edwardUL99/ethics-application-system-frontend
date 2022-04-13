@@ -178,6 +178,11 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * An optional variable since not all components support comments anyway, regardless of this value
    */
   hideComments?: boolean;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
@@ -308,4 +313,23 @@ export interface AutosaveSource {
    * @param error true if error
    */
   onAutoSave(message: string, error?: boolean): void;
+}
+
+/**
+ * Encapsulates a question component's state to query in templates rather than querying methods
+ * for better performance
+ */
+export interface QuestionComponentState {
+  /**
+   * Determine if the component should be editabled
+   */
+  edit: boolean;
+  /**
+   * Determine if the component should be displayed
+   */
+  display: boolean;
+  /**
+   * Determine if the answer should be displayed
+   */
+  displayAnswer: boolean;
 }

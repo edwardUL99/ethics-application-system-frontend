@@ -91,7 +91,11 @@ export class ResetPasswordComponent implements OnInit {
         catchError(this.handleError)
       )
       .subscribe({
-        next: () => this.router.navigate(['logout']),
+        next: () => this.router.navigate(['logout'], {
+          queryParams: {
+            reset: true
+          }
+        }),
         error: e => this.displayError(e)
       });
   }
