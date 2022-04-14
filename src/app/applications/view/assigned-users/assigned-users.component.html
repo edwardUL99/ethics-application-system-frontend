@@ -4,17 +4,24 @@
       <button type="button" class="btn-close" (click)="toggleDisplayed(false)"></button>
     </div>
     <div class="d-flex flex-row flex-wrap">
-      <div *ngFor="let assigned of application?.assignedCommitteeMembers">
-        <div class="card p-2 m-2" style="width: 12rem;">
-          <div class="card-header text-center">
-            {{(assigned.finishReview) ? 'Review Finished':'Reviewing'}}
-          </div>
-          <div class="card-body text-center my-auto">
-            <h6 class="card-title hover-underline" (click)="navigateUser(assigned.user)">{{assigned.user.name}}</h6>
-            <button type="button" class="btn btn-sm btn-outline-danger" (click)="unassignUser(assigned)" *ngIf="isAdmin">Unassign</button>
+      <div *ngIf="application?.assignedCommitteeMembers?.length > 0; else noAssigned">
+        <div *ngFor="let assigned of application?.assignedCommitteeMembers">
+          <div class="card p-2 m-2" style="width: 12rem;">
+            <div class="card-header text-center">
+              {{(assigned.finishReview) ? 'Review Finished':'Reviewing'}}
+            </div>
+            <div class="card-body text-center my-auto">
+              <h6 class="card-title hover-underline" (click)="navigateUser(assigned.user)">{{assigned.user.name}}</h6>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="unassignUser(assigned)" *ngIf="isAdmin">Unassign</button>
+            </div>
           </div>
         </div>
       </div>
+      <ng-template #noAssigned>
+        <div class="text-center w-100">
+          <p>There are currently no assigned committee members</p>
+        </div>
+      </ng-template>
     </div>
     <div *ngIf="isAdmin && (checkStatus('REVIEW') || checkStatus('RESUBMITTED'))">
       <div *ngIf="committeeMembers as members">

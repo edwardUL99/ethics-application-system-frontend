@@ -86,6 +86,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * Determines if the component has been disabled
    */
   disabled: boolean;
+  /**
+   * A width override
+   */
+  definedWidth: number;
 
   constructor() {}
 
@@ -155,17 +159,27 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     }
   }
 
-  private resizeSignature() {
-    // TODO this doesn't work that well in table questions. Fix
-    this.signatureFieldComponent.signaturePad.set('canvasWidth', this.signatureContainer.nativeElement.offsetWidth);
-    this.signatureFieldComponent.signaturePad.set('canvasHeight', 100);
-    //this.signatureFieldComponent.signaturePad.set('backgroundColor', 'rgb(255, 255, 255)');
-    this.signatureFieldComponent.signaturePad.clear();
-    
-    if (this.signature) {
-      this.signatureFieldComponent.signaturePad.redrawCanvas();
-      this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
+  private getMaxParentWidth() {
+    if (this.parent && typeof(this.parent.maxWidth) === 'function') {
+      return this.parent.maxWidth();
+    } else {
+      return -1;
     }
+  }
+
+  private resizeSignature() {
+    let offsetWidth = this.signatureContainer.nativeElement.offsetWidth;
+    let maxWidth = this.getMaxParentWidth();
+    let size: number;
+
+    if (maxWidth == -1) {
+      size = offsetWidth;
+      maxWidth = undefined;
+    } else {
+      maxWidth += (maxWidth * 0.35);
+      size = maxWidth;
+    }
+    this.signatureFieldComponent.resize(size, 100, maxWidth);
   }
 
   clear() {
@@ -201,14 +215,11 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   setFromAnswer(answer: Answer): void {
-    // TODO this isn't working, answer doesn't get set. check if its even being saved in the first place
-
     if (answer.valueType != ValueType.IMAGE) {
       throw new Error('Invalid answer type for signature question');
     }
 
     this.signature = answer.value;
-    //this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
     this.resizeSignature();
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
@@ -227,9 +238,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   paste() {
     if (copiedSignature) {
       this.resizeSignature();
-      this.signatureFieldComponent.signaturePad.fromDataURL(copiedSignature);
+      this.control.setValue(copiedSignature);
       this.signature = copiedSignature;
-      delete this.control.errors['required'];
+      delete this.control.errors?.['required'];
     }
   }
 
@@ -253,5 +264,9 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     } else {
       this.control.enable();
     }
+  }
+
+  defineWidth(width: number) {
+    this.definedWidth = width;
   }
 }

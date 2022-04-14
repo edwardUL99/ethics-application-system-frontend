@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
@@ -104,6 +104,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * The underlying table element
+   */
+  @ViewChild('table')
+  table: ElementRef;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -298,5 +303,13 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   setDisabled(disabled: boolean): void {
     Object.keys(this.matchedComponents).forEach(key => this.matchedComponents[key].setDisabled(disabled));
+  }
+
+  maxWidth(): number {
+    if (this.table) {
+      return this.table.nativeElement.offsetWidth / this.columnNames.length;
+    } else {
+      return -1;
+    }
   }
 }

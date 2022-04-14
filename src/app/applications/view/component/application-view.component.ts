@@ -119,6 +119,12 @@ export interface ApplicationViewComponent extends OnDestroy {
    * @param visible the new value for visible
    */
   setVisible(visible: boolean): void;
+
+  /**
+   * If the component defines a max width, this function can be implemented. Return -1 if it can't be calculated. Can be useful for a question table
+   * to define it's max width within its container so that clients (example signatures) can define their max widths
+   */
+  maxWidth?(): number;
 }
 
 /**

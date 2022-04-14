@@ -280,7 +280,7 @@ export class CommentDisplayComponent implements OnInit {
       .subscribe({
         next: response => {
           this.userInfo = new UserInfo(response.name, user);
-          this.allowEdit = user == this.viewingUser.user.username || this.viewingUser.admin;
+          this.allowEdit = user == this.viewingUser?.user?.username || this.viewingUser?.admin;
         },
         error: e => {
           console.error(e);
