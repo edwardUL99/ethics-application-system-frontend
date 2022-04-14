@@ -12,7 +12,7 @@ export class QuestionViewUtils {
    * referred and can be edited
    */
   public static setExistingAnswer(view: QuestionViewComponent, viewingUser: ViewingUser) {
-    if (this.edit(view, true, viewingUser) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
+    if ((view.setAnswerOnNoEdit ||this.edit(view, true, viewingUser)) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
       view.setFromAnswer(view.application.answers[view.component.componentId]);
     }
   }
@@ -25,8 +25,9 @@ export class QuestionViewUtils {
    */
   public static display(view: QuestionViewComponent, checkParent: boolean = true): boolean {
     // determine if this component should be viewed at all based on the application status
-    return view.context?.displayComponent(view) && ((checkParent && view.parent?.display()) || (view.application.status == ApplicationStatus.DRAFT || view.application.status == ApplicationStatus.REFERRED
-      || view.component.componentId in view.application.answers));
+    return view.context?.displayComponent(view) && ((checkParent && view.parent?.display()) || view.displayNoAnswer || 
+      (view.application.status == ApplicationStatus.DRAFT || view.application.status == ApplicationStatus.REFERRED
+      || view.component.componentId in view.application.answers || (view.context?.application?.editableFields && view.component.componentId in view.context?.application?.editableFields)));
   }
 
   /**

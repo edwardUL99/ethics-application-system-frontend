@@ -1,4 +1,4 @@
-<div [ngClass]="'form-group question-spacing' + (display() ? '':' d-none')" [id]="questionComponent?.componentId" [formGroup]="form">
+<div [ngClass]="'form-group' + (visible ? ' question-spacing':'') + (display() ? '':' d-none')" [id]="questionComponent?.componentId" [formGroup]="form">
     <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
     <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
     <div *ngIf="edit()">

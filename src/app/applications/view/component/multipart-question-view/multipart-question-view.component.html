@@ -1,5 +1,5 @@
-<div class="question-spacing" [id]="multipartQuestion?.componentId" [formGroup]="group">
-    <label>{{multipartQuestion?.title}}</label>
+<div [id]="multipartQuestion?.componentId" [formGroup]="group">
+    <label *ngIf="multipartQuestion?.title">{{multipartQuestion?.title}}</label>
     <div [id]="multipartQuestion?.componentId + '-parts'">
         <div *ngFor="let part of getParts()">
             <div [ngClass]="(displayedParts[part?.partName]) ? '':'d-none'">

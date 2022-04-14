@@ -1,4 +1,4 @@
-<div class="question-spacing" [id]="questionTable?.componentId" [formGroup]="group" *ngIf="display()">
+<div [ngClass]="visible ? 'question-spacing':''" [id]="questionTable?.componentId" [formGroup]="group" *ngIf="display()">
   <label>{{questionTable?.title}}</label>
   <div [id]="questionTable?.componentId + '-cells'">
     <table class="table table-bordered" #table>

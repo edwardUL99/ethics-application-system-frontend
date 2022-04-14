@@ -184,6 +184,18 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * An optional variable since not all components support comments anyway, regardless of this value
    */
   hideComments?: boolean;
+  /**
+   * An optional variable which is read by QuestionViewUtils.setExistingAnswer to override its check on QuestionViewUtils.edit. Usually
+   * an answer should only be set if the component is to be edited, as the answer would be displayed in answer-view otherwise. If this
+   * constraint does not make sense on this component, the component can define this variable with a value of true
+   */
+  setAnswerOnNoEdit?: boolean;
+  /** 
+   * An optional variable which is read by QuestionViewUtils.display to override the check on displaying the component if the state is not Draft or
+   * referred and no answer exists for the component. The default in this condition is to not display the component. This flag, if true, will display it
+   * regardless
+   */
+  displayNoAnswer?: boolean;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.

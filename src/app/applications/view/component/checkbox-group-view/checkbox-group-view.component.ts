@@ -19,7 +19,7 @@ import { ComponentDisplayContext } from '../displaycontext';
 /**
  * A type for mapping checkbox names to the checkbox
  */
- export type CheckboxMapping = {
+export type CheckboxMapping = {
   [key: string]: Checkbox
 };
 
@@ -100,6 +100,17 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * manage the comments at a top-level rather than at the child question level
    */
   hideComments: boolean;
+  /**
+   * The checkbox group renders its answers on the same checkboxes used to give the answer, however they are not editable,
+   * therefore, edit() returns false. Usually, this means the answer won't be set if edit() is false. However, this being
+   * set to true will tell QuestionViewUtils to treat it otherwise
+   */
+  readonly setAnswerOnNoEdit: boolean = true;
+  /**
+   * We want to display the checkbox group even if no answer is provided, since the empty group is better at signifying that
+   * no answer has been provided rather than outright not displaying it
+   */
+  readonly displayNoAnswer: boolean = true;
 
   constructor() {}
 

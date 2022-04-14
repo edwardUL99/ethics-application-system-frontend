@@ -1,4 +1,4 @@
-<div class="mb-2">
+<div class="mb-2" #parent (window:resize)="resize()">
   <div *ngIf="!question?.edit(); else edit">
     <div class="my-auto">
       <h6>{{questionComponent?.title}}</h6>
@@ -15,8 +15,8 @@
             <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
           </ul>
         </div>
-        <div *ngIf="isValueType('IMAGE')" #imgContainer style="height: 100%; width: 100%">
-          <canvas #imgCanvas></canvas>
+        <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
+          <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
         </div>
       </div>
     </div>

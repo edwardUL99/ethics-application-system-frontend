@@ -243,6 +243,9 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     this.application = application;
     this.applicationContext.setApplication(this.application);
+
+    this.freezeSaved = !(this.checkStatus('DRAFT') || this.checkStatus('REFERRED'));
+    this.saved = this.freezeSaved;
   }
 
   private generateApplication(context: ApplicationTemplateContext) {

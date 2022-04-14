@@ -15,7 +15,7 @@ import { Renderers } from './renderers';
   templateUrl: './answer-view.component.html',
   styleUrls: ['./answer-view.component.css']
 })
-export class AnswerViewComponent implements OnInit, AfterViewInit {
+export class AnswerViewComponent implements OnInit {
   /**
    * The answer to render
    */
@@ -35,13 +35,26 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   /**
    * The container containing the image
    */
-  @ViewChild('imgContainer')
   imgContainer: ElementRef;
   /**
    * The img canvas
    */
   @ViewChild('imgCanvas')
   imgCanvas: ElementRef;
+  /**
+   * The answer parent
+   */
+  @ViewChild('parent')
+  parent: ElementRef;
+  /**
+   * Width for the canvas
+   */
+  @Input() canvasWidth: number;
+  /**
+   * Height for the canvas height
+   */
+  canvasHeight: number;
+  container
   /**
    * Determines if edit is allowed if the answer has been provided by someone else
    */
@@ -68,13 +81,13 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    if (this.answer.valueType == ValueType.IMAGE && this.imgCanvas) {
-      this.resize();
-
-      window.onresize = () => {
-        this.resize();   
-      }
+  @ViewChild('imgContainer')
+  set imageContainer(imgContainer: ElementRef) {
+    this.imgContainer = imgContainer;
+    
+    if (this.imgContainer) {
+      for (let i = 0; i < 5; i++)
+        this.resize(); // first few resizes doesn't get it to its normal position, so use this "hack" to attempt to position it correctly after 5 goes
     }
   }
 
@@ -85,25 +98,56 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   private scaleAndDraw(image: any) {
     const canvas = this.imgCanvas.nativeElement;
     const ctx = canvas.getContext('2d');
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     const wrh = image.width / image.height;
     let newWidth = canvas.width;
+
     let newHeight = newWidth / wrh;
     
     if (newHeight > canvas.height) {
       newHeight = canvas.height;
       newWidth = newHeight * wrh;
     }
-    
+
     let xOffset = newWidth < canvas.width ? ((canvas.width - newWidth) / 2) : 0;
     let yOffset = newHeight < canvas.height ? ((canvas.height - newHeight) / 2) : 0;
 
     ctx.drawImage(image, xOffset, yOffset, newWidth, newHeight);
   }
 
+  private getMaxWidth() {
+    if (this.question?.parent && typeof(this.question?.parent?.maxWidth) === 'function') {
+      return this.question.parent.maxWidth();
+    }
+  }
+
   resize() {
-    this.imgCanvas.nativeElement.width = this.imgContainer.nativeElement.offsetWidth
-    this.imgCanvas.nativeElement.height = 100;   
-    this.drawImage();
+    if (this.imgContainer) {
+      let width = this.imgContainer.nativeElement.offsetWidth;
+      let height = this.imgContainer.nativeElement.offsetHeight;
+      height = Math.min(height, 50);
+
+      let max = this.getMaxWidth();
+
+      if (this.parent) {
+        const parentOffset = this.parent.nativeElement.offsetWidth;
+
+        if (max != -1 && width > max) {
+          width = max;
+        } else if (width > parentOffset) {
+          width = parentOffset;
+        }
+      }
+
+      this.canvasWidth = width;
+      this.canvasHeight = height;
+      this.imgCanvas.nativeElement.width = this.canvasWidth;
+      this.imgCanvas.nativeElement.height = this.canvasHeight;
+
+      this.drawImage();
+    }
   }
 
   drawImage() {

@@ -132,7 +132,6 @@ export class SignatureFieldComponent implements ControlValueAccessor, AfterViewI
 
     this.signaturePad.set('canvasWidth', fillWidth);
     this.signaturePad.set('canvasHeight', height);
-    this.signaturePad.set('backgroundColor', 'rgb(230, 235, 231)');
     this.signaturePad.set('dotSize', 1);
     this.signaturePad.clear();
     

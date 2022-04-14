@@ -48,7 +48,7 @@ describe('SignatureQuestionViewComponent', () => {
     .compileComponents();
 
     application = createDraftApplication();
-    questionComponent = new SignatureQuestionComponent(1, 'Signature Question', 'component-id', 'test question', 'test-question', 'signature');
+    questionComponent = new SignatureQuestionComponent(1, 'Signature Question', 'component-id', 'test question', 'test-question', 'signature', true);
     
     form = new FormGroup({});
   });

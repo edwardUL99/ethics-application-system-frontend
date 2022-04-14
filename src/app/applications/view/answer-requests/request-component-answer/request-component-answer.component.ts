@@ -79,6 +79,10 @@ export function shouldRequestInput(context: ComponentDisplayContext, component: 
 })
 export class RequestComponentAnswerComponent implements OnInit, OnChanges {
   /**
+   * Determine if this should be displayed
+   */
+  display: boolean;
+  /**
    * The component being requested
    */
   @Input() component: QuestionViewComponent;
@@ -141,6 +145,7 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
     if (this.updateRequest) {
       this.requestInput = shouldRequestInput(this.context, this.component.castComponent());
       this.component.setDisabled(!this.component.castComponent().editable || this.requestInput);
+      this.display = this.component.isVisible() && this.component.edit();
     }
   }
 

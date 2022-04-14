@@ -179,11 +179,13 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
       maxWidth += (maxWidth * 0.35);
       size = maxWidth;
     }
+
     this.signatureFieldComponent.resize(size, 100, maxWidth);
   }
 
   clear() {
     this.signatureFieldComponent.clear();
+    this.control.setValue('', {emitEvent: false});
     this.signatureEntered('');
   }
 
@@ -241,6 +243,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
       this.control.setValue(copiedSignature);
       this.signature = copiedSignature;
       delete this.control.errors?.['required'];
+      this.emit(true);
     }
   }
 

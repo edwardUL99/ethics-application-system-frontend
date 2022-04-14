@@ -13,6 +13,7 @@ import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
 import { ComponentDisplayContext } from '../displaycontext';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 /**
  * A mapping of question component IDs to the question components
@@ -208,7 +209,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   private propagateEmits(autosave: boolean = true) {
     for (let key of Object.keys(this.matchedComponents)) {
-      this.matchedComponents[key].emit(autosave);
+      if (this.matchedComponents[key] && this.matchedComponents[key].edit()) {
+        this.matchedComponents[key].emit(autosave);
+      }
     }
   }
 

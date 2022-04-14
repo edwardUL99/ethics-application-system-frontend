@@ -18,8 +18,9 @@ export class SignatureQuestionComponent extends QuestionComponent {
      * @param description the question description
      * @param name the name of the question field
      * @param label the identifier of who is expected to sign
+     * @param required determines if the component is required
      */
-    constructor(databaseId: number, title: string, componentId: string, description: string, name: string, label: string) {
+    constructor(databaseId: number, title: string, componentId: string, description: string, name: string, label: string, required: boolean) {
         super(databaseId, ComponentType.SIGNATURE, title, componentId, description, name, true);
         this.label = label;
     }
