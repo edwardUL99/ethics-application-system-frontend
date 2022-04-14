@@ -12,7 +12,15 @@
       <p style="color: grey; font-size: 14px;">This question has been marked as requiring input from another user. You can request the user to answer it or choose to manually answer it</p>
     </div>
     <div *ngIf="displayForm">
+      <div class="text-end">
+        <button type="button" class="btn-close" (click)="requestAnswer()"></button>
+      </div>
       <form [formGroup]="form">
+        <div class="form-text">
+          <p>We recommend that you leave these questions until you have the rest of the application filled out and then request the input. When
+            you are finished selecting questions, ensure you click 'Request Answers' at the bottom of the page (you may have to click save first)
+          </p>
+        </div>
         <div class="form-group">
           <label>Username:</label>
           <input type="text" class="form-control" name="username" formControlName="username">
@@ -21,7 +29,7 @@
           <app-field-error [condition]="username.errors?.['username'] && username.touched" [error]="'Enter a valid username or UL email address'"></app-field-error>
           <app-field-error [condition]="username.errors?.['sameUser'] && username.touched" [error]="'You cannot request an answer from yourself'"></app-field-error>
           <div class="form-text">
-            The username or e-mail address of the user to request an answer from. This user is typically your supervisor
+            The username or e-mail address of the user to request an answer from. This user is typically your supervisor.
           </div>
         </div>
         <div class="text-end">
@@ -34,7 +42,7 @@
         <h6 style="color: grey">Confirm Answer?</h6>
         <p style="font-size: 14px;">Since this question has been marked as a question that is intended to be answered by someone else, typically your supervisor, you need to
           confirm that you either have received explicit permission from this person to fill it in on their behalf, or that they are filling in the
-          field themselves. You will only be asked to confirm this once
+          field themselves. {{(confirmOnce) ? 'You will only be asked to confirm this once':''}}
         </p>
       </div>
       <div class="d-inline">

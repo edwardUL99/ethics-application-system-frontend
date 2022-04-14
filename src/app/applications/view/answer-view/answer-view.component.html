@@ -1,31 +1,38 @@
 <div class="mb-2" #parent (window:resize)="resize()">
   <div *ngIf="!question?.edit(); else edit">
-    <div class="my-auto">
-      <h6>{{questionComponent?.title}}</h6>
-      <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
-      <label *ngIf="displayLabel()">{{question?.label}}</label>
-    </div>
-    <div>
-      <div class="border p-2 d-flex h-100" style="font-size: 18px;">
-        <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
-          <p class="my-auto">{{answer?.value}}</p>
+    <div *ngIf="answer && question?.displayAnswer(); else noAnswer">
+      <div class="my-auto">
+        <h6>{{questionComponent?.title}}</h6>
+        <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
+        <label *ngIf="displayLabel()">{{question?.label}}</label>
+      </div>
+      <div>
+        <div class="border p-2 d-flex h-100 font-size">
+          <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
+            <p class="my-auto">{{answer?.value}}</p>
+          </div>
+          <div *ngIf="isValueType('OPTIONS')">
+            <ul class="my-auto">
+              <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
+            </ul>
+          </div>
+          <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
+            <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
+          </div>
         </div>
-        <div *ngIf="isValueType('OPTIONS')">
-          <ul class="my-auto">
-            <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
-          </ul>
-        </div>
-        <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
-          <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
+      </div>
+      <div *ngIf="answer?.user" class="d-inline">
+        <div class="text-end" style="color: gray">
+          <h6 class="d-inline">Answered By: </h6>
+          <p class="hover-underline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
         </div>
       </div>
     </div>
-    <div *ngIf="answer?.user" class="d-inline">
-      <div class="text-end" style="color: gray">
-        <h6 class="d-inline">Answered By: </h6>
-        <p class="hover-underline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
+    <ng-template #noAnswer>
+      <div *ngIf="question?.parent && question.parent?.displayAnswerPlaceholder" class="p-2 d-flex h-100 font-size">
+        No answer provided
       </div>
-    </div>
+    </ng-template>
   </div>
   <ng-template #edit>
     <div *ngIf="answer?.user">

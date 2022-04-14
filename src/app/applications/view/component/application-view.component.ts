@@ -196,6 +196,13 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * regardless
    */
   displayNoAnswer?: boolean;
+  /**
+   * If a question component acts as a parent component for child question components and the children do not have answers,
+   * the children can question this method in the parent to display a placeholder should displayAnswer() return false.
+   * 
+   * For example, in a question table, if no answer is displayed there is just a blank cell
+   */
+  displayAnswerPlaceholder?: boolean;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.

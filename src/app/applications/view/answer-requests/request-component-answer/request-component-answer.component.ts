@@ -9,6 +9,7 @@ import { EmailUsernameValidator } from '../../../../validators';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { QuestionViewComponent } from '../../component/application-view.component';
 import { ComponentDisplayContext } from '../../component/displaycontext';
+import { environment } from '../../../../../environments/environment';
 
 // custom validator to ensure user exists
 export function UserExistsValidator(userService: UserService): AsyncValidatorFn {
@@ -116,6 +117,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
   @ViewChild('requestAlert')
   requestAlert: AlertComponent;
   /**
+   * Determine if manual confirmation is required only once
+   */
+  confirmOnce: boolean = environment.confirmManualAnswerOnce;
+  /**
    * The last username entered
    */
   private static lastEntered: string = '';
@@ -178,7 +183,7 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
 
   fillAnswer(confirmed?: boolean) {
     if (RequestComponentAnswerComponent.confirmed || confirmed) {
-      RequestComponentAnswerComponent.confirmed = true;
+      RequestComponentAnswerComponent.confirmed = this.confirmOnce;
       this.updateRequest = false;
       this.requestInput = false;
       this.component.setDisabled(false);

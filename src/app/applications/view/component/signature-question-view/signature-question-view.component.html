@@ -17,7 +17,6 @@
             <app-field-error [condition]="control?.errors?.['required'] && control?.touched" [error]="'This field is required'"></app-field-error>
         </div>
     </div>
-    <app-answer-view *ngIf="displayAnswer()"
-        [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
+    <app-answer-view [question]="this" [answer]="application?.answers?.[questionComponent?.componentId]"></app-answer-view>
     <app-comments-display [application]="application" [component]="this" [viewingUser]="context?.viewingUser" [enable]="visible"></app-comments-display>
 </div>

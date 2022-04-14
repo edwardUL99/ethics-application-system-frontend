@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Answer, ValueType } from '../../models/applications/answer';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
@@ -15,7 +15,7 @@ import { Renderers } from './renderers';
   templateUrl: './answer-view.component.html',
   styleUrls: ['./answer-view.component.css']
 })
-export class AnswerViewComponent implements OnInit {
+export class AnswerViewComponent implements OnChanges {
   /**
    * The answer to render
    */
@@ -54,30 +54,40 @@ export class AnswerViewComponent implements OnInit {
    * Height for the canvas height
    */
   canvasHeight: number;
-  container
   /**
    * Determines if edit is allowed if the answer has been provided by someone else
    */
   editAllowed: boolean = true;
+  /**
+   * Determines if the answer has been rendered or not
+   */
+  private rendered: boolean;
 
   constructor(private router: Router) { }
 
-  ngOnInit(): void {
-    let rendererImpl = Renderers[this.renderer];
-
-    if (!rendererImpl) {
-      rendererImpl = Renderers['same'];
+  ngOnChanges(): void {
+    if (this.question) {
+      this.questionComponent = this.question.castComponent();
     }
 
-    this.answer = rendererImpl.render(this.answer);
-    this.questionComponent = this.question.castComponent();
+    if (this.answer) {
+      if (!this.rendered) {
+        let rendererImpl = Renderers[this.renderer];
 
-    if (this.answer.user && resolveStatus(this.question.application?.status) == ApplicationStatus.DRAFT) {
-      // disable so the user can't change the provided answer
-      this.question.setDisabled(true);
-      this.editAllowed = false;
-      this.question.autosaveContext?.notifyQuestionChange(
-        new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
+        if (!rendererImpl) {
+          rendererImpl = Renderers['same'];
+        }
+
+        this.rendered = true;
+      }
+
+      if (this.answer.user && resolveStatus(this.question.application?.status) == ApplicationStatus.DRAFT) {
+        // disable so the user can't change the provided answer
+        this.question.setDisabled(true);
+        this.editAllowed = false;
+        this.question.autosaveContext?.notifyQuestionChange(
+          new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
+      }
     }
   }
 

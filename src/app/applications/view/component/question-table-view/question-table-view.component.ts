@@ -110,6 +110,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    */
   @ViewChild('table')
   table: ElementRef;
+  /**
+   * Rather than displaying an empty cell on no answer, display the placeholder
+   */
+  readonly displayAnswerPlaceholder?: boolean = true;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 

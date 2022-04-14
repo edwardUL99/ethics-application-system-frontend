@@ -571,26 +571,22 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveBeforeSubmit() {
-    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => {
+    const callback = (e?: any) => {
       if (!e) {
         this.saved = true;
-        this.submit(false);
+        this.submit(false, false);
       } else {
         this.saveErrorAlert.displayMessage(e, true)
       }
-    }, (r?: UpdateDraftApplicationResponse, e?: any) => {
-      if (!e) {
-        this.saved = true;
-        this.submit(false);
-      } else {
-        this.saveErrorAlert.displayMessage(e, true)
-      }
-    });
+    }
+
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => callback(e), 
+      (r?: UpdateDraftApplicationResponse, e?: any) => callback(e));
   }
 
-  submit(confirmSubmission: boolean = true) {
+  submit(confirmSubmission: boolean = true, checkSaved: boolean = true) {
     if (!confirmSubmission || confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
-      if (!this.saved) {
+      if (checkSaved && (environment.forceSaveBeforeSubmit || !this.saved)) {
         this.saveBeforeSubmit(); // save any unsaved answers before submitting
       } else {
         this.applicationService.submitApplication(new SubmitApplicationRequest(this.application.applicationId))

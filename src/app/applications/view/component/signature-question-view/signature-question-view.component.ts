@@ -126,8 +126,8 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.removeFromForm();
   }
 
-  private _addToForm() {  
-    if (!this.control.hasValidator(Validators.required)) {
+  private _addToForm() {
+    if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
       this.control.addValidators(Validators.required);
     }
 
@@ -139,7 +139,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   addToForm(): void {
-    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable}, Validators.required);
+    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
     if (this.edit()) {
       this._addToForm();
