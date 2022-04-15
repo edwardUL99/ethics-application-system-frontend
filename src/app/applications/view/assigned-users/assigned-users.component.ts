@@ -84,6 +84,10 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
    * The observable retrieving users that can review applications
    */
   committeeMembers: AssignableUser[];
+  /**
+   * Determine if the component should be disabled or not
+   */
+  disable: boolean = false;
 
   constructor(private router: Router, private applicationService: ApplicationService,
     private fb: FormBuilder,
@@ -100,6 +104,7 @@ export class AssignedUsersComponent implements OnInit, OnChanges {
 
   ngOnChanges(): void {
     this.isAdmin = this.viewingUser?.admin;
+    this.disable = !this.viewingUser?.reviewer;
   } 
 
   setAcceptReferred(acceptReferred: boolean) {

@@ -1,4 +1,4 @@
-<div class="mt-2" *ngIf="application">
+<div class="mt-2" *ngIf="!disable && application">
   <div class="card shadow p-2 mt-2" *ngIf="displayed">
     <div class="text-end">
       <button type="button" class="btn-close" (click)="toggleDisplayed(false)"></button>

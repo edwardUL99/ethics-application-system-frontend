@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -165,7 +165,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     super();
 
     this.finalCommentForm = this.fb.group({
-      comment: fb.control('', [Validators.required])
+      comment: fb.control('')
     });
 
     this.element.nativeElement.addEventListener('click', () => {
@@ -183,8 +183,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.viewInitialised = true;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
+  ngOnChanges(): void {
     if (this.viewInitialised && this.templateView) {
       this.templateView.viewingUser = this.viewingUser;
     }
@@ -283,14 +282,33 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  toggleFinalCommentForm(finalCommentApproval: boolean, explicit?: boolean) {
+  private toggleFinalDisplayed(finalCommentApproval: boolean, explicit?: boolean) {
     if (explicit != undefined) {
       this.finalCommentFormDisplayed = explicit;
     } else {
       this.finalCommentFormDisplayed = !this.finalCommentFormDisplayed;
     }
 
+    if (!explicit && finalCommentApproval && this.finalCommentFormApproval != undefined && this.finalCommentFormApproval != finalCommentApproval) {
+      this.finalCommentFormDisplayed = true;
+    }
+  }
+
+  toggleFinalCommentForm(finalCommentApproval: boolean, explicit?: boolean) {
+    this.toggleFinalDisplayed(finalCommentApproval, explicit);
+
+    const comment = this.finalCommentForm.get('comment');
+    comment.clearValidators();
+
     this.finalCommentFormApproval = finalCommentApproval;
+
+    if (finalCommentApproval) {
+      comment.clearValidators();
+    } else {
+      comment.addValidators(Validators.required);
+    }
+
+    comment.updateValueAndValidity();
   }
 
   ngOnDestroy(): void {
@@ -806,7 +824,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   private getFinalComment(): Comment {
     const value = this.finalCommentForm.get('comment').value;
 
-    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
+    return (value == '') ? undefined : new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
   }
 
   private scrollUp() {
