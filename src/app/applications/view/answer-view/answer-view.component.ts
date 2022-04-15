@@ -59,6 +59,10 @@ export class AnswerViewComponent implements OnChanges {
    */
   editAllowed: boolean = true;
   /**
+   * Confirm that you want to edit the already answered question
+   */
+  confirmEditDisplayed: boolean;
+  /**
    * Determines if the answer has been rendered or not
    */
   private rendered: boolean;
@@ -81,10 +85,12 @@ export class AnswerViewComponent implements OnChanges {
         this.rendered = true;
       }
 
-      if (this.answer.user && resolveStatus(this.question.application?.status) == ApplicationStatus.DRAFT) {
+      const status = resolveStatus(this.question.application?.status);
+
+      if (this.answer.user && (status == ApplicationStatus.DRAFT || status == ApplicationStatus.REFERRED)) {
         // disable so the user can't change the provided answer
         this.question.setDisabled(true);
-        this.editAllowed = false;
+        this.editAllowed = this.question?.context?.allowAnswerEdit();
         this.question.autosaveContext?.notifyQuestionChange(
           new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
       }
@@ -189,10 +195,13 @@ export class AnswerViewComponent implements OnChanges {
     });
   }
 
-  allowEdit() {
-    if (confirm('Confirm that you want to change the provided answer?')) {
+  allowEdit(confirmed?: boolean) {
+    if (confirmed) {
       this.question.setDisabled(false);
       this.editAllowed = true;
+      this.confirmEditDisplayed = false;
+    } else {
+      this.confirmEditDisplayed = !this.confirmEditDisplayed;
     }
   }
 }

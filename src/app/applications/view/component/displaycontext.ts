@@ -5,6 +5,7 @@ import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { ReplacedContainer } from '../../applicationtemplatecontext';
 import { QuestionComponent } from '../../models/components/questioncomponent';
 import { RequestedAnswers } from '../answer-requests/requestedanswers';
+import { EventEmitter } from '@angular/core';
 
 /**
  * This interface represents an object that provides a context to all loaded application
@@ -28,6 +29,10 @@ export interface ComponentDisplayContext {
    * Can be specified if the implementing context supports autofill
    */
   autofillNotifier?: AutofillNotifier;
+  /**
+   * An event emitter that emits true when requested answers are submitted
+   */
+  answerRequestSubmitted?: EventEmitter<boolean>;
 
   /**
    * This method provides the context to allow the component to accept a terminate action from the provided component source
@@ -71,6 +76,11 @@ export interface ComponentDisplayContext {
    * Determines if this context allows answers to be requested on the components in the context
    */
   answerRequestEnabled(): boolean;
+
+  /**
+   * If an answer is provided by another user and the application is Draft/Referred, allow another user to edit the provided answer
+   */
+  allowAnswerEdit(): boolean;
 
   /**
    * If answer requests are enabled, this can be called to emit an AnswerRequestedEvent from the context

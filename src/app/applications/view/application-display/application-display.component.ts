@@ -925,6 +925,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             const users = (usernames.length > 1) ? 'users':'user';
             this.saveAlert.displayMessage(`Answers requested from ${users} ${usernames.join(', ')} successfully`);
             requestedAnswers.clear();
+            this.templateView?.answerRequestSubmitted.emit(true);
             this.cd.detectChanges();
           },
           error: e => this.saveAlert.displayMessage(e, true)

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
@@ -143,15 +143,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   addToForm(): void {
     const newCheckboxGroup = !this.checkboxGroup;
     this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
-    const edit = this.edit();
 
     if (newCheckboxGroup) {
       this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
         this.checkboxes[checkbox.identifier] = checkbox;
         this.selectedCheckboxes[checkbox.identifier] = false;
-        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl(''));
       });
     }
+
+    const edit = this.edit();
 
     if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       if (this.checkboxGroupComponent.required) {
@@ -160,6 +161,8 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
       this.autosaveContext?.registerQuestion(this);
+    } else if (!edit) {
+      this.setDisabled(true);
     }
   }
 
@@ -273,7 +276,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       for (let replacement of replacementBranch.replacements) {
         const replaced = templateContext.executeContainerReplacement(replacement.replace, replacement.target);
         this.context.loadNewContainer(replaced);
-        // TODO maybe here, add functionality to swap back the old container if the checkbox is unchecked again. may need a mapping to indicate a container was swapped out
       }
     } else {
       this.unselectCheckbox(checkbox);

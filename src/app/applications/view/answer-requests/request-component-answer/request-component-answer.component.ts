@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { UserService } from '../../../../users/user.service';
 import { UserContext } from '../../../../users/usercontext';
@@ -78,7 +78,7 @@ export function shouldRequestInput(context: ComponentDisplayContext, component: 
   templateUrl: './request-component-answer.component.html',
   styleUrls: ['./request-component-answer.component.css']
 })
-export class RequestComponentAnswerComponent implements OnInit, OnChanges {
+export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * Determine if this should be displayed
    */
@@ -121,6 +121,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
    */
   confirmOnce: boolean = environment.confirmManualAnswerOnce;
   /**
+   * Subscription to the answer request submitted emitter
+   */
+  private subscription: Subscription;
+  /**
    * The last username entered
    */
   private static lastEntered: string = '';
@@ -151,6 +155,21 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
       this.requestInput = shouldRequestInput(this.context, this.component.castComponent());
       this.component.setDisabled(!this.component.castComponent().editable || this.requestInput);
       this.display = this.component.isVisible() && this.component.edit();
+
+      if (!this.subscription && this.context?.answerRequestSubmitted) {
+        this.subscription = this.context.answerRequestSubmitted.subscribe(v => {
+          if (v) {
+            this.reset(false);
+            RequestComponentAnswerComponent.lastEntered = '';
+          }
+        });
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
   }
 
@@ -172,9 +191,12 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
     this.requestAnswer();
   }
 
-  reset() {
+  reset(notifyContext: boolean = true) {
     if (this.requestedUsername) {
-      this.context.onAnswerRequested(this.component.castComponent(), this.requestedUsername, true);
+      if (notifyContext) {
+        this.context.onAnswerRequested(this.component.castComponent(), this.requestedUsername, true);
+      }
+
       this.requestedUsername = undefined;
       this.form.reset();
       this.username.enable();

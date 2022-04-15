@@ -92,6 +92,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * Record if the section already has an autosave dispatched
    */
   private dispatchedAutosaves: AutosaveDispatched = {};
+  /**
+   * Notifies of when a requested answer request has been made
+   */
+  answerRequestSubmitted: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private cd: ChangeDetectorRef, private loader: DynamicComponentLoader) {
     super();
@@ -250,6 +254,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
 
   answerRequestEnabled(): boolean {
     return true;
+  }
+
+  allowAnswerEdit(): boolean {
+    return !this.editsDisabled;
   }
 
   onAnswerRequested(component: QuestionComponent, username: string, remove?: boolean): void {

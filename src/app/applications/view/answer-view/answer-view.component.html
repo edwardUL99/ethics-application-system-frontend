@@ -29,7 +29,7 @@
       </div>
     </div>
     <ng-template #noAnswer>
-      <div *ngIf="question?.parent && question.parent?.displayAnswerPlaceholder" class="p-2 d-flex h-100 font-size">
+      <div *ngIf="question?.displayAnswerPlaceholder || (question?.parent && question.parent?.displayAnswerPlaceholder)" class="p-2 d-flex h-100 font-size">
         No answer provided
       </div>
     </ng-template>
@@ -41,8 +41,19 @@
           <h6 class="d-inline">Answered By: </h6>
           <p class="hover-underline d-inline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
         </div>
-        <div class="text-end" *ngIf="!editAllowed">
+        <div class="text-end" *ngIf="editAllowed">
           <button type="button" class="btn btn-link" (click)="allowEdit()">Edit</button>
+        </div>
+      </div>
+      <div *ngIf="confirmEditDisplayed">
+        <div>
+          <p style="color: gray">Confirm that you wish to edit the answer already provided</p>
+        </div>
+        <div class="d-inline">
+          <div class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="allowEdit(false)">Cancel</button>
+            <button type="button" class="btn btn-sm btn-primary margin-left-1" (click)="allowEdit(true)">Confirm</button>
+          </div>
         </div>
       </div>
     </div>
