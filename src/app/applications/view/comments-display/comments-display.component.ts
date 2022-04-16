@@ -72,7 +72,8 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
     private applicationService: ApplicationService, private cd: ChangeDetectorRef) {
       this.form = this.fb.group({
         comment: this.fb.control('', [Validators.required]),
-        sharedApplicant: this.fb.control('')
+        sharedApplicant: this.fb.control(''),
+        sharedReviewer: this.fb.control('')
       });
     }
 
@@ -150,19 +151,28 @@ export class CommentsDisplayComponent implements OnInit, OnChanges {
       });
   }
 
-  addComment() {
-    const value = this.form.get('comment').value;
-    let shared = this.form.get('sharedApplicant').value;
+  private getCheckboxBoolean(name: string) {
+    let shared = this.form.get(name).value;
 
     if (shared == undefined || shared == '') {
       shared = false;
+    } else {
+      shared = true;
     }
+
+    return shared;
+  }
+
+  addComment() {
+    const value = this.form.get('comment').value;
+    const shared = this.getCheckboxBoolean('sharedApplicant');
+    const sharedReviewer = this.getCheckboxBoolean('sharedReviewer');
 
     const componentId = this.component.component.componentId;
 
     if (value) {
       let requestComments = [];
-      requestComments.push(new Comment(undefined, this.component.context.viewingUser.user.username, value, componentId, [], new Date(), shared));
+      requestComments.push(new Comment(undefined, this.component.context.viewingUser.user.username, value, componentId, [], new Date(), shared, false, sharedReviewer));
       this.updateComments(requestComments, () => this.displayAddAlert('Comment added successfully'), (e: any) => this.displayAddAlert(e, true));
     }
   }

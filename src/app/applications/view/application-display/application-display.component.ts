@@ -289,7 +289,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
       this.finalCommentFormDisplayed = !this.finalCommentFormDisplayed;
     }
 
-    if (!explicit && finalCommentApproval && this.finalCommentFormApproval != undefined && this.finalCommentFormApproval != finalCommentApproval) {
+    if (!explicit && finalCommentApproval != undefined && this.finalCommentFormApproval != undefined && this.finalCommentFormApproval != finalCommentApproval) {
       this.finalCommentFormDisplayed = true;
     }
   }

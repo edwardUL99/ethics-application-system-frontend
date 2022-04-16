@@ -85,6 +85,10 @@ export class CommentDisplayComponent implements OnInit {
    */
   sharedApplicant: boolean;
   /**
+   * Determines if the comment is shared with reviewers
+   */
+  sharedReviewer: boolean;
+  /**
    * User viewing the application
    */
   viewingUser: ViewingUser;
@@ -105,6 +109,10 @@ export class CommentDisplayComponent implements OnInit {
    */
   editingComment: Comment;
   /**
+   * Determines if the delete confirmation is displayed
+   */
+  deleteConfirmDisplayed: boolean;
+  /**
    * The alert for editing comments
    */
   @ViewChild('editAlert')
@@ -114,13 +122,6 @@ export class CommentDisplayComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private applicationService: ApplicationService) {
-    this.subCommentForm = this.fb.group({
-      comment: this.fb.control('', [Validators.required])
-    });
-
-    this.editCommentForm = this.fb.group({
-      comment: this.fb.control('')
-    });
   }
 
   private initDisplay(viewingUser: ViewingUser) {
@@ -147,9 +148,21 @@ export class CommentDisplayComponent implements OnInit {
 
     if (this.parentComment) {
       this.sharedApplicant = this.parentComment.comment.sharedApplicant;
+      this.sharedReviewer = this.parentComment.comment.sharedReviewer;
     } else {
       this.sharedApplicant = this.comment.sharedApplicant;
+      this.sharedReviewer = this.comment.sharedReviewer;
     }
+
+    this.subCommentForm = this.fb.group({
+      comment: this.fb.control('', [Validators.required])
+    });
+
+    this.editCommentForm = this.fb.group({
+      comment: this.fb.control(this.comment.comment, [Validators.required]),
+      sharedApplicant: this.fb.control((this.sharedApplicant) ? 'true':''),
+      sharedReviewer: this.fb.control((this.sharedReviewer) ? 'true':'')
+    });
   }
 
   private displayAddAlert(message: string, error: boolean = false) {
@@ -197,6 +210,18 @@ export class CommentDisplayComponent implements OnInit {
     return updated;
   }
 
+  get commentField() {
+    return this.editCommentForm.get('comment');
+  }
+
+  get sharedApplicantField() {
+    return this.editCommentForm.get('sharedApplicant');
+  }
+
+  get sharedReviewerField() {
+    return this.editCommentForm.get('sharedReviewer');
+  }
+
   toggleEditComment(explicit?: boolean) {
     if (explicit != undefined) {
       this.editDisplayed = false;
@@ -208,7 +233,9 @@ export class CommentDisplayComponent implements OnInit {
       this.editAlert?.hide();
       this.editCommentForm.reset();
     } else {
-      this.editCommentForm.get('comment').setValue(this.comment.comment);
+      this.commentField.setValue(this.comment.comment);
+      this.sharedApplicantField.setValue((this.sharedApplicant) ? 'true':'');
+      this.sharedReviewerField.setValue((this.sharedReviewer) ? 'true':'');
     }
   }
 
@@ -219,8 +246,8 @@ export class CommentDisplayComponent implements OnInit {
     return list;
   }
 
-  deleteComment() {
-    if (confirm('Are you sure you want to delete the comment?')) {
+  deleteComment(confirmed?: boolean) {
+    if (confirmed) {
       if (!this.parentComment) {
         this.hostDisplay.deleteComment(this);
       } else {
@@ -246,18 +273,42 @@ export class CommentDisplayComponent implements OnInit {
               error: e => this.editAlert.displayMessage(e, true)
             });
         }
+
+        this.deleteConfirmDisplayed = false;
       }
+    } else {
+      this.deleteConfirmDisplayed = !this.deleteConfirmDisplayed;
     }
   }
 
-  editComment() {
-    const value = this.editCommentForm.get('comment').value;
+  private getCheckboxBoolean(name: string) {
+    let shared = this.editCommentForm.get(name).value;
 
-    if (value && value != this.comment.comment) {
+    if (shared == undefined || shared == '') {
+      shared = false;
+    } else {
+      shared = true;
+    }
+
+    return shared;
+  }
+
+  editComment() {
+    const value = this.commentField.value;
+    const sharedApplicant = this.getCheckboxBoolean('sharedApplicant');
+    const sharedReviewer = this.getCheckboxBoolean('sharedReviewer');
+    const commentChanged = value != this.comment.comment;
+    const sharedChanged = sharedApplicant != this.sharedApplicant || sharedReviewer != this.sharedReviewer;
+
+    // TODO edit doesn't seem to persist, the uodates are gone after refresh, either backend or frontend issue
+
+    if (value && (commentChanged || sharedChanged)) {
       const editing = copyComment(this.comment);
       editing.createdAt = new Date();
       editing.comment = value;
-      editing.edited = true;
+      editing.edited = commentChanged;
+      editing.sharedApplicant = sharedApplicant;
+      editing.sharedReviewer = sharedReviewer;
       this.editingComment = editing;
       const updated = this.getUpdatedComment();
       const request = new UpdateCommentRequest(this.application.applicationId, mapCommentToRequest(updated), false);
@@ -267,10 +318,15 @@ export class CommentDisplayComponent implements OnInit {
           next: () => {
             this.toggleEditComment(false);
             this.comment = this.editingComment;
+
+            if (sharedChanged) {
+              this.sharedApplicant = this.comment.sharedApplicant;
+              this.sharedReviewer = this.comment.sharedReviewer;
+            }
           },
           error: e => this.editAlert.displayMessage(e, true)
         });
-    } else if (this.comment.comment == value) {
+    } else {
       this.toggleEditComment(false);
     }
   }

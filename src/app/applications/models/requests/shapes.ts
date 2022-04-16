@@ -60,6 +60,10 @@ export interface CommentShape {
    */
   sharedApplicant: boolean;
   /**
+   * Determines if the comment is shared with all reviewers
+   */
+  sharedReviewer: boolean;
+  /**
    * The timestamp of when the comment was created
    */
   createdAt: string;

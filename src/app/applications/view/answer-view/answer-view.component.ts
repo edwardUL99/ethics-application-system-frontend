@@ -82,6 +82,7 @@ export class AnswerViewComponent implements OnChanges {
           rendererImpl = Renderers['same'];
         }
 
+        this.answer = rendererImpl.render(this.answer);
         this.rendered = true;
       }
 
