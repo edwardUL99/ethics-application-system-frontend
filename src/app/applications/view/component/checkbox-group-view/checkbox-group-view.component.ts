@@ -333,7 +333,20 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   disableAutosave(): boolean {
-    return true; // TODO for now don't autosave. This may not work for file attachments but think about it
+    // disable autosave if the checkbox group is an actionable (branch) group and not just plain answer
+    if (this.castComponent().defaultBranch) {
+      return true;
+    }
+    
+    for (let key in this.checkboxes) {
+      const checkbox = this.checkboxes[key];
+
+      if (checkbox.branch) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   isVisible(): boolean {

@@ -10,6 +10,8 @@ import { QuestionComponent } from '../../../models/components/questioncomponent'
 import { QuestionViewComponent } from '../../component/application-view.component';
 import { ComponentDisplayContext } from '../../component/displaycontext';
 import { environment } from '../../../../../environments/environment';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
+import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 
 // custom validator to ensure user exists
 export function UserExistsValidator(userService: UserService): AsyncValidatorFn {
@@ -136,6 +138,14 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
    * Determines if in on changes the requestInput value should be updated
    */
   private updateRequest: boolean = true;
+  /**
+   * Keep track of question change registered
+   */
+  private changeRegistered: boolean = false;
+  /**
+   * Disable the input when a request is required
+   */
+  disableOnRequired: boolean = true;
 
   constructor(private fb: FormBuilder, private userService: UserService, 
     private userContext: UserContext) { }
@@ -151,10 +161,26 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
   }
 
   ngOnChanges() {
+    const edit = this.component?.edit();
+
+    if (this.context?.application?.status) {
+      if (!this.changeRegistered && edit) {
+        const status = resolveStatus(this.context.application.status);
+        this.disableOnRequired = status != ApplicationStatus.REFERRED;
+
+        this.component.questionChange?.register(() => {
+          this.updateRequest = true;
+          this.ngOnChanges(); // TODO REC-22 testingemail946 is in referred. clear answer and request to make sure a user giving input can do so. rigorously test it
+        });
+        
+        this.changeRegistered = true;
+      }
+    }
+
     if (this.updateRequest) {
       this.requestInput = shouldRequestInput(this.context, this.component.castComponent());
-      this.component.setDisabled(!this.component.castComponent().editable || this.requestInput);
-      this.display = this.component.isVisible() && this.component.edit();
+      this.component.setDisabled(this.disableOnRequired && (!this.component.castComponent().editable || this.requestInput));
+      this.display = this.component.isVisible() && edit;
 
       if (!this.subscription && this.context?.answerRequestSubmitted) {
         this.subscription = this.context.answerRequestSubmitted.subscribe(v => {
@@ -205,6 +231,7 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
 
   fillAnswer(confirmed?: boolean) {
     if (RequestComponentAnswerComponent.confirmed || confirmed) {
+      this.displayConfirmation = false;
       RequestComponentAnswerComponent.confirmed = this.confirmOnce;
       this.updateRequest = false;
       this.requestInput = false;

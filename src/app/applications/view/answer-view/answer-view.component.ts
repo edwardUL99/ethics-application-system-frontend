@@ -59,6 +59,10 @@ export class AnswerViewComponent implements OnChanges {
    */
   editAllowed: boolean = true;
   /**
+   * Determines if the question is editable
+   */
+  editable: boolean = true;
+  /**
    * Confirm that you want to edit the already answered question
    */
   confirmEditDisplayed: boolean;
@@ -91,6 +95,7 @@ export class AnswerViewComponent implements OnChanges {
       if (this.answer.user && (status == ApplicationStatus.DRAFT || status == ApplicationStatus.REFERRED)) {
         // disable so the user can't change the provided answer
         this.question.setDisabled(true);
+        this.editable = false;
         this.editAllowed = this.question?.context?.allowAnswerEdit();
         this.question.autosaveContext?.notifyQuestionChange(
           new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
@@ -200,9 +205,11 @@ export class AnswerViewComponent implements OnChanges {
     if (confirmed) {
       this.question.setDisabled(false);
       this.editAllowed = true;
+      this.editable = true;
       this.confirmEditDisplayed = false;
     } else {
       this.confirmEditDisplayed = !this.confirmEditDisplayed;
+      this.editable = false;
     }
   }
 }

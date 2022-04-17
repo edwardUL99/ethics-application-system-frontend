@@ -36,13 +36,6 @@ export class DownloadedFile {
    */
   save() {
     const blob = new Blob([this.blob], {type: this.mimeType});
-
-    const downloadURL = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = this.filename;
-    link.href = downloadURL;
-    link.target = '_blank';
-    
     saveAs(blob, this.filename);
   }
 

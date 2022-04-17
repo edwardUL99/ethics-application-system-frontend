@@ -4,7 +4,7 @@
     <div class="d-inline">
       <div class="text-end">
         <button type="button" class="btn btn-sm btn-outline-secondary" *ngIf="requestedUsername" (click)="reset()" [appTooltip]="'Cancel the request'">Cancel</button>
-        <button type="button" class="btn btn-sm btn-secondary margin-left-1" (click)="fillAnswer()" [appTooltip]="'Answer the question yourself'">Answer</button>
+        <button type="button" class="btn btn-sm btn-secondary margin-left-1" *ngIf="disableOnRequired" (click)="fillAnswer()" [appTooltip]="'Answer the question yourself'">Answer</button>
         <button type="button" class="btn btn-sm btn-primary margin-left-1" (click)="requestAnswer()" [appTooltip]="'Request input from another user'">Request Answer</button>
       </div>
     </div>
