@@ -111,6 +111,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    * no answer has been provided rather than outright not displaying it
    */
   readonly displayNoAnswer: boolean = true;
+  /**
+   * Validator for this component
+   */
+  private readonly validator = CheckboxGroupRequired();
 
   constructor() {}
 
@@ -129,10 +133,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   ngOnInit(): void {
-    this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -141,6 +142,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
+    this.checkboxGroupComponent = this.castComponent();
     const newCheckboxGroup = !this.checkboxGroup;
     this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
@@ -156,14 +158,17 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
 
     if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       if (this.checkboxGroupComponent.required) {
-        this.checkboxGroup.addValidators(CheckboxGroupRequired());
+        this.checkboxGroup.addValidators(this.validator);
       }
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
       this.autosaveContext?.registerQuestion(this);
     } else if (!edit) {
       this.setDisabled(true);
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
@@ -321,8 +326,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     });
 
     this.checkboxGroup.markAsTouched();
-
-    this.emit(false);
   }
 
   value(): Answer {
@@ -377,6 +380,13 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxGroup.disable();
     } else {
       this.checkboxGroup.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.checkboxGroup?.hasValidator(this.validator)) {
+      this.checkboxGroup.addValidators(this.validator);
+      this.form.updateValueAndValidity();
     }
   }
 }

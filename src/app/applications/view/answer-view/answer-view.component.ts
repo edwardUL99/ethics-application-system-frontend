@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Answer, ValueType } from '../../models/applications/answer';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
@@ -73,12 +73,14 @@ export class AnswerViewComponent implements OnChanges {
 
   constructor(private router: Router) { }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     if (this.question) {
       this.questionComponent = this.question.castComponent();
     }
 
     if (this.answer) {
+      this.rendered = !changes.answer;
+
       if (!this.rendered) {
         let rendererImpl = Renderers[this.renderer];
 

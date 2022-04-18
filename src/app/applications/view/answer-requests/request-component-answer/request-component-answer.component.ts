@@ -170,7 +170,7 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
 
         this.component.questionChange?.register(() => {
           this.updateRequest = true;
-          this.ngOnChanges(); // TODO REC-22 testingemail946 is in referred. clear answer and request to make sure a user giving input can do so. rigorously test it
+          this.ngOnChanges();
         });
         
         this.changeRegistered = true;
@@ -191,6 +191,8 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
         });
       }
     }
+
+    this.display = this.requestInput;
   }
 
   ngOnDestroy(): void {

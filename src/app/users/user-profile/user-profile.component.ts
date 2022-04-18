@@ -262,7 +262,6 @@ export class UserProfileComponent implements OnInit {
 
   private loadAdminSettings() {
     this.loadRoles();
-    // TODO other admin settings like upgrade role goes here
     this.settings.push(new UserSetting('Edit Details', () => this.toggleEditDisplayed()));
     this.settings.push(new UserSetting('Edit User Role', () => this.toggleRoleDisplayed()));
   }

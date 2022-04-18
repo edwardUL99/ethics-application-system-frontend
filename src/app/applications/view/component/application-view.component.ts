@@ -269,8 +269,9 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
    * component should be made editable automatically and set the answers.
    * 
-   * If the parent of the question component is not null, this method should not emit the event. The responsibility for emitting the event is up to the parent components when
-   * everything is initialised correctly
+   * This method should not emit any events, i.e. question changes to parents. When calling setValue on FormControls' ensure you include the option,
+   * {emitEvent: false}. The question change should not be emitted since the answer already exists in the application so does not need to notify parent
+   * components of its existence. This method should only be called on component initialisation, not to set the value of the component.
    * 
    * @param answer the answer to set the value from
    */
@@ -286,6 +287,11 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * @param disabled true to disable the component, false to enable
    */
   setDisabled(disabled: boolean): void;
+
+  /**
+   * Mark the component as required
+   */
+  markRequired(): void;
 }
 
 /**

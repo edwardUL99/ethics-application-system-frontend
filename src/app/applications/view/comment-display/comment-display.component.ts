@@ -300,8 +300,6 @@ export class CommentDisplayComponent implements OnInit {
     const commentChanged = value != this.comment.comment;
     const sharedChanged = sharedApplicant != this.sharedApplicant || sharedReviewer != this.sharedReviewer;
 
-    // TODO edit doesn't seem to persist, the uodates are gone after refresh, either backend or frontend issue
-
     if (value && (commentChanged || sharedChanged)) {
       const editing = copyComment(this.comment);
       editing.createdAt = new Date();

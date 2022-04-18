@@ -1,5 +1,6 @@
 <div [ngClass]="visible ? 'question-spacing':''" [id]="checkboxGroupComponent?.componentId" [formGroup]="checkboxGroup" *ngIf="display()">
     <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
+    <app-required-indicator [component]="this"></app-required-indicator>
     <label>{{checkboxGroupComponent?.title}}</label>
     <div [id]="checkboxGroupComponent?.componentId + '-checkboxes'">
         <div *ngFor="let checkbox of checkboxGroupComponent?.checkboxes" class="form-check">

@@ -136,7 +136,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   ngOnInit(): void {
     this.group = new FormGroup({});
-    this.questionTable = this.castComponent();
     this.addToForm();
     
     for (let key of Object.keys(this.questionTable.cells.columns)) {
@@ -180,6 +179,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   loadComponents(): void {
+    const refs = [];
     const thisInstance = this; // capture the instance of this to pass into callback
 
     for (let key of Object.keys(this.questionsMapping)) {
@@ -202,13 +202,17 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             context: this.context,
             hideComments: true // let the question table manage comments for all its cells, rather than the individual cells
           };
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.context.autofillNotifier, data).instance as QuestionViewComponent;
+
+          const ref = this.loadComponent(this.loader, key, this.context.autofillNotifier, data, true);
+          refs.push(ref);
+          this.matchedComponents[key] = ref.instance as QuestionViewComponent;
         }
       }
     }
 
+    refs.forEach(ref => ref.changeDetectorRef.detectChanges());
     this.detectChanges();
-    this.propagateEmits(false);
+    //this.propagateEmits(false);
   }
 
   private propagateEmits(autosave: boolean = true) {
@@ -229,13 +233,17 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   addToForm(): void {
+    this.questionTable = this.castComponent();
+
     if (!this.form.get(this.questionTable.componentId)) {
       this.form.addControl(this.questionTable.componentId, this.group);
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionTable.componentId);
+    if (this.questionTable) {
+      this.form.removeControl(this.questionTable.componentId);
+    }
   }
   
   castComponent() {
@@ -243,7 +251,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
-    // TODO no-op for now, may be needed
+    // no-op
   }
 
   onInput(emitEvent: boolean = true) {    
@@ -261,14 +269,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   edit(): boolean {
-    for (let key of Object.keys(this.matchedComponents)) {
-      const component = this.matchedComponents[key];
-
-      if (QuestionViewUtils.edit(component, false, this.context?.viewingUser)) {
-        return true;
-      }
-    }
-
     return false;
   }
 
@@ -318,5 +318,9 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     } else {
       return -1;
     }
+  }
+
+  markRequired(): void {
+    // no-op
   }
 }

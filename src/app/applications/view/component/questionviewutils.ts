@@ -11,8 +11,8 @@ export class QuestionViewUtils {
    * Set the answer of this component from the given application and component if it is draft or 
    * referred and can be edited
    */
-  public static setExistingAnswer(view: QuestionViewComponent, viewingUser: ViewingUser) {
-    if ((view.setAnswerOnNoEdit ||this.edit(view, true, viewingUser)) && view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
+  public static setExistingAnswer(view: QuestionViewComponent) {
+    if (view?.application?.answers && view?.component?.componentId in view?.application?.answers) {
       view.setFromAnswer(view.application.answers[view.component.componentId]);
     }
   }

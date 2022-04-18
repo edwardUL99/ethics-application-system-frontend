@@ -22,10 +22,6 @@ export class ApplicationContext {
    * The ID of the current application
    */
   private _applicationId: string;
-  /**
-   * Determines if autosave should be disabled
-   */
-  private _disableAutosave: boolean;
 
   constructor(private applicationService: ApplicationService,
     private userContext: UserContext,
@@ -135,14 +131,6 @@ export class ApplicationContext {
           }
         });
     });
-  }
-
-  set disableAutosave(disableAutosave: boolean) {
-    this._disableAutosave = disableAutosave;
-  }  
-
-  get disableAutosave() {
-    return this._disableAutosave;
   }
 }
 

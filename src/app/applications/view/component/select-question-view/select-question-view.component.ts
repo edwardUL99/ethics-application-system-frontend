@@ -92,6 +92,10 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    * The notifier of autofill events
    */
   private autofillNotifier: AutofillNotifier;
+  /**
+   * The validator for the control
+   */
+  private readonly validator = SelectValidator();
 
   constructor() {}
 
@@ -111,10 +115,8 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -124,26 +126,34 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
-    if (this.edit() && !this.form.get(this.questionComponent.name)) {
-      const validator = SelectValidator();
-      if (this.questionComponent.required && !this.control.hasValidator(validator)) {
-        this.control.addValidators(validator);
-      }
-      
+    if (this.edit()) {
       if (!this.form.get(this.questionComponent.name)) {
-        this.form.addControl(this.questionComponent.name, this.control);
+        if (this.questionComponent.required && !this.control.hasValidator(this.validator)) {
+          this.control.addValidators(this.validator);
+        }
+        
+        if (!this.form.get(this.questionComponent.name)) {
+          this.form.addControl(this.questionComponent.name, this.control);
+        }
       }
 
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
@@ -194,7 +204,6 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     const options = answer.value.split(',');
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
-    this.emit(false);
   }
 
   display(): boolean {
@@ -239,6 +248,13 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.control.disable();
     } else {
       this.control.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(this.validator)) {
+      this.control.addValidators(this.validator);
+      this.form.updateValueAndValidity();
     }
   }
 }

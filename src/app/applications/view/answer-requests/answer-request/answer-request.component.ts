@@ -5,6 +5,7 @@ import { AlertComponent } from '../../../../alert/alert.component';
 import { AnswerRequestService } from '../../../answer-request.service';
 import { ApplicationContext, ViewingUser } from '../../../applicationcontext';
 import { AnswerRequest } from '../../../models/applications/answer-requests/answerrequest';
+import { StatusDescpriptions } from '../../../models/applications/applicationstatus';
 import { AnswersMapping } from '../../../models/applications/types';
 import { RespondAnswerRequest } from '../../../models/requests/answer-requests/requests';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
@@ -52,6 +53,10 @@ export class AnswerRequestComponent implements OnInit {
    * The set answers
    */
   private answers: AnswersMapping = {};
+  /**
+   * The descriptions of the application statuses
+   */
+  readonly statusDescriptions = StatusDescpriptions;
 
   constructor(private cd: ChangeDetectorRef, 
     private applicationContext: ApplicationContext,

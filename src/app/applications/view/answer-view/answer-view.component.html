@@ -7,7 +7,7 @@
         <label *ngIf="displayLabel()">{{question?.label}}</label>
       </div>
       <div>
-        <div class="border p-2 d-flex h-100 font-size">
+        <div [ngClass]="(question?.parent ? 'answer-outline':'answer-outline')">
           <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
             <p class="my-auto">{{answer?.value}}</p>
           </div>

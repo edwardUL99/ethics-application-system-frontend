@@ -78,6 +78,10 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * Validator for this component
+   */
+  private readonly validator = CheckboxGroupRequired();
 
   constructor() {}
 
@@ -100,8 +104,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     this.questionComponent = this.castComponent();
     this.checkClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -118,7 +120,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
 
   private _addToForm(): void {
     if (this.questionComponent.required) {
-      this.checkboxGroup.addValidators(CheckboxGroupRequired());
+      this.checkboxGroup.addValidators(this.validator);
     }
 
     if (!this.form.get(this.questionComponent.name)) {
@@ -127,10 +129,11 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     const newCheckboxGroup = !this.checkboxGroup;
     this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
-    if (newCheckboxGroup) {
+    if (newCheckboxGroup || Object.keys(this.checkboxes).length == 0) {
       this.questionComponent.options.forEach(option => {
         const checkbox = new Checkbox(option.id, option.label, option.identifier, null, option.value);
         this.checkboxes[option.identifier] = checkbox;
@@ -144,16 +147,22 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     if (this.edit()) {
       this._addToForm();
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    Object.keys(this.selectedCheckboxes).forEach(key => {
-      this.selectedCheckboxes[key] = false;
-    });
-    this.form.removeControl(this.questionComponent.name);
-    this.checkboxGroup = undefined;
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      Object.keys(this.selectedCheckboxes).forEach(key => {
+        this.selectedCheckboxes[key] = false;
+      });
+      this.form.removeControl(this.questionComponent.name);
+      this.checkboxGroup = undefined;
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
@@ -208,8 +217,6 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       });
 
       this.checkboxGroup.markAsTouched();
-
-      this.emit(false);
     }
   }
 
@@ -248,6 +255,13 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxGroup.disable();
     } else {
       this.checkboxGroup.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.checkboxGroup?.hasValidator(this.validator)) {
+      this.checkboxGroup.addValidators(this.validator);
+      this.form.updateValueAndValidity();
     }
   }
 }

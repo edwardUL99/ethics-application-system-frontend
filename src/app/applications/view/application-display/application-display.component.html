@@ -62,7 +62,7 @@
         <div class="card-body">
           <div class="">
             <p class="application-text"><b>Applicant:</b><span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
-            <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
+            <p class="application-text" *ngIf="getStatus() as status" [appTooltip]="statusDescriptions[status]"><b>Application Status:</b> {{status}}</p>
             <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> <span (click)="navigateToUser(application?.referredBy?.username)" class="hover-underline">
               {{application?.referredBy?.name}} </span>
             </p>

@@ -1,6 +1,7 @@
 <div [ngClass]="visible ? 'question-spacing':''" [id]="questionComponent?.componentId" [formGroup]="form" (window:resize)="sizeChange()" *ngIf="display()" [style.width.px]="definedWidth" class="mx-auto">
     <app-request-component-answer [component]="this" [context]="context"></app-request-component-answer>
     <app-refer-marker [viewingUser]="context?.viewingUser" [application]="application" [component]="this" [enable]="visible"></app-refer-marker>
+    <app-required-indicator [component]="this"></app-required-indicator>
     <div *ngIf="edit()">
         <label>{{questionComponent?.title}}</label>
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>

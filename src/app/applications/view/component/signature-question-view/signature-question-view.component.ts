@@ -90,6 +90,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    * A width override
    */
   definedWidth: number;
+  /**
+   * Determines if the view has been initialised
+   */
+  private viewInitialised: boolean;
 
   constructor() {}
 
@@ -109,16 +113,17 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
     this.addToForm();
   }
 
   ngAfterViewInit(): void {
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this);
 
     if (this.signatureFieldComponent) {
       this.resizeSignature();
     }
+
+    this.viewInitialised = true;
   }
 
   ngOnDestroy(): void {
@@ -139,18 +144,27 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
     if (this.edit()) {
       this._addToForm();
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
+    }
+
+    if (this.viewInitialised) {
+      QuestionViewUtils.setExistingAnswer(this);
     }
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   sizeChange() {
@@ -168,19 +182,21 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   private resizeSignature() {
-    let offsetWidth = this.signatureContainer.nativeElement.offsetWidth;
-    let maxWidth = this.getMaxParentWidth();
-    let size: number;
+    if (this.signatureContainer && this.signatureFieldComponent) {
+      let offsetWidth = this.signatureContainer.nativeElement.offsetWidth;
+      let maxWidth = this.getMaxParentWidth();
+      let size: number;
 
-    if (maxWidth == -1) {
-      size = offsetWidth;
-      maxWidth = undefined;
-    } else {
-      maxWidth += (maxWidth * 0.35);
-      size = maxWidth;
+      if (maxWidth == -1) {
+        size = offsetWidth;
+        maxWidth = undefined;
+      } else {
+        maxWidth += (maxWidth * 0.35);
+        size = maxWidth;
+      }
+
+      this.signatureFieldComponent.resize(size, 100, maxWidth);
     }
-
-    this.signatureFieldComponent.resize(size, 100, maxWidth);
   }
 
   clear() {
@@ -225,8 +241,6 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.resizeSignature();
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
-
-    this.emit(false);
   }
 
   value(): Answer {
@@ -271,5 +285,12 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
 
   defineWidth(width: number) {
     this.definedWidth = width;
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
+      this.form.updateValueAndValidity();
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy } from '@angular/core';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
+import { ChangeDetectorRef, Component, Input, OnInit, Output, OnDestroy, ComponentRef } from '@angular/core';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ApplicationViewComponent } from '../application-view.component';
 import { MultipartQuestionComponent, QuestionBranch, QuestionPart } from '../../../models/components/multipartquestioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { FormGroup } from '@angular/forms';
@@ -13,6 +13,7 @@ import { QuestionViewUtils } from '../questionviewutils';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
 import { AutosaveContext } from '../autosave';
 import { ComponentDisplayContext } from '../displaycontext';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 /**
  * A map type for use in identifying if a part is displayed or not
@@ -112,7 +113,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   ngOnInit(): void {
     this.group = new FormGroup({});
-    this.multipartQuestion = this.castComponent();
     this.addToForm();
   }
 
@@ -137,7 +137,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     return this.allowedQuestionParts.indexOf(componentType) != -1;
   }
 
-  private loadPart(part: QuestionPart) {
+  private loadPart(part: QuestionPart): ComponentRef<ApplicationViewComponent> {
     const thisInstance = this; // capture the instance of this to pass into callback
 
     if (this.matchedComponents[part.partName] == undefined) {
@@ -158,9 +158,11 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
           context: this.context
         };
 
-        const ref = this.loadComponent(this.loader, part.question.componentId, this.context.autofillNotifier, data);
+        const ref = this.loadComponent(this.loader, part.question.componentId, this.context.autofillNotifier, data, true);
         this.loader.registerReference(part.question.componentId, ref);
         this.matchedComponents[part.partName] = ref.instance as QuestionViewComponent;
+
+        return ref;
       }
     }
   }
@@ -174,13 +176,15 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   loadComponents(): void {
+    const refs = [];
+
     Object.keys(this.multipartQuestion.parts).forEach(key => this.setDisplayedPart(key));
     Object.keys(this.displayedParts)
       .filter(key => this.displayedParts[key])
-      .forEach(key => this.loadPart(this.multipartQuestion.parts[key]));
+      .forEach(key => refs.push(this.loadPart(this.multipartQuestion.parts[key])));
     Object.keys(this.matchedComponents)
       .forEach(key => this.matchedComponents[key].displayAnswer());
-
+    refs.forEach(ref => ref.changeDetectorRef.detectChanges());
 
     this.detectChanges();
     this.propagateEmits(false);
@@ -223,14 +227,17 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   addToForm(): void {
+    this.multipartQuestion = this.castComponent();
     if (!this.form.get(this.multipartQuestion.componentId)) {
       this.form.addControl(this.multipartQuestion.componentId, this.group);
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.multipartQuestion.componentId);
-    this.group = undefined;
+    if (this.multipartQuestion) {
+      this.form.removeControl(this.multipartQuestion.componentId);
+      this.group = undefined;
+    }
   }
 
   castComponent() {
@@ -238,7 +245,7 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
   }
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
-    // TODO no-op for now, may be needed
+    // no-op
   }
 
   emit(autosave: boolean) {
@@ -260,7 +267,12 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
       this.displayedParts[part] = display;
 
       if (display) {
-        this.loadPart(this.multipartQuestion.parts[part]);
+        const ref = this.loadPart(this.multipartQuestion.parts[part]);
+
+        if (ref) {
+          ref.changeDetectorRef.detectChanges();
+        }
+
         this.matchedComponents[part].addToForm();
       } else {
         if (this.matchedComponents[part]) {
@@ -307,20 +319,38 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     return false;
   }
 
-  private _edit(componentId: string): boolean {
-    return this.application.status == ApplicationStatus.DRAFT || 
-      (this.application.status == ApplicationStatus.REFERRED && this.application.editableFields.indexOf(componentId) != -1);
+  isReferredEdit() {
+    return this.multipartQuestion.conditional && this.context?.viewingUser?.applicant &&
+      (resolveStatus(this.application?.status) == ApplicationStatus.REFERRED && this.atLeastOneEditable());
   }
 
-  edit(): boolean {
-    for (let key of Object.keys(this.matchedComponents)) {
-      const component = this.matchedComponents[key];
-      if (this._edit(component.component.componentId)) {
-        return true;
+  private atLeastOneEditable() {
+    if (this.application.editableFields) {
+      for (let key in this.matchedComponents) {
+        if (this.application.editableFields.indexOf(this.matchedComponents[key].component.componentId) != -1) {
+          return true;
+        }
       }
     }
 
     return false;
+  }
+
+  edit(): boolean {
+    if (!this.multipartQuestion.conditional) {
+      return false;
+    } else {
+      // require all the question to be editable if the child is required to be edited
+      const status = resolveStatus(this.application.status);
+
+      if (status == ApplicationStatus.DRAFT) {
+        return true;
+      } else if (status == ApplicationStatus.REFERRED) {
+        return this.atLeastOneEditable();
+      }
+
+      return false;
+    }
   }
 
   setFromAnswer(answer: Answer): void {
@@ -364,5 +394,9 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
 
   setDisabled(disabled: boolean): void {
     Object.keys(this.matchedComponents).forEach(key => this.matchedComponents[key].setDisabled(disabled));
+  }
+
+  markRequired(): void {
+    // no-op
   }
 }

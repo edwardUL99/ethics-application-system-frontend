@@ -90,12 +90,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
-
     this.addToForm();
     this.autofill();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -120,18 +116,26 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       if (!this.form.get(this.questionComponent.name)) {
         this.form.addControl(this.questionComponent.name, this.control);
       }
+
+      this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     this._addToForm();
-    this.autosaveContext?.registerQuestion(this);
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
@@ -190,7 +194,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
     this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
-    this.emit(false);
   }
 
   value(): Answer {
@@ -219,6 +222,13 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       this.control.disable();
     } else {
       this.control.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
+      this.form.updateValueAndValidity();
     }
   }
 }

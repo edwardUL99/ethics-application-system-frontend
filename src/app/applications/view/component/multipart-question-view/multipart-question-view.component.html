@@ -1,4 +1,4 @@
-<div [id]="multipartQuestion?.componentId" [formGroup]="group">
+<div [id]="multipartQuestion?.componentId" [formGroup]="group" class="multipart-border question-spacing">
     <label *ngIf="multipartQuestion?.title">{{multipartQuestion?.title}}</label>
     <div [id]="multipartQuestion?.componentId + '-parts'">
         <div *ngFor="let part of getParts()">
@@ -6,5 +6,11 @@
                 <ng-template componentHost [hostId]="part?.question?.componentId" (questionChange)="onInput($event, part?.partName)"></ng-template>
             </div>
         </div>
+    </div>
+    <div *ngIf="isReferredEdit()" class="form-text">
+        This question is composed of multiple parts where some depend on the answer(s) to other parts. Since one or more of
+        the parts have been referred to you for additional information, the whole question has been made editable for your review.
+        Note that changing the parts of the question that are not specifically requested of you may result in a delay in the 
+        processing of your application
     </div>
 </div>
