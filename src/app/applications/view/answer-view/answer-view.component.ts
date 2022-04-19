@@ -67,6 +67,10 @@ export class AnswerViewComponent implements OnChanges {
    */
   confirmEditDisplayed: boolean;
   /**
+   * Only notify the autosave notifier once, so use this to record that its been notified
+   */
+  private autosaveNotified: boolean;
+  /**
    * Determines if the answer has been rendered or not
    */
   private rendered: boolean;
@@ -99,8 +103,12 @@ export class AnswerViewComponent implements OnChanges {
         this.question.setDisabled(true);
         this.editable = false;
         this.editAllowed = this.question?.context?.allowAnswerEdit();
-        this.question.autosaveContext?.notifyQuestionChange(
-          new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
+
+        if (!this.autosaveNotified) {
+          this.question.autosaveContext?.notifyQuestionChange(
+            new QuestionChangeEvent(this.question.component.componentId, this.question, false)); // add to the list of autosaved questions
+          this.autosaveNotified = true;
+        }
       }
     }
   }

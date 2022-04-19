@@ -142,9 +142,12 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
     return this.component as TextQuestionComponent;
   }
 
-  emit(autosave: boolean): void {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -194,6 +197,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
     this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
+    this.emit(false, false); // only emit to autosave context, not to answer change
   }
 
   value(): Answer {

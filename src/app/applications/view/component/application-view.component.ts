@@ -1,5 +1,5 @@
 import { OnDestroy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, ValidatorFn } from '@angular/forms';
 import { TrackedEventEmitter } from '../../../utils';
 import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { Answer } from '../../models/applications/answer';
@@ -252,9 +252,10 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   edit(): boolean;
 
   /**
-   * Trigger the questionChange to emit
+   * Trigger the questionChange to emit. If autosave is true, it tells any autosave notifier to check for autosave satisfaction. If emitChange is false, only
+   * the autosave notifier will be notified, not the questionChange
    */
-  emit(autosave: boolean): void;
+  emit(autosave: boolean, emitChange: boolean): void;
 
   /**
    * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,
@@ -292,6 +293,18 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * Mark the component as required
    */
   markRequired(): void;
+
+  /**
+   * This method returns the name of the form control used by this component. Default is to use QuestionComponent.name. If different,
+   * define this
+   */
+  questionName?(): string;
+
+  /**
+   * This function returns the validator that validates the component if it is required. Used by QuestionViewUtils.enableValidateOnDisableAnswerRequest.
+   * If not defined, Validators.required is used
+   */
+  requiredValidator?(): ValidatorFn;
 }
 
 /**

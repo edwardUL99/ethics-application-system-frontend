@@ -212,15 +212,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
     refs.forEach(ref => ref.changeDetectorRef.detectChanges());
     this.detectChanges();
-    //this.propagateEmits(false);
-  }
-
-  private propagateEmits(autosave: boolean = true) {
-    for (let key of Object.keys(this.matchedComponents)) {
-      if (this.matchedComponents[key] && this.matchedComponents[key].edit()) {
-        this.matchedComponents[key].emit(autosave);
-      }
-    }
   }
 
   detectChanges(): void {
@@ -245,6 +236,10 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
       this.form.removeControl(this.questionTable.componentId);
     }
   }
+
+  questionName(): string {
+    return this.questionTable.componentId;
+  }
   
   castComponent() {
     return this.component as QuestionTableComponent;
@@ -260,8 +255,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
   }
 
-  emit(autosave: boolean): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this, autosave));
+  emit(autosave: boolean, emitChange: boolean = true): void {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
   }
 
   display(): boolean {

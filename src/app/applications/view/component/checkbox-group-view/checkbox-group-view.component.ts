@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
@@ -181,6 +181,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.autosaveContext?.removeQuestion(this);
   }
 
+  questionName(): string {
+    return this.checkboxGroupComponent.componentId;
+  }
+
   /**
    * Uncheck all the checkboxes except the given one
    * @param checkbox the checkbox to except from unchecking
@@ -228,9 +232,12 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.emit(true);
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -326,6 +333,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     });
 
     this.checkboxGroup.markAsTouched();
+    this.emit(false, false);
   }
 
   value(): Answer {
@@ -388,5 +396,9 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxGroup.addValidators(this.validator);
       this.form.updateValueAndValidity();
     }
+  }
+
+  requiredValidator(): ValidatorFn {
+    return CheckboxGroupRequired();
   }
 }

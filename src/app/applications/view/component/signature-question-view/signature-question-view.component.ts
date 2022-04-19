@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
@@ -209,9 +209,12 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     return this.component as SignatureQuestionComponent;
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -241,6 +244,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.resizeSignature();
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
+    this.emit(false, false);
   }
 
   value(): Answer {
@@ -277,6 +281,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.disabled = disabled;
 
     if (disabled) {
+      this.form
       this.control.disable();
     } else {
       this.control.enable();

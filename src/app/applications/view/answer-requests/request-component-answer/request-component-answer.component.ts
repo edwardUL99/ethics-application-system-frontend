@@ -12,6 +12,7 @@ import { ComponentDisplayContext } from '../../component/displaycontext';
 import { environment } from '../../../../../environments/environment';
 import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 import { ApplicationStatus } from '../../../models/applications/applicationstatus';
+import { QuestionViewUtils } from '../../component/questionviewutils';
 
 // custom validator to ensure user exists
 export function UserExistsValidator(userService: UserService): AsyncValidatorFn {
@@ -146,6 +147,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
    * Disable the input when a request is required
    */
   disableOnRequired: boolean = true;
+  /**
+   * The validator to add on a form level if a component is disabled but requires submission to be disabled
+   */
+  private requiredValidator: ValidatorFn;
 
   constructor(private fb: FormBuilder, private userService: UserService, 
     private userContext: UserContext) { }
@@ -179,7 +184,13 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDes
 
     if (this.updateRequest) {
       this.requestInput = shouldRequestInput(this.context, this.component.castComponent());
-      this.component.setDisabled(this.disableOnRequired && (!this.component.castComponent().editable || this.requestInput));
+      const disabled = this.disableOnRequired && (!this.component.castComponent().editable || this.requestInput);
+      this.component.setDisabled(disabled);
+      
+      if (this.requestInput || this.requiredValidator) {
+        this.requiredValidator = QuestionViewUtils.enableValidateOnDisableAnswerRequest(this.component, disabled, this.requiredValidator);
+      }
+
       this.display = this.component.isVisible() && edit;
 
       if (!this.subscription && this.context?.answerRequestSubmitted) {

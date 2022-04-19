@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { CheckboxQuestionComponent } from '../../../models/components/checkboxquestioncomponent';
@@ -169,9 +169,12 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
     return this.component as CheckboxQuestionComponent;
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -217,6 +220,7 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       });
 
       this.checkboxGroup.markAsTouched();
+      this.emit(false, false);
     }
   }
 
@@ -263,5 +267,9 @@ export class CheckboxQuestionViewComponent implements OnInit, QuestionViewCompon
       this.checkboxGroup.addValidators(this.validator);
       this.form.updateValueAndValidity();
     }
+  }
+  
+  requiredValidator(): ValidatorFn {
+    return CheckboxGroupRequired();
   }
 }

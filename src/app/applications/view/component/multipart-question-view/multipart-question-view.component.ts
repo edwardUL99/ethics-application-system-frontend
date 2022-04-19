@@ -187,15 +187,6 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     refs.forEach(ref => ref.changeDetectorRef.detectChanges());
 
     this.detectChanges();
-    this.propagateEmits(false);
-  }
-
-  private propagateEmits(autosave: boolean = true) {
-    for (let key of Object.keys(this.matchedComponents)) {
-      if (this.matchedComponents[key] && this.matchedComponents[key].edit()) {
-        this.matchedComponents[key].emit(autosave);
-      }
-    }
   }
 
   ngAfterViewInit(): void {
@@ -240,6 +231,10 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     }
   }
 
+  questionName(): string {
+    return this.multipartQuestion.componentId;
+  }
+
   castComponent() {
     return this.component as MultipartQuestionComponent;
   }
@@ -248,8 +243,11 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
     // no-op
   }
 
-  emit(autosave: boolean) {
-    this.questionChange.emit(new QuestionChangeEvent(this.component.componentId, this, autosave));
+  emit(autosave: boolean, emitChange: boolean = true): void {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
   }
 
   private evaluateBranches(view: QuestionViewComponent, branches: QuestionBranch[], hide?: boolean, unloadParts: string[] = []) {

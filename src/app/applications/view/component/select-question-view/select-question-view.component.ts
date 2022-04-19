@@ -164,9 +164,12 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.emit(true);
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -204,6 +207,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     const options = answer.value.split(',');
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
+    this.emit(false, false);
   }
 
   display(): boolean {

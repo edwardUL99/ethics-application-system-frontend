@@ -188,9 +188,12 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     });
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -235,6 +238,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       });
 
       this.radioGroup.markAsTouched();
+      this.emit(false, false);
     }
   }
 
@@ -269,5 +273,9 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       this.radioGroup.addValidators(this.validator);
       this.form.updateValueAndValidity();
     }
+  }
+
+  requiredValidator(): ValidatorFn {
+    return RadioValidator(this);
   }
 }
