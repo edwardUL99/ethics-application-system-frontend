@@ -5,7 +5,7 @@ import { Application } from '../../../models/applications/application';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { SignatureQuestionViewComponent } from './signature-question-view.component';
-import { createDraftApplication } from '../../../../testing/fakes';
+import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
 import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { AutosaveContext } from '../autosave';
@@ -66,6 +66,7 @@ describe('SignatureQuestionViewComponent', () => {
     };
 
     component.initialise(data);
+    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

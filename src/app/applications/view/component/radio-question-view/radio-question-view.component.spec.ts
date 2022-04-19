@@ -6,7 +6,7 @@ import { RadioQuestionComponent } from '../../../models/components/radioquestion
 import { Option } from '../../../models/components/selectquestioncomponent';
 import { QuestionViewComponentShape } from '../application-view.component';
 import { RadioQuestionViewComponent } from './radio-question-view.component';
-import { createDraftApplication } from '../../../../testing/fakes';
+import { createDraftApplication, TestComponentState } from '../../../../testing/fakes';
 import { AutosaveContext } from '../autosave';
 
 describe('RadioQuestionViewComponent', () => {
@@ -49,6 +49,7 @@ describe('RadioQuestionViewComponent', () => {
     };
 
     component.initialise(data);
+    component.state = TestComponentState;
 
     fixture.detectChanges();
   });

@@ -91,6 +91,11 @@ export class MultipartQuestionViewComponent extends AbstractComponentHost implem
    * The display context the view component is being rendered inside
    */
   @Input() context: ComponentDisplayContext;
+  /**
+   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
+   * methods every time the template is rendered
+   */
+  state: QuestionComponentState;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) {
