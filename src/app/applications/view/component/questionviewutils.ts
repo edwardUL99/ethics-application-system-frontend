@@ -50,7 +50,7 @@ export class QuestionViewUtils {
    * @returns true to display answer, false if not
    */
   public static displayAnswer(view: QuestionViewComponent) {
-    const display = view.component?.componentId in view.application?.answers;
+    const display = view.component?.componentId in view.application?.answers || view.context?.viewingUser?.reviewer;
     const status = resolveStatus(view.application?.status);
 
     if (status != ApplicationStatus.DRAFT && (status != ApplicationStatus.REFERRED || !view.edit())) {

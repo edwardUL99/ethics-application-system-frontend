@@ -74,12 +74,18 @@ export class AnswerViewComponent implements OnChanges {
    * Determines if the answer has been rendered or not
    */
   private rendered: boolean;
+  /**
+   * Determines if answer placeholder should be displayed
+   */
+  displayPlaceholder: boolean;
 
   constructor(private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.question) {
       this.questionComponent = this.question.castComponent();
+      this.displayPlaceholder = this.question.context?.viewingUser?.reviewer || this.question?.displayAnswerPlaceholder 
+        || (this.question?.parent && this.question.parent?.displayAnswerPlaceholder)
     }
 
     if (this.answer) {
