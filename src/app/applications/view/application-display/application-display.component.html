@@ -10,7 +10,7 @@
             <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="assignedUsers?.toggleDisplayed()"
              [disabled]="assignedUsers?.acceptReferredAssign && assignedUsers?.displayed">Assigned Reviewers</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="displayReviewButton() && (checkStatus('SUBMITTED') || checkStatus('REVIEW') || checkStatus('REVIEWED'))" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin checkStatus('REVIEWED')" (click)="referApplication()" 
+            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="referApplication()" 
               [disabled]="application?.editableFields && application?.editableFields.length == 0">Refer to Applicant</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('RESUBMITTED')" (click)="acceptReferred()" [appTooltip]="'Re-assign the application to reviewers and move it to In Review'">Reassign</button>
             <button type="button" class="btn btn-danger ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(false)">Reject</button>

@@ -39,6 +39,8 @@ describe('RegistrationComponent', () => {
       ]
     })
     .compileComponents();
+
+    environment.requireULEmail = false;
   });
 
   beforeEach(() => {

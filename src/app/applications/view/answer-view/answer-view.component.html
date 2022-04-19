@@ -6,19 +6,17 @@
         <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
         <label *ngIf="displayLabel()">{{question?.label}}</label>
       </div>
-      <div>
-        <div [ngClass]="(question?.parent ? 'answer-outline':'answer-outline')">
-          <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
-            <p class="my-auto">{{answer?.value}}</p>
-          </div>
-          <div *ngIf="isValueType('OPTIONS')">
-            <ul class="my-auto">
-              <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
-            </ul>
-          </div>
-          <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
-            <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
-          </div>
+      <div class="answer-outline">
+        <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
+          <p class="my-auto">{{answer?.value}}</p>
+        </div>
+        <div *ngIf="isValueType('OPTIONS')">
+          <ul class="my-auto">
+            <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
+          </ul>
+        </div>
+        <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
+          <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
         </div>
       </div>
       <div *ngIf="answer?.user" class="d-inline">
@@ -29,8 +27,15 @@
       </div>
     </div>
     <ng-template #noAnswer>
-      <div *ngIf="question?.displayAnswerPlaceholder || (question?.parent && question.parent?.displayAnswerPlaceholder)" class="p-2 d-flex h-100 font-size">
-        No answer provided
+      <div *ngIf="displayPlaceholder">
+        <div class="my-auto">
+          <h6>{{questionComponent?.title}}</h6>
+          <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
+          <label *ngIf="displayLabel()">{{question?.label}}</label>
+        </div>
+        <div class="answer-outline">
+          No answer provided
+        </div>
       </div>
     </ng-template>
   </div>
