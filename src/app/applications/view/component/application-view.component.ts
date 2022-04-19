@@ -1,5 +1,5 @@
 import { OnDestroy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, ValidatorFn } from '@angular/forms';
 import { TrackedEventEmitter } from '../../../utils';
 import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { Answer } from '../../models/applications/answer';
@@ -119,6 +119,12 @@ export interface ApplicationViewComponent extends OnDestroy {
    * @param visible the new value for visible
    */
   setVisible(visible: boolean): void;
+
+  /**
+   * If the component defines a max width, this function can be implemented. Return -1 if it can't be calculated. Can be useful for a question table
+   * to define it's max width within its container so that clients (example signatures) can define their max widths
+   */
+  maxWidth?(): number;
 }
 
 /**
@@ -179,10 +185,24 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    */
   hideComments?: boolean;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
+   * An optional variable which is read by QuestionViewUtils.setExistingAnswer to override its check on QuestionViewUtils.edit. Usually
+   * an answer should only be set if the component is to be edited, as the answer would be displayed in answer-view otherwise. If this
+   * constraint does not make sense on this component, the component can define this variable with a value of true
    */
-  state: QuestionComponentState;
+  setAnswerOnNoEdit?: boolean;
+  /** 
+   * An optional variable which is read by QuestionViewUtils.display to override the check on displaying the component if the state is not Draft or
+   * referred and no answer exists for the component. The default in this condition is to not display the component. This flag, if true, will display it
+   * regardless
+   */
+  displayNoAnswer?: boolean;
+  /**
+   * If a question component acts as a parent component for child question components and the children do not have answers,
+   * the children can question this method in the parent to display a placeholder should displayAnswer() return false.
+   * 
+   * For example, in a question table, if no answer is displayed there is just a blank cell
+   */
+  displayAnswerPlaceholder?: boolean;
 
   /**
    * This method should be called to add the component (or sub-components if this question has multiple parts) to the form.
@@ -232,9 +252,10 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
   edit(): boolean;
 
   /**
-   * Trigger the questionChange to emit
+   * Trigger the questionChange to emit. If autosave is true, it tells any autosave notifier to check for autosave satisfaction. If emitChange is false, only
+   * the autosave notifier will be notified, not the questionChange
    */
-  emit(autosave: boolean): void;
+  emit(autosave: boolean, emitChange: boolean): void;
 
   /**
    * Create an answer that represents the answer given to this question view component and return it as the value. If the component contains multiple question components,
@@ -249,8 +270,9 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * components). If it is a component that has multiple questions anyway and it is referred and at least one sub-question is in editable fields, the whole parent
    * component should be made editable automatically and set the answers.
    * 
-   * If the parent of the question component is not null, this method should not emit the event. The responsibility for emitting the event is up to the parent components when
-   * everything is initialised correctly
+   * This method should not emit any events, i.e. question changes to parents. When calling setValue on FormControls' ensure you include the option,
+   * {emitEvent: false}. The question change should not be emitted since the answer already exists in the application so does not need to notify parent
+   * components of its existence. This method should only be called on component initialisation, not to set the value of the component.
    * 
    * @param answer the answer to set the value from
    */
@@ -266,6 +288,23 @@ export interface QuestionViewComponent extends ApplicationViewComponent {
    * @param disabled true to disable the component, false to enable
    */
   setDisabled(disabled: boolean): void;
+
+  /**
+   * Mark the component as required
+   */
+  markRequired(): void;
+
+  /**
+   * This method returns the name of the form control used by this component. Default is to use QuestionComponent.name. If different,
+   * define this
+   */
+  questionName?(): string;
+
+  /**
+   * This function returns the validator that validates the component if it is required. Used by QuestionViewUtils.enableValidateOnDisableAnswerRequest.
+   * If not defined, Validators.required is used
+   */
+  requiredValidator?(): ValidatorFn;
 }
 
 /**
@@ -313,23 +352,4 @@ export interface AutosaveSource {
    * @param error true if error
    */
   onAutoSave(message: string, error?: boolean): void;
-}
-
-/**
- * Encapsulates a question component's state to query in templates rather than querying methods
- * for better performance
- */
-export interface QuestionComponentState {
-  /**
-   * Determine if the component should be editabled
-   */
-  edit: boolean;
-  /**
-   * Determine if the component should be displayed
-   */
-  display: boolean;
-  /**
-   * Determine if the answer should be displayed
-   */
-  displayAnswer: boolean;
 }

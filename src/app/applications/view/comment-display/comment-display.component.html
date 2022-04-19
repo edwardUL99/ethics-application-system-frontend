@@ -14,11 +14,37 @@
               <button type="button" class="btn btn-sm btn-outline-primary" style="margin-left: 1%;" (click)="toggleEditComment()">Edit</button>
             </div>
           </div>
+          <div class="mt-2" *ngIf="deleteConfirmDisplayed">
+            <div class="text-end">
+              <button type="button" class="btn-close" (click)="deleteComment()"></button>
+            </div>
+            <p style="color: gray">Are you sure that you want to delete this comment?</p>
+            <div class="d-inline">
+              <div class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="deleteComment()">Cancel</button>
+                <button type="button" class="btn btn-sm btn-danger" style="margin-left: 1%;" (click)="deleteComment(true)">Confirm</button>
+              </div>
+            </div>
+          </div>
         </div>
         <ng-template #doEdit>
           <form [formGroup]="editCommentForm">
             <div class="form-group mb-2">
               <textarea name="comment" formControlName="comment" class="form-control" [appTooltip]="'Enter the comment to leave on the answer'"></textarea>
+            </div>
+            <div *ngIf="!parentComment">
+              <div class="form-check" *ngIf="viewingUser?.admin">
+                <input class="form-check-input" type="checkbox" value="true" name="sharedApplicant" formControlName="sharedApplicant">
+                <label class="form-check-label" [appTooltip]="'Check this to make the comment visible to the applicant'">
+                  Shared with applicant
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="true" name="sharedReviewer" formControlName="sharedReviewer">
+                <label class="form-check-label" [appTooltip]="'Check this to make the comment visible to all reviewers and not just Chair/Administrator'">
+                  Shared with all reviewers
+                </label>
+              </div>
             </div>
           </form>
           <div class="d-inline">
@@ -29,9 +55,14 @@
           </div>
         </ng-template>
         <app-alert #editAlert [hidden]="true" [dismissible]="true"></app-alert> 
-        <small class="form-text" *ngIf="sharedApplicant && viewingUser?.reviewer" [appTooltip]="'Comment is visible to the applicant'">
-          Shared
-        </small>
+        <div class="d-inline" *ngIf="viewingUser?.reviewer">
+          <small class="form-text" *ngIf="sharedApplicant" [appTooltip]="'Comment is visible to the applicant'">
+            Shared with applicant
+          </small>
+          <small [ngClass]="'form-text' + ((sharedApplicant) ? ' margin-left-1':'')" *ngIf="sharedReviewer" [appTooltip]="'Comment is visible to all reviewers'">
+            Shared with all reviewers
+          </small>
+        </div>
       </div>
     </div>
     <div [id]="component?.component?.componentId + '-subcomments'">

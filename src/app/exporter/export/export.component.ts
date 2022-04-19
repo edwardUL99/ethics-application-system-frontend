@@ -63,6 +63,12 @@ export class ExportComponent implements OnInit {
       });
   }
 
+  private exportInProgress() {
+    this.exportAlert.alertType = 'alert-info';
+    this.exportAlert.message = 'Export in progress. Please wait...';
+    this.exportAlert.show();
+  }
+
   private exportSuccess() {
     this.exportAlert.displayMessage('The export was successfully requested. You will receive an e-mail with instructions to download'
       + ' the exported applications when the task is completed', false, false);
@@ -77,6 +83,7 @@ export class ExportComponent implements OnInit {
     const id = this.singleForm.get('id').value;
 
     if (id) {
+      this.exportInProgress();
       this.exportService.singleExport(id)
         .subscribe({
           next: response => {
@@ -97,6 +104,7 @@ export class ExportComponent implements OnInit {
     const end = this.rangeForm.get('end').value;
 
     if (start && end) {
+      this.exportInProgress();
       this.exportService.rangeExport(start, end)
         .subscribe({
           next: response => {

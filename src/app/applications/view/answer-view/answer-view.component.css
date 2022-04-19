@@ -1,0 +1,12 @@
+.answer-outline {
+  font-size: 18px;
+  padding: 1%;
+  height: 100%;
+  display: flex;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+}
+
+.align-center {
+  align-self: center;
+}

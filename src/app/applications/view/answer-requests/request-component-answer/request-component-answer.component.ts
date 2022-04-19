@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AlertComponent } from '../../../../alert/alert.component';
 import { UserService } from '../../../../users/user.service';
 import { UserContext } from '../../../../users/usercontext';
@@ -9,6 +9,10 @@ import { EmailUsernameValidator } from '../../../../validators';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { QuestionViewComponent } from '../../component/application-view.component';
 import { ComponentDisplayContext } from '../../component/displaycontext';
+import { environment } from '../../../../../environments/environment';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
+import { ApplicationStatus } from '../../../models/applications/applicationstatus';
+import { QuestionViewUtils } from '../../component/questionviewutils';
 
 // custom validator to ensure user exists
 export function UserExistsValidator(userService: UserService): AsyncValidatorFn {
@@ -53,15 +57,13 @@ export function OwnUsernameValidator(username: string): ValidatorFn {
   }
 }
 
-// TODO a custom validator for each component should use the following function to determine if form is valid 
-
 /**
  * Determine if input should be requested
  * @param context the context the component is loaded in
  * @param component the component to determine if input should be requested from it
  */
 export function shouldRequestInput(context: ComponentDisplayContext, component: QuestionComponent): boolean {
-  if (component.requestInput) {
+  if (component.requestInput && context?.viewingUser?.applicant) {
     const id = component.componentId;
     const answerAvailable = id in context.application?.answers && !context.application?.answers[id].empty();
     
@@ -79,7 +81,11 @@ export function shouldRequestInput(context: ComponentDisplayContext, component: 
   templateUrl: './request-component-answer.component.html',
   styleUrls: ['./request-component-answer.component.css']
 })
-export class RequestComponentAnswerComponent implements OnInit, OnChanges {
+export class RequestComponentAnswerComponent implements OnInit, OnChanges, OnDestroy {
+  /**
+   * Determine if this should be displayed
+   */
+  display: boolean;
   /**
    * The component being requested
    */
@@ -114,6 +120,14 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
   @ViewChild('requestAlert')
   requestAlert: AlertComponent;
   /**
+   * Determine if manual confirmation is required only once
+   */
+  confirmOnce: boolean = environment.confirmManualAnswerOnce;
+  /**
+   * Subscription to the answer request submitted emitter
+   */
+  private subscription: Subscription;
+  /**
    * The last username entered
    */
   private static lastEntered: string = '';
@@ -125,6 +139,18 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
    * Determines if in on changes the requestInput value should be updated
    */
   private updateRequest: boolean = true;
+  /**
+   * Keep track of question change registered
+   */
+  private changeRegistered: boolean = false;
+  /**
+   * Disable the input when a request is required
+   */
+  disableOnRequired: boolean = true;
+  /**
+   * The validator to add on a form level if a component is disabled but requires submission to be disabled
+   */
+  private requiredValidator: ValidatorFn;
 
   constructor(private fb: FormBuilder, private userService: UserService, 
     private userContext: UserContext) { }
@@ -140,9 +166,49 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
+    const edit = this.component?.edit();
+
+    if (this.context?.application?.status) {
+      if (!this.changeRegistered && edit) {
+        const status = resolveStatus(this.context.application.status);
+        this.disableOnRequired = status != ApplicationStatus.REFERRED;
+
+        this.component.questionChange?.register(() => {
+          this.updateRequest = true;
+          this.ngOnChanges();
+        });
+        
+        this.changeRegistered = true;
+      }
+    }
+
     if (this.updateRequest) {
       this.requestInput = shouldRequestInput(this.context, this.component.castComponent());
-      this.component.setDisabled(!this.component.castComponent().editable || this.requestInput);
+      const disabled = this.disableOnRequired && (!this.component.castComponent().editable || this.requestInput);
+      this.component.setDisabled(disabled);
+      
+      if (this.requestInput || this.requiredValidator) {
+        this.requiredValidator = QuestionViewUtils.enableValidateOnDisableAnswerRequest(this.component, disabled, this.requiredValidator);
+      }
+
+      this.display = this.component.isVisible() && edit;
+
+      if (!this.subscription && this.context?.answerRequestSubmitted) {
+        this.subscription = this.context.answerRequestSubmitted.subscribe(v => {
+          if (v) {
+            this.reset(false);
+            RequestComponentAnswerComponent.lastEntered = '';
+          }
+        });
+      }
+    }
+
+    this.display = this.requestInput;
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
   }
 
@@ -164,9 +230,12 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
     this.requestAnswer();
   }
 
-  reset() {
+  reset(notifyContext: boolean = true) {
     if (this.requestedUsername) {
-      this.context.onAnswerRequested(this.component.castComponent(), this.requestedUsername, true);
+      if (notifyContext) {
+        this.context.onAnswerRequested(this.component.castComponent(), this.requestedUsername, true);
+      }
+
       this.requestedUsername = undefined;
       this.form.reset();
       this.username.enable();
@@ -175,7 +244,8 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
 
   fillAnswer(confirmed?: boolean) {
     if (RequestComponentAnswerComponent.confirmed || confirmed) {
-      RequestComponentAnswerComponent.confirmed = true;
+      this.displayConfirmation = false;
+      RequestComponentAnswerComponent.confirmed = this.confirmOnce;
       this.updateRequest = false;
       this.requestInput = false;
       this.component.setDisabled(false);
@@ -191,6 +261,10 @@ export class RequestComponentAnswerComponent implements OnInit, OnChanges {
       this.username.disable();
     } else {
       this.username.setValue(RequestComponentAnswerComponent.lastEntered);
+
+      if (!this.requestedUsername) {
+        this.username.enable();
+      }
     }
   }
 

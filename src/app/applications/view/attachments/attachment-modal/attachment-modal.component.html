@@ -15,17 +15,24 @@
             {{getFileFormatsMessage()}}
           </div>
           <div>
-            <div class="row m-2 p-2 overflow-auto w-100" *ngFor="let file of application?.attachedFiles">
-              <div class="col">
-                <img style="width: 40px; height: 50px;" src="/assets/images/file-icon.png">
-              </div>
-              <div class="col my-auto">
-                <p class="hover-underline" (click)="downloadFile(file)">{{file.filename}}</p>
-              </div>
-              <div class="col my-auto text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile(file)" *ngIf="checkStatus('DRAFT') || checkStatus('REFERRED')">Remove</button>
+            <div *ngIf="application?.attachedFiles?.length > 0; else noFiles">
+              <div class="row m-2 p-2 overflow-auto w-100" *ngFor="let file of application?.attachedFiles">
+                <div class="col">
+                  <img style="width: 40px; height: 50px;" src="/assets/images/file-icon.png">
+                </div>
+                <div class="col my-auto">
+                  <p class="hover-underline" (click)="downloadFile(file)">{{file.filename}}</p>
+                </div>
+                <div class="col my-auto text-center">
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile(file)" *ngIf="checkStatus('DRAFT') || checkStatus('REFERRED')">Remove</button>
+                </div>
               </div>
             </div>
+            <ng-template #noFiles>
+              <div class="text-center w-100">
+                There are no files attached to this application
+              </div>
+            </ng-template>
           </div>
         </div>
       </div>

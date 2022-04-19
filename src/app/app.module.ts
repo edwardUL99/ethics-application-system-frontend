@@ -85,6 +85,7 @@ import { AnswerRequestContextComponent } from './applications/view/answer-reques
 import { AnswerRequestService } from './applications/answer-request.service';
 import { RequestsListComponent } from './applications/view/answer-requests/requests-list/requests-list.component';
 import { RequestComponentAnswerComponent } from './applications/view/answer-requests/request-component-answer/request-component-answer.component';
+import { RequiredIndicatorComponent } from './applications/view/required-indicator/required-indicator.component';
 
 @NgModule({
   declarations: [
@@ -144,7 +145,8 @@ import { RequestComponentAnswerComponent } from './applications/view/answer-requ
     AnswerRequestComponent,
     AnswerRequestContextComponent,
     RequestsListComponent,
-    RequestComponentAnswerComponent
+    RequestComponentAnswerComponent,
+    RequiredIndicatorComponent
   ],
   imports: [
     BrowserModule,

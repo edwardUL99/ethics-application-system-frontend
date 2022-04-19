@@ -74,7 +74,7 @@ describe('ApplicationService', () => {
     service.getApplication({id: APPLICATION_ID}).subscribe(value => {
       expect(value).toBeTruthy();
       expect(value).toEqual(expectedResponse);
-      expect(httpGetSpy).toHaveBeenCalledWith(`/api/applications?id=${APPLICATION_ID}`);
+      expect(httpGetSpy).toHaveBeenCalledWith('/api/applications', {params: {id: APPLICATION_ID}});
       done();
     });
   });
@@ -89,7 +89,7 @@ describe('ApplicationService', () => {
     service.getApplication({dbId: 1}).subscribe(value => {
       expect(value).toBeTruthy();
       expect(value).toEqual(expectedResponse);
-      expect(httpGetSpy).toHaveBeenCalledWith('/api/applications?dbId=1');
+      expect(httpGetSpy).toHaveBeenCalledWith('/api/applications', {params: {dbId: 1}});
       done();
     });
   });
@@ -112,7 +112,7 @@ describe('ApplicationService', () => {
     service.getApplication({id: APPLICATION_ID}).subscribe({
       error: e => {
         expect(e).toEqual(ErrorMappings.insufficient_permissions);
-        expect(httpGetSpy).toHaveBeenCalledWith(`/api/applications?id=${APPLICATION_ID}`);
+        expect(httpGetSpy).toHaveBeenCalledWith('/api/applications', {params: {id: APPLICATION_ID}});
         done();
       }
     });

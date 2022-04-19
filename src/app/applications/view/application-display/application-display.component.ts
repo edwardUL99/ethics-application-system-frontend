@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserContext } from '../../../users/usercontext';
 import { ApplicationTemplateService } from '../../application-template.service';
@@ -13,7 +13,7 @@ import { environment } from '../../../../environments/environment';
 import { User } from '../../../users/user';
 import { catchError, map, Observable, of, retry, take} from 'rxjs';
 import { CanDeactivateComponent } from '../../../pending-changes/pendingchangesguard';
-import { ApplicationStatus } from '../../models/applications/applicationstatus';
+import { ApplicationStatus, StatusDescpriptions } from '../../models/applications/applicationstatus';
 import { Answer } from '../../models/applications/answer';
 import { AlertComponent } from '../../../alert/alert.component';
 import { CreateDraftApplicationRequest, CreateDraftApplicationResponse, UpdateDraftApplicationRequest, UpdateDraftApplicationResponse } from '../../models/requests/draftapplicationrequests';
@@ -149,6 +149,10 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
    * A callback to retry an action
    */
   actionRetryCallback: () => void;
+  /**
+   * The descriptions of the application statuses
+   */
+  readonly statusDescriptions = StatusDescpriptions;
 
   constructor(private applicationService: ApplicationService, 
     private templateService: ApplicationTemplateService,
@@ -158,24 +162,17 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     private authorizationService: AuthorizationService,
     private router: Router,
     private fb: FormBuilder,
-    private element: ElementRef,
     private cd: ChangeDetectorRef,
     private location: Location,
     private requestService: AnswerRequestService) {
     super();
 
     this.finalCommentForm = this.fb.group({
-      comment: fb.control('', [Validators.required])
-    });
-
-    this.element.nativeElement.addEventListener('click', () => {
-      // allow autosave once the user interacts with the window
-      this.applicationContext.disableAutosave = false;
+      comment: fb.control('')
     });
   }
 
   ngOnInit(): void {
-    this.applicationContext.disableAutosave = true;
     this.load();
   }
 
@@ -183,8 +180,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     this.viewInitialised = true;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
+  ngOnChanges(): void {
     if (this.viewInitialised && this.templateView) {
       this.templateView.viewingUser = this.viewingUser;
     }
@@ -243,6 +239,9 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
 
     this.application = application;
     this.applicationContext.setApplication(this.application);
+
+    this.freezeSaved = !(this.checkStatus('DRAFT') || this.checkStatus('REFERRED'));
+    this.saved = this.freezeSaved;
   }
 
   private generateApplication(context: ApplicationTemplateContext) {
@@ -280,19 +279,38 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
     }
   }
 
-  toggleFinalCommentForm(finalCommentApproval: boolean, explicit?: boolean) {
+  private toggleFinalDisplayed(finalCommentApproval: boolean, explicit?: boolean) {
     if (explicit != undefined) {
       this.finalCommentFormDisplayed = explicit;
     } else {
       this.finalCommentFormDisplayed = !this.finalCommentFormDisplayed;
     }
 
+    if (!explicit && finalCommentApproval != undefined && this.finalCommentFormApproval != undefined && this.finalCommentFormApproval != finalCommentApproval) {
+      this.finalCommentFormDisplayed = true;
+    }
+  }
+
+  toggleFinalCommentForm(finalCommentApproval: boolean, explicit?: boolean) {
+    this.toggleFinalDisplayed(finalCommentApproval, explicit);
+
+    const comment = this.finalCommentForm.get('comment');
+    comment.clearValidators();
+
     this.finalCommentFormApproval = finalCommentApproval;
+
+    if (finalCommentApproval) {
+      comment.clearValidators();
+    } else {
+      comment.addValidators(Validators.required);
+    }
+
+    comment.updateValueAndValidity();
   }
 
   ngOnDestroy(): void {
     RequestComponentAnswerComponent.reset();
-    ApplicationTemplateContext.getInstance().clear(); // TODO decide if this is necessary, but it maybe as container replacement may modify the template for the next createApplication
+    ApplicationTemplateContext.getInstance().clear();
   }
 
   formatDate(date: Date) {
@@ -403,14 +421,30 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   autoSave(source: AutosaveSource) {
-    if (!this.applicationContext.disableAutosave) {
-      const saveMessage = 'Section saved automatically';
+    const saveMessage = 'Section saved automatically';
 
-      const updateCallback = (response?: UpdateDraftApplicationResponse, error?: any) => {
+    const updateCallback = (response?: UpdateDraftApplicationResponse, error?: any) => {
+      if (response) {
+        this.application.lastUpdated = new Date(response.lastUpdated);
+        this.application.answers = mapAnswers(response.answers);
+        source.onAutoSave(saveMessage);
+        this.saved = true;
+      } else {
+        source.onAutoSave(error, true);
+      }
+
+      this.templateView.markAutosaved(source); // mark autosave as finished so future autosaves will work
+    }
+
+    // a section requested that it do be autosaved
+    if (this.application.status == ApplicationStatus.DRAFT) {
+      const createCallback = (response?: CreateDraftApplicationResponse, error?: any) => {
         if (response) {
-          this.application.lastUpdated = new Date(response.lastUpdated);
+          this.application.applicationId = response.id;
           this.application.answers = mapAnswers(response.answers);
+          this._populateApplication(response);
           source.onAutoSave(saveMessage);
+          this.reload();
           this.saved = true;
         } else {
           source.onAutoSave(error, true);
@@ -419,28 +453,16 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
         this.templateView.markAutosaved(source); // mark autosave as finished so future autosaves will work
       }
 
-      // a section requested that it do be autosaved
-      if (this.application.status == ApplicationStatus.DRAFT) {
-        const createCallback = (response?: CreateDraftApplicationResponse, error?: any) => {
-          if (response) {
-            this.application.applicationId = response.id;
-            this.application.answers = mapAnswers(response.answers);
-            this._populateApplication(response);
-            source.onAutoSave(saveMessage);
-            this.reload();
-            this.saved = true;
-          } else {
-            source.onAutoSave(error, true);
-          }
+      this.saveDraft(createCallback, updateCallback);
+      
+      return true;
+    } else if (this.application.status == ApplicationStatus.REFERRED) {
+      this.saveReferred(updateCallback);
 
-          this.templateView.markAutosaved(source); // mark autosave as finished so future autosaves will work
-        }
-
-        this.saveDraft(createCallback, updateCallback);
-      } else if (this.application.status == ApplicationStatus.REFERRED) {
-        this.saveReferred(updateCallback);
-      }
+      return true;
     }
+
+    return false;
   }
 
   private displaySaveAlert() {
@@ -568,26 +590,22 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   }
 
   private saveBeforeSubmit() {
-    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => {
+    const callback = (e?: any) => {
       if (!e) {
         this.saved = true;
-        this.submit(false);
+        this.submit(false, false);
       } else {
         this.saveErrorAlert.displayMessage(e, true)
       }
-    }, (r?: UpdateDraftApplicationResponse, e?: any) => {
-      if (!e) {
-        this.saved = true;
-        this.submit(false);
-      } else {
-        this.saveErrorAlert.displayMessage(e, true)
-      }
-    });
+    }
+
+    this.saveCallback((r?: CreateDraftApplicationResponse, e?: any) => callback(e), 
+      (r?: UpdateDraftApplicationResponse, e?: any) => callback(e));
   }
 
-  submit(confirmSubmission: boolean = true) {
+  submit(confirmSubmission: boolean = true, checkSaved: boolean = true) {
     if (!confirmSubmission || confirm('Are you sure you want to submit? Once submitted, you cannot change the application')) {
-      if (!this.saved) {
+      if (checkSaved && (environment.forceSaveBeforeSubmit || !this.saved)) {
         this.saveBeforeSubmit(); // save any unsaved answers before submitting
       } else {
         this.applicationService.submitApplication(new SubmitApplicationRequest(this.application.applicationId))
@@ -807,7 +825,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
   private getFinalComment(): Comment {
     const value = this.finalCommentForm.get('comment').value;
 
-    return new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
+    return (value == '') ? undefined : new Comment(undefined, this.viewingUser.user.username, value, undefined, [], new Date(), true);
   }
 
   private scrollUp() {
@@ -926,6 +944,7 @@ export class ApplicationDisplayComponent extends CanDeactivateComponent implemen
             const users = (usernames.length > 1) ? 'users':'user';
             this.saveAlert.displayMessage(`Answers requested from ${users} ${usernames.join(', ')} successfully`);
             requestedAnswers.clear();
+            this.templateView?.answerRequestSubmitted.emit(true);
             this.cd.detectChanges();
           },
           error: e => this.saveAlert.displayMessage(e, true)

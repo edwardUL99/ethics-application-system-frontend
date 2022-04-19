@@ -45,7 +45,7 @@ const routes: Routes = [
     createRoute('login-redirect', LogoutComponent),
     createRoute('register', RegistrationComponent),
     createRoute('user-redirect', UserRedirectComponent),
-    createRoute('needs-confirm', NeedsConfirmationComponent, undefined, [AuthGuard]),
+    createRoute('needs-confirm', NeedsConfirmationComponent, undefined),
     createRoute('confirm-account', EmailConfirmationComponent),
     createRoute('create-user', CreateUserComponent, undefined, [AuthGuard]),
     createRoute('application', ApplicationDisplayComponent, [PendingChangesGuard], [AuthGuard]),

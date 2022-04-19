@@ -48,9 +48,13 @@ export class ApplicationIDOrder extends BaseOrder {
   }
 
   protected doOrder(list: ApplicationResponse[]): ApplicationResponse[] {
+    return list.sort((a: ApplicationResponse, b: ApplicationResponse) => {
+      // ids are in format REC-1...REC-2, sort based on the sequence number, the number after - 
+      const id1 = parseInt(a.id.split('-')[1]);
+      const id2 = parseInt(b.id.split('-')[1]);
 
-    return list.sort((a: ApplicationResponse, b: ApplicationResponse) =>
-      (this.ascending) ? a.id.localeCompare(b.id) : b.id.localeCompare(a.id));
+      return (this.ascending) ? id1 - id2 : id2 - id1;
+    });
   }
 }
 

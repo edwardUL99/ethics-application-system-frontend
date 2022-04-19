@@ -1,9 +1,9 @@
 import { Component, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { Branch } from '../../../models/components/branch';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { Checkbox, CheckboxGroupComponent } from '../../../models/components/checkboxgroupcomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ActionBranchSource, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, ActionBranchSource } from '../application-view.component';
 import { ActionBranch, Actions } from '../../../models/components/actionbranch';
 import { ReplacementBranch } from '../../../models/components/replacementbranch';
 import { ApplicationTemplateContext } from '../../../applicationtemplatecontext';
@@ -19,7 +19,7 @@ import { ComponentDisplayContext } from '../displaycontext';
 /**
  * A type for mapping checkbox names to the checkbox
  */
- export type CheckboxMapping = {
+export type CheckboxMapping = {
   [key: string]: Checkbox
 };
 
@@ -101,10 +101,20 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
    */
   hideComments: boolean;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
+   * The checkbox group renders its answers on the same checkboxes used to give the answer, however they are not editable,
+   * therefore, edit() returns false. Usually, this means the answer won't be set if edit() is false. However, this being
+   * set to true will tell QuestionViewUtils to treat it otherwise
    */
-  state: QuestionComponentState;
+  readonly setAnswerOnNoEdit: boolean = true;
+  /**
+   * We want to display the checkbox group even if no answer is provided, since the empty group is better at signifying that
+   * no answer has been provided rather than outright not displaying it
+   */
+  readonly displayNoAnswer: boolean = true;
+  /**
+   * Validator for this component
+   */
+  private readonly validator = CheckboxGroupRequired();
 
   constructor() {}
 
@@ -123,10 +133,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   ngOnInit(): void {
-    this.checkboxGroupComponent = this.castComponent();
     this.addToForm();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -135,7 +142,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
-    const edit = this.edit();
+    this.checkboxGroupComponent = this.castComponent();
     const newCheckboxGroup = !this.checkboxGroup;
     this.checkboxGroup = (!newCheckboxGroup) ? this.checkboxGroup:new FormGroup({});
 
@@ -143,18 +150,25 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       this.checkboxGroupComponent.checkboxes.forEach(checkbox => {
         this.checkboxes[checkbox.identifier] = checkbox;
         this.selectedCheckboxes[checkbox.identifier] = false;
-        this.checkboxGroup.addControl(checkbox.identifier, new FormControl({value: '', disabled: !edit}));
+        this.checkboxGroup.addControl(checkbox.identifier, new FormControl(''));
       });
     }
 
+    const edit = this.edit();
+
     if (edit && !this.form.get(this.checkboxGroupComponent.componentId)) {
       if (this.checkboxGroupComponent.required) {
-        this.checkboxGroup.addValidators(CheckboxGroupRequired());
+        this.checkboxGroup.addValidators(this.validator);
       }
 
       this.form.addControl(this.checkboxGroupComponent.componentId, this.checkboxGroup);
       this.autosaveContext?.registerQuestion(this);
+    } else if (!edit) {
+      this.setDisabled(true);
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
@@ -165,6 +179,10 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.form.removeControl(this.checkboxGroupComponent.componentId);
     this.checkboxGroup = undefined;
     this.autosaveContext?.removeQuestion(this);
+  }
+
+  questionName(): string {
+    return this.checkboxGroupComponent.componentId;
   }
 
   /**
@@ -214,9 +232,12 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     this.emit(true);
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -267,7 +288,6 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
       for (let replacement of replacementBranch.replacements) {
         const replaced = templateContext.executeContainerReplacement(replacement.replace, replacement.target);
         this.context.loadNewContainer(replaced);
-        // TODO maybe here, add functionality to swap back the old container if the checkbox is unchecked again. may need a mapping to indicate a container was swapped out
       }
     } else {
       this.unselectCheckbox(checkbox);
@@ -313,8 +333,7 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     });
 
     this.checkboxGroup.markAsTouched();
-
-    this.emit(false);
+    this.emit(false, false);
   }
 
   value(): Answer {
@@ -325,7 +344,20 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
   }
 
   disableAutosave(): boolean {
-    return true; // TODO for now don't autosave. This may not work for file attachments but think about it
+    // disable autosave if the checkbox group is an actionable (branch) group and not just plain answer
+    if (this.castComponent().defaultBranch) {
+      return true;
+    }
+    
+    for (let key in this.checkboxes) {
+      const checkbox = this.checkboxes[key];
+
+      if (checkbox.branch) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   isVisible(): boolean {
@@ -357,5 +389,16 @@ export class CheckboxGroupViewComponent implements OnInit, QuestionViewComponent
     } else {
       this.checkboxGroup.enable();
     }
+  }
+
+  markRequired(): void {
+    if (!this.checkboxGroup?.hasValidator(this.validator)) {
+      this.checkboxGroup.addValidators(this.validator);
+      this.form.updateValueAndValidity();
+    }
+  }
+
+  requiredValidator(): ValidatorFn {
+    return CheckboxGroupRequired();
   }
 }

@@ -1,12 +1,12 @@
-<div class="mb-2">
+<div class="mb-2" #parent (window:resize)="resize()">
   <div *ngIf="!question?.edit(); else edit">
-    <div class="my-auto">
-      <h6>{{questionComponent?.title}}</h6>
-      <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
-      <label *ngIf="displayLabel()">{{question?.label}}</label>
-    </div>
-    <div>
-      <div class="border p-2 d-flex h-100" style="font-size: 18px;">
+    <div *ngIf="answer && question?.displayAnswer(); else noAnswer">
+      <div class="my-auto">
+        <h6>{{questionComponent?.title}}</h6>
+        <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
+        <label *ngIf="displayLabel()">{{question?.label}}</label>
+      </div>
+      <div class="answer-outline">
         <div *ngIf="isValueType('TEXT') || isValueType('NUMBER')">
           <p class="my-auto">{{answer?.value}}</p>
         </div>
@@ -15,17 +15,29 @@
             <li *ngFor="let option of splitAnswerOptions()">{{option}}</li>
           </ul>
         </div>
-        <div *ngIf="isValueType('IMAGE')" #imgContainer style="height: 100%; width: 100%">
-          <canvas #imgCanvas></canvas>
+        <div *ngIf="isValueType('IMAGE')" #imgContainer style="width: 100%;">
+          <canvas #imgCanvas [height]="canvasHeight" [width]="canvasWidth"></canvas>
+        </div>
+      </div>
+      <div *ngIf="answer?.user" class="d-inline">
+        <div class="text-end" style="color: gray">
+          <h6 class="d-inline">Answered By: </h6>
+          <p class="hover-underline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
         </div>
       </div>
     </div>
-    <div *ngIf="answer?.user" class="d-inline">
-      <div class="text-end" style="color: gray">
-        <h6 class="d-inline">Answered By: </h6>
-        <p class="hover-underline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
+    <ng-template #noAnswer>
+      <div *ngIf="displayPlaceholder">
+        <div class="my-auto">
+          <h6>{{questionComponent?.title}}</h6>
+          <div class="form-text render-new-lines">{{questionComponent?.description}}</div>
+          <label *ngIf="displayLabel()">{{question?.label}}</label>
+        </div>
+        <div class="answer-outline">
+          No answer provided
+        </div>
       </div>
-    </div>
+    </ng-template>
   </div>
   <ng-template #edit>
     <div *ngIf="answer?.user">
@@ -34,8 +46,19 @@
           <h6 class="d-inline">Answered By: </h6>
           <p class="hover-underline d-inline" (click)="navigateUser(answer?.user?.username)">{{answer?.user?.name}}</p>
         </div>
-        <div class="text-end" *ngIf="!editAllowed">
+        <div class="text-end" *ngIf="!editable">
           <button type="button" class="btn btn-link" (click)="allowEdit()">Edit</button>
+        </div>
+      </div>
+      <div *ngIf="confirmEditDisplayed">
+        <div>
+          <p style="color: gray">Confirm that you wish to edit the answer already provided</p>
+        </div>
+        <div class="d-inline">
+          <div class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="allowEdit(false)">Cancel</button>
+            <button type="button" class="btn btn-sm btn-primary margin-left-1" (click)="allowEdit(true)">Confirm</button>
+          </div>
         </div>
       </div>
     </div>

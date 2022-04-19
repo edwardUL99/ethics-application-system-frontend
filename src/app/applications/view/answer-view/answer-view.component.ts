@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Answer, ValueType } from '../../models/applications/answer';
 import { ApplicationStatus } from '../../models/applications/applicationstatus';
@@ -15,7 +15,7 @@ import { Renderers } from './renderers';
   templateUrl: './answer-view.component.html',
   styleUrls: ['./answer-view.component.css']
 })
-export class AnswerViewComponent implements OnInit, AfterViewInit {
+export class AnswerViewComponent implements OnChanges {
   /**
    * The answer to render
    */
@@ -35,7 +35,6 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   /**
    * The container containing the image
    */
-  @ViewChild('imgContainer')
   imgContainer: ElementRef;
   /**
    * The img canvas
@@ -43,38 +42,90 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   @ViewChild('imgCanvas')
   imgCanvas: ElementRef;
   /**
+   * The answer parent
+   */
+  @ViewChild('parent')
+  parent: ElementRef;
+  /**
+   * Width for the canvas
+   */
+  @Input() canvasWidth: number;
+  /**
+   * Height for the canvas height
+   */
+  canvasHeight: number;
+  /**
    * Determines if edit is allowed if the answer has been provided by someone else
    */
   editAllowed: boolean = true;
+  /**
+   * Determines if the question is editable
+   */
+  editable: boolean = true;
+  /**
+   * Confirm that you want to edit the already answered question
+   */
+  confirmEditDisplayed: boolean;
+  /**
+   * Only notify the autosave notifier once, so use this to record that its been notified
+   */
+  private autosaveNotified: boolean;
+  /**
+   * Determines if the answer has been rendered or not
+   */
+  private rendered: boolean;
+  /**
+   * Determines if answer placeholder should be displayed
+   */
+  displayPlaceholder: boolean;
 
   constructor(private router: Router) { }
 
-  ngOnInit(): void {
-    let rendererImpl = Renderers[this.renderer];
-
-    if (!rendererImpl) {
-      rendererImpl = Renderers['same'];
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.question) {
+      this.questionComponent = this.question.castComponent();
+      this.displayPlaceholder = this.question.context?.viewingUser?.reviewer || this.question?.displayAnswerPlaceholder 
+        || (this.question?.parent && this.question.parent?.displayAnswerPlaceholder)
     }
 
-    this.answer = rendererImpl.render(this.answer);
-    this.questionComponent = this.question.castComponent();
+    if (this.answer) {
+      this.rendered = !changes.answer;
 
-    if (this.answer.user && resolveStatus(this.question.application?.status) == ApplicationStatus.DRAFT) {
-      // disable so the user can't change the provided answer
-      this.question.setDisabled(true);
-      this.editAllowed = false;
-      this.question.autosaveContext?.notifyQuestionChange(
-        new QuestionChangeEvent(this.question.component.componentId, this.question, true)); // add to the list of autosaved questions
+      if (!this.rendered) {
+        let rendererImpl = Renderers[this.renderer];
+
+        if (!rendererImpl) {
+          rendererImpl = Renderers['same'];
+        }
+
+        this.answer = rendererImpl.render(this.answer);
+        this.rendered = true;
+      }
+
+      const status = resolveStatus(this.question.application?.status);
+
+      if (this.answer.user && (status == ApplicationStatus.DRAFT || status == ApplicationStatus.REFERRED)) {
+        // disable so the user can't change the provided answer
+        this.question.setDisabled(true);
+        this.editable = false;
+        this.editAllowed = this.question?.context?.allowAnswerEdit();
+
+        if (!this.autosaveNotified) {
+          this.question.autosaveContext?.notifyQuestionChange(
+            new QuestionChangeEvent(this.question.component.componentId, this.question, false)); // add to the list of autosaved questions
+          this.autosaveNotified = true;
+        }
+      }
     }
   }
 
-  ngAfterViewInit(): void {
-    if (this.answer.valueType == ValueType.IMAGE && this.imgCanvas) {
-      this.resize();
-
-      window.onresize = () => {
-        this.resize();   
-      }
+  @ViewChild('imgContainer')
+  set imageContainer(imgContainer: ElementRef) {
+    this.imgContainer = imgContainer;
+    
+    if (this.imgContainer) {
+      for (let i = 0; i < 5; i++)
+        this.resize(); // first few resizes doesn't get it to its normal position, so use this "hack" to attempt to position it correctly after 5 goes
     }
   }
 
@@ -85,25 +136,56 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
   private scaleAndDraw(image: any) {
     const canvas = this.imgCanvas.nativeElement;
     const ctx = canvas.getContext('2d');
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     const wrh = image.width / image.height;
     let newWidth = canvas.width;
+
     let newHeight = newWidth / wrh;
     
     if (newHeight > canvas.height) {
       newHeight = canvas.height;
       newWidth = newHeight * wrh;
     }
-    
+
     let xOffset = newWidth < canvas.width ? ((canvas.width - newWidth) / 2) : 0;
     let yOffset = newHeight < canvas.height ? ((canvas.height - newHeight) / 2) : 0;
 
     ctx.drawImage(image, xOffset, yOffset, newWidth, newHeight);
   }
 
+  private getMaxWidth() {
+    if (this.question?.parent && typeof(this.question?.parent?.maxWidth) === 'function') {
+      return this.question.parent.maxWidth();
+    }
+  }
+
   resize() {
-    this.imgCanvas.nativeElement.width = this.imgContainer.nativeElement.offsetWidth
-    this.imgCanvas.nativeElement.height = 100;   
-    this.drawImage();
+    if (this.imgContainer) {
+      let width = this.imgContainer.nativeElement.offsetWidth;
+      let height = this.imgContainer.nativeElement.offsetHeight;
+      height = Math.min(height, 50);
+
+      let max = this.getMaxWidth();
+
+      if (this.parent) {
+        const parentOffset = this.parent.nativeElement.offsetWidth;
+
+        if (max != -1 && width > max) {
+          width = max;
+        } else if (width > parentOffset) {
+          width = parentOffset;
+        }
+      }
+
+      this.canvasWidth = width;
+      this.canvasHeight = height;
+      this.imgCanvas.nativeElement.width = this.canvasWidth;
+      this.imgCanvas.nativeElement.height = this.canvasHeight;
+
+      this.drawImage();
+    }
   }
 
   drawImage() {
@@ -135,10 +217,15 @@ export class AnswerViewComponent implements OnInit, AfterViewInit {
     });
   }
 
-  allowEdit() {
-    if (confirm('Confirm that you want to change the provided answer?')) {
+  allowEdit(confirmed?: boolean) {
+    if (confirmed) {
       this.question.setDisabled(false);
       this.editAllowed = true;
+      this.editable = true;
+      this.confirmEditDisplayed = false;
+    } else {
+      this.confirmEditDisplayed = !this.confirmEditDisplayed;
+      this.editable = false;
     }
   }
 }

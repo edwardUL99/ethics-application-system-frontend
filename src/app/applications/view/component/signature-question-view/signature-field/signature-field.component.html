@@ -1,3 +1,3 @@
-<div [style]="(disabled) ? 'opacity: 50%; pointer-events: none;':''">
+<div [style]="(disabled) ? 'opacity: 50%; pointer-events: none;':''" #parent [appTooltip]="'Use your mouse to draw your signature here'">
   <signature-pad #pad [options]="options" (drawStart)="drawStart($event)" (drawEnd)="drawComplete()"></signature-pad>
 </div>

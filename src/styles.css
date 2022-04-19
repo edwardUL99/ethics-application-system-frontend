@@ -61,3 +61,11 @@ Spacing between questions
 .question-spacing {
 	margin-bottom: 1.5%;
 }
+
+/**
+Class for indicating a field requires input
+*/
+.required-indicator {
+	font-size: 16px;
+	margin-right: 0.5%;
+}

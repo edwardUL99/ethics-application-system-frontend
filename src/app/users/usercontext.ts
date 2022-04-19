@@ -12,9 +12,6 @@ const USERNAME = '_username';
  */
 const NAME = '_name';
 
-
-// TODO this may not be working right. Make two subsequent calls to getUser and make sure second call is the stored version
-
 /**
  * This class holds a currently loaded user
  */

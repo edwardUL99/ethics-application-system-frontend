@@ -4,7 +4,7 @@ import { Application } from '../../../models/applications/application';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component'
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
 import { ComponentViewRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -67,11 +67,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    */
   hideComments: boolean;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
-  /**
    * The notifier of autofill events
    */
   private autofillNotifier: AutofillNotifier;
@@ -95,12 +90,8 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
-
     this.addToForm();
     this.autofill();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -125,27 +116,38 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       if (!this.form.get(this.questionComponent.name)) {
         this.form.addControl(this.questionComponent.name, this.control);
       }
+
+      this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     this._addToForm();
-    this.autosaveContext?.registerQuestion(this);
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
     return this.component as TextQuestionComponent;
   }
 
-  emit(autosave: boolean): void {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -195,7 +197,7 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
 
     this.control.setValue(answer.value, {emitEvent: false});
     this.control.markAsTouched();
-    this.emit(false);
+    this.emit(false, false); // only emit to autosave context, not to answer change
   }
 
   value(): Answer {
@@ -224,6 +226,13 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
       this.control.disable();
     } else {
       this.control.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
+      this.form.updateValueAndValidity();
     }
   }
 }

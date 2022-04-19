@@ -18,6 +18,6 @@ export class SignatureQuestionConverter extends QuestionConverter {
         const componentMap = component as any;
 
         return new SignatureQuestionComponent(componentMap.databaseId, componentMap.title, componentMap.componentId, 
-            componentMap.description, componentMap.name, componentMap.label);
+            componentMap.description, componentMap.name, componentMap.label, componentMap.required);
     }
 }
