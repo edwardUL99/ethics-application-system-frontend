@@ -4,7 +4,7 @@ import { Application } from '../../../models/applications/application';
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { TextQuestionComponent } from '../../../models/components/textquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component'
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component'
 import { ComponentViewRegistration } from '../registered.components';
 import { Answer, ValueType } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
@@ -66,11 +66,6 @@ export class TextQuestionViewComponent implements OnInit, QuestionViewComponent 
    * manage the comments at a top-level rather than at the child question level
    */
   hideComments: boolean;
-  /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
   /**
    * The notifier of autofill events
    */
