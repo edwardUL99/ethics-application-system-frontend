@@ -38,3 +38,21 @@ export enum ApplicationStatus {
    */
   REJECTED = "Rejected"
 }
+
+/**
+ * A mapping of status to its description
+ */
+type StatusDescriptionMappings = {
+  [key in ApplicationStatus]?: string
+};
+
+export const StatusDescpriptions: StatusDescriptionMappings = {};
+
+StatusDescpriptions[ApplicationStatus.DRAFT] = 'The application is being edited by the applicant before submission';
+StatusDescpriptions[ApplicationStatus.SUBMITTED] = 'The application has been submitted to the ethics committee for review';
+StatusDescpriptions[ApplicationStatus.REVIEW] = 'The application is currently under review by the ethics committee';
+StatusDescpriptions[ApplicationStatus.REVIEWED] = 'The application has been reviewed by the ethics committee and is awaiting an outcome decision';
+StatusDescpriptions[ApplicationStatus.REFERRED] = 'The application has been referred back to the applicant for more information';
+StatusDescpriptions[ApplicationStatus.RESUBMITTED] = 'The application that was previously referred has been re-submitted to the ethics committee';
+StatusDescpriptions[ApplicationStatus.REJECTED] = 'The application has been rejected by the ethics committee';
+StatusDescpriptions[ApplicationStatus.APPROVED] = 'The application has been accepted by the ethics committee';

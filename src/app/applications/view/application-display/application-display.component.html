@@ -7,10 +7,11 @@
         <div class="card shadow p-2">
           <div class="d-inline text-end">
             <button type="button" class="btn btn-danger ml-2" *ngIf="isAdmin && !newApplication" (click)="deleteApplication(true)">Delete</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="assignedUsers.toggleDisplayed()"
-             [disabled]="assignedUsers.acceptReferredAssign && assignedUsers.displayed">Assigned Reviewers</button>
+            <button type="button" class="btn btn-primary ml-2" *ngIf="checkStatus('REVIEW') || checkStatus('REVIEWED')" (click)="assignedUsers?.toggleDisplayed()"
+             [disabled]="assignedUsers?.acceptReferredAssign && assignedUsers?.displayed">Assigned Reviewers</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="displayReviewButton() && (checkStatus('SUBMITTED') || checkStatus('REVIEW') || checkStatus('REVIEWED'))" (click)="markReviewed()">{{checkStatus('REVIEW') ? 'Finish Review':'Review'}}</button>
-            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="referApplication()">Refer to Applicant</button>
+            <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin checkStatus('REVIEWED')" (click)="referApplication()" 
+              [disabled]="application?.editableFields && application?.editableFields.length == 0">Refer to Applicant</button>
             <button type="button" class="btn btn-primary ml-2" *ngIf="isAdmin && checkStatus('RESUBMITTED')" (click)="acceptReferred()" [appTooltip]="'Re-assign the application to reviewers and move it to In Review'">Reassign</button>
             <button type="button" class="btn btn-danger ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(false)">Reject</button>
             <button type="button" class="btn btn-success ml-2" *ngIf="isAdmin && checkStatus('REVIEWED')" (click)="toggleFinalCommentForm(true)">Approve</button>
@@ -18,17 +19,17 @@
         </div>
       </div>
       <ng-template #notAdmin>
-        <div class="mt-5" *ngIf="(checkStatus('DRAFT') && !newApplication) || !checkStatus('DRAFT')">
+        <div class="mt-5" *ngIf="(checkStatus('DRAFT') && !newApplication) || (!checkStatus('DRAFT') && viewingUser?.reviewer)">
           <h4 style="color: white">Actions</h4>
           <div class="card shadow p-2">
             <div class="d-inline text-end">
               <button type="button" class="btn btn-danger" *ngIf="checkStatus('DRAFT') && !newApplication" (click)="deleteApplication(false)">Delete</button>
-              <button type="button" class="btn btn-primary ml-2" *ngIf="!checkStatus('DRAFT')" (click)="assignedUsers.toggleDisplayed()">Assigned Reviewers</button>
+              <button type="button" class="btn btn-primary ml-2" *ngIf="viewingUser?.reviewer && !checkStatus('DRAFT')" (click)="assignedUsers.toggleDisplayed()">Assigned Reviewers</button>
             </div>
           </div>
         </div>
       </ng-template>
-      <app-assigned-users [application]="application" [viewingUser]="viewingUser" #assignedUsers 
+      <app-assigned-users [application]="application" [viewingUser]="viewingUser" #assignedUsers *ngIf="viewingUser?.reviewer"
         (assignedUsers)="acceptAssignedUsers($event)" (unassigned)="memberUnassigned($event)"></app-assigned-users>
       <div class="card shadow p-2" *ngIf="isAdmin && checkStatus('REVIEWED') && finalCommentFormDisplayed">
         <form [formGroup]="finalCommentForm">
@@ -40,11 +41,11 @@
             <textarea name="comment" class="form-control" formControlName="comment" [value]="application?.finalComment"></textarea>
             <app-field-error [condition]="finalCommentForm.get('comment').errors?.['required'] && finalCommentForm.get('comment').touched" [error]="'Field is required'"></app-field-error>
             <div class="form-text">
-              Enter the final comment to leave on the aplication outlining the approval decision
+              Enter the final comment to leave on the aplication outlining the approval decision. {{(finalCommentFormApproval) ? 'Optional.' : 'Required.'}}
             </div>
           </div>
           <div class="text-end">
-            <button type="button" [ngClass]="(finalCommentFormApproval) ? 'btn btn-primary':'btn btn-danger'" 
+            <button type="button" [ngClass]="(finalCommentFormApproval) ? 'btn btn-success':'btn btn-danger'" 
               (click)="(finalCommentFormApproval) ? approveApplication():rejectApplication()" [disabled]="!finalCommentForm.valid">{{(finalCommentFormApproval) ? 'Approve':'Reject'}}</button>
           </div>
         </form>
@@ -62,7 +63,7 @@
         <div class="card-body">
           <div class="">
             <p class="application-text"><b>Applicant:</b><span class="hover-underline" (click)="navigateToUser(application?.user?.username)"> {{application?.user?.name}}</span></p>
-            <p class="application-text"><b>Application Status:</b> {{getStatus()}}</p>
+            <p class="application-text" *ngIf="getStatus() as status" [appTooltip]="statusDescriptions[status]"><b>Application Status:</b> {{status}}</p>
             <p class="application-text" *ngIf="isReferred()"><b>Referred By:</b> <span (click)="navigateToUser(application?.referredBy?.username)" class="hover-underline">
               {{application?.referredBy?.name}} </span>
             </p>

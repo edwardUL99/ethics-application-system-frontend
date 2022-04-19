@@ -113,6 +113,10 @@ export class AnswerRequestContextComponent extends AbstractComponentHost impleme
     return false; // this context is used to answer the request, not to create new ones
   }
 
+  allowAnswerEdit(): boolean {
+    return true;
+  }
+
   getRequestedAnswers(): RequestedAnswers {
     // no-op in this context
     return undefined;

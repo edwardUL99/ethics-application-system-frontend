@@ -3,7 +3,7 @@ import { FormControl, FormGroup, ValidatorFn, ValidationErrors } from '@angular/
 import { getResolver } from '../../../autofill/resolver';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SelectQuestionComponent } from '../../../models/components/selectquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
 import { Answer, ValueType } from '../../../models/applications/answer';
@@ -89,14 +89,13 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
    */
   @Input() context: ComponentDisplayContext;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
-   */
-  state: QuestionComponentState;
-  /**
    * The notifier of autofill events
    */
   private autofillNotifier: AutofillNotifier;
+  /**
+   * The validator for the control
+   */
+  private readonly validator = SelectValidator();
 
   constructor() {}
 
@@ -116,10 +115,8 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
     this.addToForm();
     this.autofill();
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -129,26 +126,34 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
 
-    if (this.edit() && !this.form.get(this.questionComponent.name)) {
-      const validator = SelectValidator();
-      if (this.questionComponent.required && !this.control.hasValidator(validator)) {
-        this.control.addValidators(validator);
-      }
-      
+    if (this.edit()) {
       if (!this.form.get(this.questionComponent.name)) {
-        this.form.addControl(this.questionComponent.name, this.control);
+        if (this.questionComponent.required && !this.control.hasValidator(this.validator)) {
+          this.control.addValidators(this.validator);
+        }
+        
+        if (!this.form.get(this.questionComponent.name)) {
+          this.form.addControl(this.questionComponent.name, this.control);
+        }
       }
 
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
@@ -159,9 +164,12 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     this.emit(true);
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -199,7 +207,7 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
     const options = answer.value.split(',');
     this.control.setValue(options, {emitEvent: false});
     this.control.markAsTouched();
-    this.emit(false);
+    this.emit(false, false);
   }
 
   display(): boolean {
@@ -244,6 +252,13 @@ export class SelectQuestionViewComponent implements OnInit, QuestionViewComponen
       this.control.disable();
     } else {
       this.control.enable();
+    }
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(this.validator)) {
+      this.control.addValidators(this.validator);
+      this.form.updateValueAndValidity();
     }
   }
 }

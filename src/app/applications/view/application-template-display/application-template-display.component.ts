@@ -18,6 +18,7 @@ import { AutofillNotifier } from '../../autofill/autofillnotifier';
 import { ComponentDisplayContext } from '../component/displaycontext';
 import { QuestionComponent } from '../../models/components/questioncomponent';
 import { RequestedAnswers } from '../answer-requests/requestedanswers';
+import { resolveStatus } from '../../models/requests/mapping/applicationmapper';
 
 /**
  * A type to determine if an autosave event has already been dispatched for the section
@@ -92,6 +93,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
    * Record if the section already has an autosave dispatched
    */
   private dispatchedAutosaves: AutosaveDispatched = {};
+  /**
+   * Notifies of when a requested answer request has been made
+   */
+  answerRequestSubmitted: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private cd: ChangeDetectorRef, private loader: DynamicComponentLoader) {
     super();
@@ -252,6 +257,10 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     return true;
   }
 
+  allowAnswerEdit(): boolean {
+    return !this.editsDisabled;
+  }
+
   onAnswerRequested(component: QuestionComponent, username: string, remove?: boolean): void {
     if (remove) {
       this.requestedAnswers.removeRequest(username, component);
@@ -280,5 +289,19 @@ export class ApplicationTemplateDisplayComponent extends AbstractComponentHost i
     } else {
       return false;
     }
+  }
+
+  getRequiredText() {
+    if (this.application.status) {
+      const status = resolveStatus(this.application.status);
+
+      if (status == ApplicationStatus.DRAFT) {
+        return 'Marks a required question';
+      } else if (status == ApplicationStatus.REFERRED) {
+        return 'Marks a question that requires additional input';
+      }
+    }
+
+    return undefined;
   }
 }

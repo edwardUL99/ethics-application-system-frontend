@@ -1,10 +1,10 @@
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { QuestionComponent } from '../../../models/components/questioncomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { QuestionTableComponent } from '../../../models/components/questiontablecomponent';
 import { AbstractComponentHost } from '../abstractcomponenthost';
-import { QuestionChange, QuestionChangeEvent, QuestionComponentState, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
+import { QuestionChange, QuestionChangeEvent, QuestionViewComponent, QuestionViewComponentShape, ViewComponentShape } from '../application-view.component';
 import { MatchedQuestionComponents, QuestionComponentHost } from '../component-host.directive';
 import { ComponentViewRegistration } from '../registered.components';
 import { DynamicComponentLoader } from '../dynamiccomponents';
@@ -13,6 +13,7 @@ import { Answer } from '../../../models/applications/answer';
 import { QuestionViewUtils } from '../questionviewutils';
 import { AutosaveContext } from '../autosave';
 import { ComponentDisplayContext } from '../displaycontext';
+import { resolveStatus } from '../../../models/requests/mapping/applicationmapper';
 
 /**
  * A mapping of question component IDs to the question components
@@ -105,10 +106,14 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
    */
   @Input() context: ComponentDisplayContext;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
+   * The underlying table element
    */
-  state: QuestionComponentState;
+  @ViewChild('table')
+  table: ElementRef;
+  /**
+   * Rather than displaying an empty cell on no answer, display the placeholder
+   */
+  readonly displayAnswerPlaceholder?: boolean = true;
 
   constructor(private readonly cd: ChangeDetectorRef,
     private loader: DynamicComponentLoader) { 
@@ -131,7 +136,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   ngOnInit(): void {
     this.group = new FormGroup({});
-    this.questionTable = this.castComponent();
     this.addToForm();
     
     for (let key of Object.keys(this.questionTable.cells.columns)) {
@@ -175,6 +179,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   loadComponents(): void {
+    const refs = [];
     const thisInstance = this; // capture the instance of this to pass into callback
 
     for (let key of Object.keys(this.questionsMapping)) {
@@ -197,19 +202,16 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
             context: this.context,
             hideComments: true // let the question table manage comments for all its cells, rather than the individual cells
           };
-          this.matchedComponents[key] = this.loadComponent(this.loader, key, this.context.autofillNotifier, data).instance as QuestionViewComponent;
+
+          const ref = this.loadComponent(this.loader, key, this.context.autofillNotifier, data, true);
+          refs.push(ref);
+          this.matchedComponents[key] = ref.instance as QuestionViewComponent;
         }
       }
     }
 
+    refs.forEach(ref => ref.changeDetectorRef.detectChanges());
     this.detectChanges();
-    this.propagateEmits(false);
-  }
-
-  private propagateEmits(autosave: boolean = true) {
-    for (let key of Object.keys(this.matchedComponents)) {
-      this.matchedComponents[key].emit(autosave);
-    }
   }
 
   detectChanges(): void {
@@ -222,13 +224,21 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   addToForm(): void {
+    this.questionTable = this.castComponent();
+
     if (!this.form.get(this.questionTable.componentId)) {
       this.form.addControl(this.questionTable.componentId, this.group);
     }
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionTable.componentId);
+    if (this.questionTable) {
+      this.form.removeControl(this.questionTable.componentId);
+    }
+  }
+
+  questionName(): string {
+    return this.questionTable.componentId;
   }
   
   castComponent() {
@@ -236,7 +246,7 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   propagateQuestionChange(questionChange: QuestionChange, e: QuestionChangeEvent) {
-    // TODO no-op for now, may be needed
+    // no-op
   }
 
   onInput(emitEvent: boolean = true) {    
@@ -245,8 +255,11 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
     }
   }
 
-  emit(autosave: boolean): void {
-    this.questionChange.emit(new QuestionChangeEvent(this.questionTable.componentId, this, autosave));
+  emit(autosave: boolean, emitChange: boolean = true): void {
+    const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
   }
 
   display(): boolean {
@@ -254,14 +267,6 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
   }
 
   edit(): boolean {
-    for (let key of Object.keys(this.matchedComponents)) {
-      const component = this.matchedComponents[key];
-
-      if (QuestionViewUtils.edit(component, false, this.context?.viewingUser)) {
-        return true;
-      }
-    }
-
     return false;
   }
 
@@ -303,5 +308,17 @@ export class QuestionTableViewComponent extends AbstractComponentHost implements
 
   setDisabled(disabled: boolean): void {
     Object.keys(this.matchedComponents).forEach(key => this.matchedComponents[key].setDisabled(disabled));
+  }
+
+  maxWidth(): number {
+    if (this.table) {
+      return this.table.nativeElement.offsetWidth / this.columnNames.length;
+    } else {
+      return -1;
+    }
+  }
+
+  markRequired(): void {
+    // no-op
   }
 }

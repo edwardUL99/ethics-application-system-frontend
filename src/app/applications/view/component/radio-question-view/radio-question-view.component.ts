@@ -3,7 +3,7 @@ import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn 
 import { Checkbox } from '../../../models/components/checkboxgroupcomponent';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { RadioQuestionComponent } from '../../../models/components/radioquestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { CheckboxMapping } from '../checkbox-group-view/checkbox-group-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { Application } from '../../../models/applications/application';
@@ -94,12 +94,13 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
    */
   disableRadios: boolean = false;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
+   * Validator for this component
    */
-  state: QuestionComponentState;
+  private readonly validator: ValidatorFn;
 
-  constructor() {}
+  constructor() {
+    this.validator = RadioValidator(this);
+  }
 
   initialise(data: ViewComponentShape): void {
     const questionData = data as QuestionViewComponentShape;
@@ -120,8 +121,6 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     this.questionComponent = this.castComponent();
     this.radioClass = (this.questionComponent.inline) ? 'form-check form-check-inline' : 'form-check';
     this.addToForm();
-
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
   }
 
   ngOnDestroy(): void {
@@ -138,7 +137,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
 
   private _addToForm(): void {
     if (this.questionComponent.required) {
-      this.radioGroup.addValidators(RadioValidator(this));
+      this.radioGroup.addValidators(this.validator);
     }
 
     if (!this.form.get(this.questionComponent.name)) {
@@ -147,6 +146,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
     const newRadioGroup = !this.radioGroup;
     this.radioGroup = (!newRadioGroup) ? this.radioGroup:new FormGroup({});
 
@@ -161,13 +161,19 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     if (this.edit()) {
       this._addToForm();
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
     }
+
+    QuestionViewUtils.setExistingAnswer(this);
   }
 
   removeFromForm(): void {
-    this.form.removeControl(this.questionComponent.name);
-    this.radioGroup = undefined;
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.form.removeControl(this.questionComponent.name);
+      this.radioGroup = undefined;
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   castComponent() {
@@ -182,9 +188,12 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     });
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -229,8 +238,7 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
       });
 
       this.radioGroup.markAsTouched();
-
-      this.emit(false);
+      this.emit(false, false);
     }
   }
 
@@ -258,5 +266,16 @@ export class RadioQuestionViewComponent implements OnInit, QuestionViewComponent
     }
 
     this.disableRadios = disabled;
+  }
+
+  markRequired(): void {
+    if (!this.radioGroup?.hasValidator(this.validator)) {
+      this.radioGroup.addValidators(this.validator);
+      this.form.updateValueAndValidity();
+    }
+  }
+
+  requiredValidator(): ValidatorFn {
+    return RadioValidator(this);
   }
 }

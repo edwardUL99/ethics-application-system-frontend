@@ -36,15 +36,6 @@ export class AbstractComponentHost {
   private initialiseInstance(componentRef: ComponentRef<ApplicationViewComponent>, data: ViewComponentShape) {
     componentRef.instance.initialise(data);
     componentRef.instance.setVisible(true);
-
-    if (componentRef.instance.component instanceof QuestionComponent) {
-      const questionInstance = componentRef.instance as QuestionViewComponent;
-      questionInstance.state = {
-        edit: questionInstance.edit(),
-        display: questionInstance.display(),
-        displayAnswer: questionInstance.displayAnswer()
-      };
-    }
   }
 
   /**

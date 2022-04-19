@@ -39,6 +39,10 @@ export interface GetOptions {
    * The database ID of the application
    */
   dbId?: number;
+  /**
+   * Determines if an application is being retrieved in an AnswerRequest context
+   */
+  answerRequest?: boolean;
 }
 
 /**
@@ -62,14 +66,26 @@ export class ApplicationService {
     } else if (!options.id && !options.dbId) {
       throw new Error('You must provide one of id or dbId');
     }
-
-    const url = (options.id) ? `/api/applications?id=${options.id}` : `/api/applications?dbId=${options.dbId}`;
     
-    return this.http.get<ApplicationResponse>(url)
-      .pipe(
-        retry(3),
-        catchError(this.handleError)
-      );
+    const queryParams = {};
+
+    if (options.id) {
+      queryParams['id'] = options.id;
+    } else if (options.dbId) {
+      queryParams['dbId'] = options.dbId;
+    }
+
+    if (options.answerRequest) {
+      queryParams['answerRequest'] = true;
+    }
+
+    return this.http.get<ApplicationResponse>('/api/applications', {
+      params: queryParams
+    })
+    .pipe(
+      retry(3),
+      catchError(this.handleError)
+    );
   }
 
   /**

@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { Application } from '../../../models/applications/application';
 import { ApplicationComponent, ComponentType } from '../../../models/components/applicationcomponent';
 import { SignatureQuestionComponent } from '../../../models/components/signaturequestioncomponent';
-import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape, QuestionComponentState } from '../application-view.component';
+import { QuestionChange, QuestionViewComponent, QuestionViewComponentShape, QuestionChangeEvent, ViewComponentShape } from '../application-view.component';
 import { ComponentViewRegistration } from '../registered.components';
 import { SignatureFieldComponent } from './signature-field/signature-field.component';
 import { Answer, ValueType } from '../../../models/applications/answer';
@@ -87,10 +87,13 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
    */
   disabled: boolean;
   /**
-   * State snapshot for the question component for the templates to query rather than calling the 3 related edit, display and displayAnswer
-   * methods every time the template is rendered
+   * A width override
    */
-  state: QuestionComponentState;
+  definedWidth: number;
+  /**
+   * Determines if the view has been initialised
+   */
+  private viewInitialised: boolean;
 
   constructor() {}
 
@@ -110,16 +113,17 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   ngOnInit(): void {
-    this.questionComponent = this.castComponent();
     this.addToForm();
   }
 
   ngAfterViewInit(): void {
-    QuestionViewUtils.setExistingAnswer(this, this.context?.viewingUser);
+    QuestionViewUtils.setExistingAnswer(this);
 
     if (this.signatureFieldComponent) {
       this.resizeSignature();
     }
+
+    this.viewInitialised = true;
   }
 
   ngOnDestroy(): void {
@@ -128,9 +132,7 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   private _addToForm() {
-    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable}, Validators.required);
-    
-    if (!this.control.hasValidator(Validators.required)) {
+    if (this.questionComponent.required && !this.control.hasValidator(Validators.required)) {
       this.control.addValidators(Validators.required);
     }
 
@@ -142,16 +144,27 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   addToForm(): void {
+    this.questionComponent = this.castComponent();
+    this.control = (this.control) ? this.control:new FormControl({value: '', disabled: !this.questionComponent.editable});
+
     if (this.edit()) {
       this._addToForm();
       this.autosaveContext?.registerQuestion(this);
+    } else {
+      this.autosaveContext?.removeQuestion(this);
+    }
+
+    if (this.viewInitialised) {
+      QuestionViewUtils.setExistingAnswer(this);
     }
   }
 
   removeFromForm(): void {
-    this.control = undefined;
-    this.form.removeControl(this.questionComponent.name);
-    this.autosaveContext?.removeQuestion(this);
+    if (this.questionComponent) {
+      this.control = undefined;
+      this.form.removeControl(this.questionComponent.name);
+      this.autosaveContext?.removeQuestion(this);
+    }
   }
 
   sizeChange() {
@@ -160,21 +173,35 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     }
   }
 
+  private getMaxParentWidth() {
+    if (this.parent && typeof(this.parent.maxWidth) === 'function') {
+      return this.parent.maxWidth();
+    } else {
+      return -1;
+    }
+  }
+
   private resizeSignature() {
-    // TODO this doesn't work that well in table questions. Fix
-    this.signatureFieldComponent.signaturePad.set('canvasWidth', this.signatureContainer.nativeElement.offsetWidth);
-    this.signatureFieldComponent.signaturePad.set('canvasHeight', 100);
-    //this.signatureFieldComponent.signaturePad.set('backgroundColor', 'rgb(255, 255, 255)');
-    this.signatureFieldComponent.signaturePad.clear();
-    
-    if (this.signature) {
-      this.signatureFieldComponent.signaturePad.redrawCanvas();
-      this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
+    if (this.signatureContainer && this.signatureFieldComponent) {
+      let offsetWidth = this.signatureContainer.nativeElement.offsetWidth;
+      let maxWidth = this.getMaxParentWidth();
+      let size: number;
+
+      if (maxWidth == -1) {
+        size = offsetWidth;
+        maxWidth = undefined;
+      } else {
+        maxWidth += (maxWidth * 0.35);
+        size = maxWidth;
+      }
+
+      this.signatureFieldComponent.resize(size, 100, maxWidth);
     }
   }
 
   clear() {
     this.signatureFieldComponent.clear();
+    this.control.setValue('', {emitEvent: false});
     this.signatureEntered('');
   }
 
@@ -182,9 +209,12 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     return this.component as SignatureQuestionComponent;
   }
 
-  emit(autosave: boolean) {
+  emit(autosave: boolean, emitChange: boolean = true): void {
     const e = new QuestionChangeEvent(this.component.componentId, this, autosave);
-    this.questionChange.emit(e);
+    
+    if (emitChange)
+      this.questionChange.emit(e);
+
     this.autosaveContext?.notifyQuestionChange(e);
   }
 
@@ -206,19 +236,15 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   }
 
   setFromAnswer(answer: Answer): void {
-    // TODO this isn't working, answer doesn't get set. check if its even being saved in the first place
-
     if (answer.valueType != ValueType.IMAGE) {
       throw new Error('Invalid answer type for signature question');
     }
 
     this.signature = answer.value;
-    //this.signatureFieldComponent.signaturePad.fromDataURL(this.signature);
     this.resizeSignature();
     this.control.setValue(this.signature, {emitEvent: false});
     this.control.markAsTouched();
-
-    this.emit(false);
+    this.emit(false, false);
   }
 
   value(): Answer {
@@ -232,9 +258,10 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
   paste() {
     if (copiedSignature) {
       this.resizeSignature();
-      this.signatureFieldComponent.signaturePad.fromDataURL(copiedSignature);
+      this.control.setValue(copiedSignature);
       this.signature = copiedSignature;
-      delete this.control.errors['required'];
+      delete this.control.errors?.['required'];
+      this.emit(true);
     }
   }
 
@@ -254,9 +281,21 @@ export class SignatureQuestionViewComponent implements OnInit, QuestionViewCompo
     this.disabled = disabled;
 
     if (disabled) {
+      this.form
       this.control.disable();
     } else {
       this.control.enable();
+    }
+  }
+
+  defineWidth(width: number) {
+    this.definedWidth = width;
+  }
+
+  markRequired(): void {
+    if (!this.control?.hasValidator(Validators.required)) {
+      this.control.addValidators(Validators.required);
+      this.form.updateValueAndValidity();
     }
   }
 }

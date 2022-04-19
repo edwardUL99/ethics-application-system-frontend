@@ -10,6 +10,9 @@
       <div class="mb-2">
         <p><b>Version:</b> {{template?.version}}</p>
       </div>
+      <div *ngIf="viewingUser?.applicant && getRequiredText() as requiredText" class="text-end required-indicator">
+        <p><span style="color: red;">*</span> {{requiredText}}</p>
+      </div>
     </div>
     <div [id]="template?.id + '-components'">
       <form [formGroup]="form">

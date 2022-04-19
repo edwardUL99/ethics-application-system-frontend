@@ -1,4 +1,4 @@
-import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, forwardRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges, ElementRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { SignaturePadComponent } from '@almothafar/angular-signature-pad';
 
@@ -43,6 +43,15 @@ export class SignatureFieldComponent implements ControlValueAccessor, AfterViewI
    * The function to register changes
    */
   propagateChange: Function = null;
+  /**
+   * The parent DIV
+   */
+  @ViewChild('parent')
+  parent: ElementRef;
+  /**
+   * Notifies the parent of width changes
+   */
+  @Output() widthChanges: EventEmitter<number> = new EventEmitter<number>();
 
   ngOnChanges() {
     if (this.signaturePad) {
@@ -94,5 +103,41 @@ export class SignatureFieldComponent implements ControlValueAccessor, AfterViewI
   clear() {
     this.signaturePad.clear();
     this.signature = '';
+  }
+
+  private calculateParentWidth(width: number, maxWidth: number) {
+    const offsetWidth = this.parent.nativeElement.offsetWidth;
+    let fillWidth: number; 
+
+    if (offsetWidth > width && (!maxWidth || offsetWidth < maxWidth)) {
+      fillWidth = offsetWidth;
+    } else if (offsetWidth >= maxWidth) {
+      this.widthChanges.emit(maxWidth);
+    } else {
+      this.widthChanges.emit(fillWidth);
+    }
+
+    const parentWidth = this.parent.nativeElement.parentElement.offsetWidth;
+
+    if (parentWidth < fillWidth) {
+      fillWidth = parentWidth;
+      this.widthChanges.emit(fillWidth);
+    }
+
+    return (fillWidth) ? fillWidth : width;
+  }
+
+  resize(width: number, height: number, maxWidth?: number) {
+    const fillWidth = (this.parent) ? this.calculateParentWidth(width, maxWidth) : width;
+
+    this.signaturePad.set('canvasWidth', fillWidth);
+    this.signaturePad.set('canvasHeight', height);
+    this.signaturePad.set('dotSize', 1);
+    this.signaturePad.clear();
+    
+    if (this.signature) {
+      this.signaturePad.redrawCanvas();
+      this.signaturePad.fromDataURL(this.signature);
+    }
   }
 }

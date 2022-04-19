@@ -100,7 +100,7 @@ export function EmailUsernameValidator(): ValidatorFn {
           return null;
         }
       }
-
+      
       return {required: true};
     }
   }
